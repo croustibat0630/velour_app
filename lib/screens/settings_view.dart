@@ -1,0 +1,594 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../services/audio_handler.dart';
+import '../services/app_settings.dart';
+import '../services/haptics_handler.dart';
+import '../providers/game_state.dart';
+import '../utils/responsive.dart';
+import '../widgets/ui/dark_matte_overlay.dart';
+import '../widgets/ui/universal_back_button.dart';
+
+class SettingsView extends StatelessWidget {
+  const SettingsView({super.key});
+
+  static const Color _gold = Color(0xFFFFD700);
+  static const Color _panel = Color(0xFF0A0C12);
+
+  @override
+  Widget build(BuildContext context) {
+    final double sH = Responsive.heightScale(context);
+    final double sT = Responsive.textScale(context);
+    final Color accent = _gold;
+    return Scaffold(
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          const Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: RadialGradient(
+                  center: Alignment(0, 0.10),
+                  radius: 1.2,
+                  colors: [Color(0xFF0B1020), Color(0xFF000000)],
+                ),
+              ),
+            ),
+          ),
+          const Positioned.fill(child: DarkMatteOverlay()),
+          SafeArea(
+            child: Stack(
+              children: [
+                const Positioned(
+                  top: 6,
+                  left: 6,
+                  child: UniversalBackButton(),
+                ),
+                Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 560),
+                    child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      padding: EdgeInsets.fromLTRB(
+                        18,
+                        (14 * sH).clamp(12.0, 20.0),
+                        18,
+                        (18 * sH).clamp(14.0, 22.0),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            'PARAMÈTRES',
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  letterSpacing: 6,
+                                  fontWeight: FontWeight.w600,
+                                  color: accent.withValues(alpha: 0.95),
+                                  fontSize: (16 * sT).clamp(14.0, 19.0),
+                                ),
+                          ),
+                          SizedBox(height: (18 * sH).clamp(14.0, 22.0)),
+                          _SectionCard(
+                            title: 'AUDIO',
+                            accent: accent,
+                            children: [
+                              ValueListenableBuilder<bool>(
+                                valueListenable: AudioHandler.instance.muted,
+                                builder: (context, musicMuted, _) {
+                                  return _SettingsSwitchTile(
+                                    icon: Icons.volume_up_rounded,
+                                    title: 'Musique',
+                                    subtitle: musicMuted
+                                        ? 'Désactivée'
+                                        : 'Activée',
+                                    value: !musicMuted,
+                                    accent: accent,
+                                    onChanged: (v) =>
+                                        AppSettings.instance.setMusicMuted(!v),
+                                  );
+                                },
+                              ),
+                              const _TileDivider(),
+                              ValueListenableBuilder<bool>(
+                                valueListenable: AudioHandler.instance.sfxMuted,
+                                builder: (context, sfxMuted, _) {
+                                  return _SettingsSwitchTile(
+                                    icon: Icons.surround_sound_rounded,
+                                    title: 'Effets sonores',
+                                    subtitle: sfxMuted
+                                        ? 'Désactivés'
+                                        : 'Activés',
+                                    value: !sfxMuted,
+                                    accent: accent,
+                                    onChanged: (v) =>
+                                        AppSettings.instance.setSfxMuted(!v),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 14 * sH),
+                          _SectionCard(
+                            title: 'SENSATIONS',
+                            accent: accent,
+                            children: [
+                              ValueListenableBuilder<bool>(
+                                valueListenable: HapticsHandler.instance.enabled,
+                                builder: (context, enabled, _) {
+                                  return _SettingsSwitchTile(
+                                    icon: Icons.vibration_rounded,
+                                    title: 'Haptic Feedback',
+                                    subtitle: enabled
+                                        ? 'Actif (premium)'
+                                        : 'Désactivé',
+                                    value: enabled,
+                                    accent: accent,
+                                    onChanged: (v) =>
+                                        AppSettings.instance.setHapticsEnabled(v),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 14 * sH),
+                          _SectionCard(
+                            title: 'LANGUE',
+                            accent: accent,
+                            children: [
+                              ValueListenableBuilder<AppLanguage>(
+                                valueListenable: AppSettings.instance.language,
+                                builder: (context, lang, _) {
+                                  return _LanguageTile(
+                                    icon: Icons.language_rounded,
+                                    accent: accent,
+                                    value: lang,
+                                    onChanged: (v) {
+                                      if (v == null) return;
+                                      AppSettings.instance.setLanguage(v);
+                                    },
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 14 * sH),
+                          _SectionCard(
+                            title: 'INFOS',
+                            accent: accent,
+                            children: [
+                              _InfoTile(
+                                icon: Icons.info_outline_rounded,
+                                title: 'Version',
+                                value: '1.0.0',
+                                accent: accent,
+                              ),
+                              const _TileDivider(),
+                              _ActionTile(
+                                icon: Icons.auto_awesome_rounded,
+                                title: 'Crédits',
+                                subtitle: 'Voir les contributeurs',
+                                accent: accent,
+                                onTap: () => _showCredits(context, accent),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 14 * sH),
+                          _SectionCard(
+                            title: 'DEBUG',
+                            accent: const Color(0xFFFF4D4D),
+                            children: [
+                              _ActionTile(
+                                icon: Icons.warning_amber_rounded,
+                                title: 'RÉINITIALISER TOUT',
+                                subtitle:
+                                    'Efface le jeu (prefs) + relance le tutoriel',
+                                accent: const Color(0xFFFF4D4D),
+                                onTap: () {
+                                  unawaited(() async {
+                                    await context.read<GameState>().fullHardReset();
+                                    if (!context.mounted) return;
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'Jeu réinitialisé. Relancez pour voir le tutoriel.',
+                                        ),
+                                      ),
+                                    );
+                                  }());
+                                },
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: (10 * sH).clamp(8.0, 16.0)),
+                          Text(
+                            'Dark Matte • Velour Accent',
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                  letterSpacing: 2.0,
+                                  color: Colors.white.withValues(alpha: 0.30),
+                                  fontSize: (10 * sT).clamp(9.0, 12.0),
+                                ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showCredits(BuildContext context, Color accent) {
+    showDialog<void>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: _panel.withValues(alpha: 0.96),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          title: Text(
+            'CRÉDITS',
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  letterSpacing: 4,
+                  fontWeight: FontWeight.w700,
+                  color: accent.withValues(alpha: 0.92),
+                ),
+          ),
+          content: Text(
+            'Velour — Dark Matte Edition\n\n'
+            'Design & Direction: Velour Studio\n'
+            'Engineering: Flutter\n'
+            'Audio: Velour SFX Pack\n',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  height: 1.35,
+                  color: Colors.white.withValues(alpha: 0.72),
+                ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'FERMER',
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      letterSpacing: 3,
+                      color: Colors.white.withValues(alpha: 0.70),
+                    ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _SectionCard extends StatelessWidget {
+  const _SectionCard({
+    required this.title,
+    required this.accent,
+    required this.children,
+  });
+
+  final String title;
+  final Color accent;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    final double sH = Responsive.heightScale(context);
+    final double sT = Responsive.textScale(context);
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF0A0C12).withValues(alpha: 0.86),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+      ),
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(
+          (12 * sH).clamp(10.0, 16.0),
+          (12 * sH).clamp(10.0, 16.0),
+          (12 * sH).clamp(10.0, 16.0),
+          (10 * sH).clamp(8.0, 14.0),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              title,
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    letterSpacing: 4.2,
+                    fontWeight: FontWeight.w700,
+                    fontSize: (11 * sT).clamp(10.0, 13.0),
+                    color: accent.withValues(alpha: 0.82),
+                  ),
+            ),
+            SizedBox(height: (10 * sH).clamp(8.0, 14.0)),
+            ...children,
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TileDivider extends StatelessWidget {
+  const _TileDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Divider(
+        height: 1,
+        thickness: 1,
+        color: Colors.white.withValues(alpha: 0.06),
+      ),
+    );
+  }
+}
+
+class _SettingsSwitchTile extends StatelessWidget {
+  const _SettingsSwitchTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.value,
+    required this.onChanged,
+    required this.accent,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+  final Color accent;
+
+  @override
+  Widget build(BuildContext context) {
+    final double sT = Responsive.textScale(context);
+    return Row(
+      children: [
+        _TileIcon(icon: icon, accent: accent),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 1.2,
+                      fontSize: (14 * sT).clamp(12.0, 16.0),
+                      color: Colors.white.withValues(alpha: 0.78),
+                    ),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                subtitle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      letterSpacing: 0.6,
+                      fontSize: (12 * sT).clamp(11.0, 14.0),
+                      color: Colors.white.withValues(alpha: 0.42),
+                    ),
+              ),
+            ],
+          ),
+        ),
+        Switch(
+          value: value,
+          onChanged: onChanged,
+          activeThumbColor: accent,
+          activeTrackColor: accent.withValues(alpha: 0.35),
+          inactiveThumbColor: Colors.white.withValues(alpha: 0.28),
+          inactiveTrackColor: Colors.white.withValues(alpha: 0.10),
+        ),
+      ],
+    );
+  }
+}
+
+class _LanguageTile extends StatelessWidget {
+  const _LanguageTile({
+    required this.icon,
+    required this.accent,
+    required this.value,
+    required this.onChanged,
+  });
+
+  final IconData icon;
+  final Color accent;
+  final AppLanguage value;
+  final ValueChanged<AppLanguage?> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final double sT = Responsive.textScale(context);
+    return Row(
+      children: [
+        _TileIcon(icon: icon, accent: accent),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            'Langue',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 1.2,
+                  fontSize: (14 * sT).clamp(12.0, 16.0),
+                  color: Colors.white.withValues(alpha: 0.78),
+                ),
+          ),
+        ),
+        DropdownButtonHideUnderline(
+          child: DropdownButton<AppLanguage>(
+            value: value,
+            onChanged: onChanged,
+            dropdownColor: const Color(0xFF0A0C12),
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Colors.white.withValues(alpha: 0.78),
+                  letterSpacing: 1.0,
+                ),
+            items: const [
+              DropdownMenuItem(
+                value: AppLanguage.fr,
+                child: Text('Français'),
+              ),
+              DropdownMenuItem(
+                value: AppLanguage.en,
+                child: Text('English'),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _InfoTile extends StatelessWidget {
+  const _InfoTile({
+    required this.icon,
+    required this.title,
+    required this.value,
+    required this.accent,
+  });
+
+  final IconData icon;
+  final String title;
+  final String value;
+  final Color accent;
+
+  @override
+  Widget build(BuildContext context) {
+    final double sT = Responsive.textScale(context);
+    return Row(
+      children: [
+        _TileIcon(icon: icon, accent: accent),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            title,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 1.2,
+                  fontSize: (14 * sT).clamp(12.0, 16.0),
+                  color: Colors.white.withValues(alpha: 0.78),
+                ),
+          ),
+        ),
+        Text(
+          value,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                letterSpacing: 1.6,
+                fontSize: (12 * sT).clamp(11.0, 14.0),
+                color: Colors.white.withValues(alpha: 0.48),
+              ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ActionTile extends StatelessWidget {
+  const _ActionTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.accent,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Color accent;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final double sT = Responsive.textScale(context);
+    return InkWell(
+      borderRadius: BorderRadius.circular(12),
+      onTap: () {
+        AudioHandler.instance.playMenuClick();
+        onTap();
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: Row(
+          children: [
+            _TileIcon(icon: icon, accent: accent),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 1.2,
+                          fontSize: (14 * sT).clamp(12.0, 16.0),
+                          color: Colors.white.withValues(alpha: 0.78),
+                        ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    subtitle,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          letterSpacing: 0.6,
+                          fontSize: (12 * sT).clamp(11.0, 14.0),
+                          color: Colors.white.withValues(alpha: 0.42),
+                        ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.chevron_right_rounded,
+              size: 18,
+              color: Colors.white.withValues(alpha: 0.35),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TileIcon extends StatelessWidget {
+  const _TileIcon({required this.icon, required this.accent});
+
+  final IconData icon;
+  final Color accent;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 34,
+      height: 34,
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.35),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+      ),
+      child: Icon(
+        icon,
+        size: 18,
+        color: accent.withValues(alpha: 0.82),
+      ),
+    );
+  }
+}
+

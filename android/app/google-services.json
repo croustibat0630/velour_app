@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "822433624910",
+    "project_id": "velour-6690f",
+    "storage_bucket": "velour-6690f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:822433624910:android:22253e7b4659a0cef7a41f",
+        "android_client_info": {
+          "package_name": "com.example.velour_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAxmksPFPkpCzAQiHlaYCZkpPE5-6nHyC4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

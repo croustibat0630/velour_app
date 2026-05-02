@@ -1,0 +1,434 @@
+import 'package:flutter/material.dart';
+
+import '../services/stats_service.dart';
+import '../utils/responsive.dart';
+import '../widgets/ui/dark_matte_overlay.dart';
+import '../widgets/ui/universal_back_button.dart';
+
+class StatsView extends StatefulWidget {
+  const StatsView({super.key});
+
+  @override
+  State<StatsView> createState() => _StatsViewState();
+}
+
+class _StatsViewState extends State<StatsView> {
+  static const Color _gold = Color(0xFFFFD700);
+
+  late CareerStats _stats;
+
+  @override
+  void initState() {
+    super.initState();
+    _stats = StatsService.instance.snapshot();
+    // Refresh once in case prefs were loaded async.
+    StatsService.instance.load().then((_) {
+      if (!mounted) return;
+      setState(() => _stats = StatsService.instance.snapshot());
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final double sH = Responsive.heightScale(context);
+    final double sT = Responsive.textScale(context);
+
+    final double accuracy =
+        (_stats.shapesPlaced <= 0) ? 0 : (_stats.totalMatchesPlayed / _stats.shapesPlaced).clamp(0.0, 1.0);
+
+    return Scaffold(
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          const Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: RadialGradient(
+                  center: Alignment(0, 0.10),
+                  radius: 1.2,
+                  colors: [Color(0xFF0B1020), Color(0xFF000000)],
+                ),
+              ),
+            ),
+          ),
+          const Positioned.fill(child: DarkMatteOverlay()),
+          SafeArea(
+            child: Stack(
+              children: [
+                const Positioned(top: 6, left: 6, child: UniversalBackButton()),
+                Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 760),
+                    child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      padding: EdgeInsets.fromLTRB(
+                        18,
+                        (14 * sH).clamp(12.0, 20.0),
+                        18,
+                        (18 * sH).clamp(14.0, 22.0),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            'MA CARRIÈRE',
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  letterSpacing: 6,
+                                  fontWeight: FontWeight.w600,
+                                  color: _gold.withValues(alpha: 0.95),
+                                  fontSize: (16 * sT).clamp(14.0, 19.0),
+                                ),
+                          ),
+                          SizedBox(height: (18 * sH).clamp(14.0, 22.0)),
+                          if (_stats.streakDays > 0) ...[
+                            Text(
+                              _stats.streakDays == 1
+                                  ? 'SÉRIE : 1 JOUR AVEC PARTIE'
+                                  : 'SÉRIE : ${_stats.streakDays} JOURS AVEC PARTIE',
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                                    letterSpacing: 2.8,
+                                    fontWeight: FontWeight.w700,
+                                    color: _gold.withValues(alpha: 0.78),
+                                    fontSize: (11 * sT).clamp(10.0, 13.0),
+                                  ),
+                            ),
+                            SizedBox(height: (12 * sH).clamp(10.0, 16.0)),
+                          ],
+                          LayoutBuilder(
+                            builder: (context, c) {
+                              final int cols = c.maxWidth >= 620 ? 3 : 2;
+                              return GridView.count(
+                                crossAxisCount: cols,
+                                mainAxisSpacing: 12,
+                                crossAxisSpacing: 12,
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                childAspectRatio: cols >= 3 ? 1.32 : 1.02,
+                                children: [
+                                  _StatCard(
+                                    title: 'LUX GAGNÉS',
+                                    value: '${_stats.totalLuxEarned}',
+                                    accent: _gold,
+                                    icon: Icons.brightness_1,
+                                  ),
+                                  _StatCard(
+                                    title: 'MEILLEUR GAIN',
+                                    value: '${_stats.highStakeWin}',
+                                    accent: _gold,
+                                    icon: Icons.auto_awesome_rounded,
+                                  ),
+                                  _StatCard(
+                                    title: 'NIVEAU MAX',
+                                    value: '${_stats.bestLevelReached}',
+                                    accent: _gold,
+                                    icon: Icons.trending_up_rounded,
+                                  ),
+                                  _StatCard(
+                                    title: 'FORMES POSÉES',
+                                    value: '${_stats.shapesPlaced}',
+                                    accent: _gold,
+                                    icon: Icons.category_rounded,
+                                  ),
+                                  _StatCard(
+                                    title: 'MATCHES',
+                                    value: '${_stats.totalMatchesPlayed}',
+                                    accent: _gold,
+                                    icon: Icons.done_all_rounded,
+                                  ),
+                                  _StatCard(
+                                    title: 'TEMPS TOTAL',
+                                    value: _formatDuration(_stats.totalPlayTime),
+                                    accent: _gold,
+                                    icon: Icons.schedule_rounded,
+                                  ),
+                                ],
+                              );
+                            },
+                          ),
+                          SizedBox(height: (14 * sH).clamp(10.0, 18.0)),
+                          _Panel(
+                            title: 'PRÉCISION',
+                            accent: _gold,
+                            child: Row(
+                              children: [
+                                SizedBox(
+                                  width: 62,
+                                  height: 62,
+                                  child: Stack(
+                                    fit: StackFit.expand,
+                                    children: [
+                                      CircularProgressIndicator(
+                                        value: accuracy,
+                                        strokeWidth: 6,
+                                        color: _gold.withValues(alpha: 0.92),
+                                        backgroundColor:
+                                            Colors.white.withValues(alpha: 0.08),
+                                      ),
+                                      Center(
+                                        child: Text(
+                                          '${(accuracy * 100).round()}%',
+                                          style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                                                fontWeight: FontWeight.w800,
+                                                letterSpacing: 1.2,
+                                                color: Colors.white.withValues(alpha: 0.80),
+                                              ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 14),
+                                Expanded(
+                                  child: Text(
+                                    'Ratio matches / placements.\nPlus c’est haut, plus tes runs sont “propres”.',
+                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                          height: 1.35,
+                                          color: Colors.white.withValues(alpha: 0.50),
+                                        ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          SizedBox(height: 12 * sH),
+                          _Panel(
+                            title: 'RÉPARTITION DES MODES',
+                            accent: _gold,
+                            child: Column(
+                              children: [
+                                _ModeBar(
+                                  label: 'CASUAL',
+                                  value: _ratio(_stats.casualRuns, _stats.totalRuns),
+                                  count: _stats.casualRuns,
+                                  accent: Colors.white.withValues(alpha: 0.72),
+                                ),
+                                const SizedBox(height: 10),
+                                _ModeBar(
+                                  label: 'HIGH STAKES',
+                                  value: _ratio(_stats.highStakesRuns, _stats.totalRuns),
+                                  count: _stats.highStakesRuns,
+                                  accent: _gold.withValues(alpha: 0.92),
+                                ),
+                                const SizedBox(height: 10),
+                                _ModeBar(
+                                  label: 'ROYAL',
+                                  value: _ratio(_stats.royalRuns, _stats.totalRuns),
+                                  count: _stats.royalRuns,
+                                  accent: const Color(0xFFE49BFF).withValues(alpha: 0.90),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  double _ratio(int part, int total) {
+    if (total <= 0) return 0;
+    return (part / total).clamp(0.0, 1.0);
+  }
+
+  String _formatDuration(Duration d) {
+    final int totalSeconds = d.inSeconds;
+    final int h = totalSeconds ~/ 3600;
+    final int m = (totalSeconds % 3600) ~/ 60;
+    final int s = totalSeconds % 60;
+    if (h > 0) return '${h}h ${m}m';
+    if (m > 0) return '${m}m ${s}s';
+    return '${s}s';
+  }
+}
+
+class _Panel extends StatelessWidget {
+  const _Panel({
+    required this.title,
+    required this.accent,
+    required this.child,
+  });
+
+  final String title;
+  final Color accent;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final double sH = Responsive.heightScale(context);
+    final double sT = Responsive.textScale(context);
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF0A0C12).withValues(alpha: 0.86),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+      ),
+      child: Padding(
+        padding: EdgeInsets.all((14 * sH).clamp(12.0, 18.0)),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              title,
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    letterSpacing: 4.2,
+                    fontWeight: FontWeight.w700,
+                    fontSize: (11 * sT).clamp(10.0, 13.0),
+                    color: accent.withValues(alpha: 0.82),
+                  ),
+            ),
+            SizedBox(height: (10 * sH).clamp(8.0, 14.0)),
+            child,
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ModeBar extends StatelessWidget {
+  const _ModeBar({
+    required this.label,
+    required this.value,
+    required this.count,
+    required this.accent,
+  });
+
+  final String label;
+  final double value;
+  final int count;
+  final Color accent;
+
+  @override
+  Widget build(BuildContext context) {
+    final double sT = Responsive.textScale(context);
+    return Row(
+      children: [
+        SizedBox(
+          width: 110,
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  letterSpacing: 2.2,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white.withValues(alpha: 0.60),
+                  fontSize: (11.5 * sT).clamp(10.0, 13.0),
+                ),
+          ),
+        ),
+        Expanded(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(999),
+            child: LinearProgressIndicator(
+              value: value,
+              minHeight: 8,
+              backgroundColor: Colors.white.withValues(alpha: 0.06),
+              valueColor: AlwaysStoppedAnimation<Color>(accent),
+            ),
+          ),
+        ),
+        const SizedBox(width: 10),
+        SizedBox(
+          width: 34,
+          child: Text(
+            '$count',
+            textAlign: TextAlign.right,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  letterSpacing: 1.2,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white.withValues(alpha: 0.55),
+                ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _StatCard extends StatelessWidget {
+  const _StatCard({
+    required this.title,
+    required this.value,
+    required this.accent,
+    required this.icon,
+  });
+
+  final String title;
+  final String value;
+  final Color accent;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    final double sH = Responsive.heightScale(context);
+    final double sT = Responsive.textScale(context);
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF0A0C12).withValues(alpha: 0.86),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+      ),
+      child: Padding(
+        padding: EdgeInsets.all((14 * sH).clamp(12.0, 18.0)),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Icon(icon, size: 16, color: accent.withValues(alpha: 0.80)),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          letterSpacing: 2.0,
+                          fontWeight: FontWeight.w700,
+                          height: 1.2,
+                          fontSize: (10.5 * sT).clamp(10.0, 13.0),
+                          color: Colors.white.withValues(alpha: 0.60),
+                        ),
+                  ),
+                ),
+              ],
+            ),
+            const Spacer(),
+            Text(
+              value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    letterSpacing: 1.0,
+                    fontWeight: FontWeight.w800,
+                    fontSize: (22 * sT).clamp(18.0, 28.0),
+                    color: Colors.white.withValues(alpha: 0.88),
+                    shadows: [
+                      Shadow(
+                        color: accent.withValues(alpha: 0.18),
+                        blurRadius: 10,
+                      ),
+                    ],
+                  ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+

@@ -1,0 +1,45 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // --- FONCTIONS DE SÉCURITÉ ---
+    
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    // Vérifie que le score ne fait qu'augmenter
+    function isValidScoreUpdate() {
+      let oldScore = resource.data.highScore;
+      let newScore = request.resource.data.highScore;
+      return newScore >= oldScore;
+    }
+
+    // Vérifie que l'inventaire ne fait que s'étendre (pas de suppression)
+    function isInventoryExtended() {
+      return request.resource.data.inventory.hasAll(resource.data.inventory);
+    }
+
+    // --- RÈGLES POUR LA COLLECTION PLAYERS ---
+
+    match /players/{userId} {
+      // Tout le monde peut lire le profil (pour le Leaderboard)
+      allow read: if true;
+
+      // Création du profil initial
+      allow create: if isSignedIn() && isOwner(userId);
+
+      // Mise à jour sécurisée
+      allow update: if isSignedIn() 
+        && isOwner(userId)
+        && isValidScoreUpdate()
+        && isInventoryExtended()
+        && request.resource.data.totalLux >= 0;
+    }
+  }
+}

@@ -181,69 +181,75 @@ class _MainMenuViewState extends State<MainMenuView>
                           ? const BouncingScrollPhysics()
                           : const NeverScrollableScrollPhysics(),
                       child: Padding(
-                        padding:
-                            EdgeInsets.symmetric(vertical: tightHeight ? 10 : 0),
+                        padding: EdgeInsets.symmetric(
+                          vertical: tightHeight ? 10 : 0,
+                        ),
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             AnimatedBuilder(
                               animation: _pulse,
                               builder: (context, _) {
-                                final double s = (math.sin(
-                                          _pulse.value * math.pi * 2,
-                                        ) *
+                                final double s =
+                                    (math.sin(_pulse.value * math.pi * 2) *
                                         0.5 +
                                     0.5);
                                 final double glow = 0.18 + 0.12 * s;
-                                final Color skinGlow = gs.currentSkin.primaryColor;
-                                return Text(
-                                  l10n.brandTitleDisplay,
-                                  textAlign: TextAlign.center,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .displaySmall
-                                      ?.copyWith(
-                                        fontSize: 68 * scaleH,
-                                        fontWeight: FontWeight.w200,
-                                        letterSpacing: 10,
-                                        color: te
-                                            .colorForId(1)
-                                            .withValues(alpha: 0.95),
-                                        shadows: [
-                                          Shadow(
-                                            color: skinGlow.withValues(
-                                              alpha: 0.55 * glow,
+                                final Color skinGlow =
+                                    gs.currentSkin.primaryColor;
+                                return FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(
+                                    l10n.brandTitleDisplay,
+                                    textAlign: TextAlign.center,
+                                    maxLines: 1,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .displaySmall
+                                        ?.copyWith(
+                                          fontSize: 68 * scaleH,
+                                          fontWeight: FontWeight.w200,
+                                          letterSpacing: 8,
+                                          color: te
+                                              .colorForId(1)
+                                              .withValues(alpha: 0.96),
+                                          shadows: [
+                                            Shadow(
+                                              color: skinGlow.withValues(
+                                                alpha: 0.55 * glow,
+                                              ),
+                                              blurRadius: 42,
                                             ),
-                                            blurRadius: 42,
-                                          ),
-                                          Shadow(
-                                            color: skinGlow.withValues(
-                                              alpha: 0.35 + 0.25 * s,
+                                            Shadow(
+                                              color: skinGlow.withValues(
+                                                alpha: 0.35 + 0.25 * s,
+                                              ),
+                                              blurRadius: 18,
                                             ),
-                                            blurRadius: 18,
-                                          ),
-                                          Shadow(
-                                            color: skinGlow.withValues(
-                                              alpha: glow,
+                                            Shadow(
+                                              color: skinGlow.withValues(
+                                                alpha: glow,
+                                              ),
+                                              blurRadius: 8,
                                             ),
-                                            blurRadius: 8,
-                                          ),
-                                        ],
-                                      ),
+                                          ],
+                                        ),
+                                  ),
                                 );
                               },
                             ),
                             SizedBox(height: 22 * scaleH),
                             Text(
                               l10n.menuEditionSubtitle,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
+                              textAlign: TextAlign.center,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.bodySmall
                                   ?.copyWith(
                                     fontSize: 12 * scaleH,
                                     fontWeight: FontWeight.w500,
                                     letterSpacing: 4,
-                                    color: Colors.white.withValues(alpha: 0.45),
+                                    color: Colors.white.withValues(alpha: 0.52),
                                   ),
                             ),
                             SizedBox(height: 44 * scaleH),
@@ -257,17 +263,25 @@ class _MainMenuViewState extends State<MainMenuView>
                                     color: gold.withValues(alpha: 0.88),
                                   ),
                                   SizedBox(width: 8 * scaleH),
-                                  Text(
-                                    l10n.menuStreakDays(_streakDays),
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .labelLarge
-                                        ?.copyWith(
-                                          letterSpacing: 3.2,
-                                          fontWeight: FontWeight.w700,
-                                          fontSize: (11 * scaleH).clamp(10.0, 13.0),
-                                          color: gold.withValues(alpha: 0.82),
-                                        ),
+                                  Flexible(
+                                    child: Text(
+                                      l10n.menuStreakDays(_streakDays),
+                                      textAlign: TextAlign.center,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .labelLarge
+                                          ?.copyWith(
+                                            letterSpacing: 2.4,
+                                            fontWeight: FontWeight.w700,
+                                            fontSize: (11 * scaleH).clamp(
+                                              10.0,
+                                              13.0,
+                                            ),
+                                            color: gold.withValues(alpha: 0.86),
+                                          ),
+                                    ),
                                   ),
                                 ],
                               ),
@@ -278,20 +292,21 @@ class _MainMenuViewState extends State<MainMenuView>
                               neon: te.colorForId(1),
                               scale: scaleH,
                               onPressed: () => _primeMenuInteraction(() {
-                                    Navigator.of(context).push(
-                                      fadeRoute(const PreparationView()),
-                                    );
-                                  }),
+                                Navigator.of(
+                                  context,
+                                ).push(fadeRoute(const PreparationView()));
+                              }),
                             ),
                             SizedBox(height: 14 * scaleH),
                             MenuTextButton(
-                              label: 'CLASSEMENT MONDIAL',
+                              label: l10n.menuLeaderboard,
                               neon: te.colorForId(5),
                               scale: scaleH,
                               onPressed: () => _primeMenuInteraction(
-                                    () => Navigator.of(context)
-                                        .pushNamed('/leaderboard'),
-                                  ),
+                                () => Navigator.of(
+                                  context,
+                                ).pushNamed('/leaderboard'),
+                              ),
                             ),
                             SizedBox(height: 14 * scaleH),
                             MenuTextButton(
@@ -299,9 +314,8 @@ class _MainMenuViewState extends State<MainMenuView>
                               neon: te.colorForId(2),
                               scale: scaleH,
                               onPressed: () => _primeMenuInteraction(
-                                    () =>
-                                        Navigator.of(context).pushNamed('/shop'),
-                                  ),
+                                () => Navigator.of(context).pushNamed('/shop'),
+                              ),
                             ),
                             SizedBox(height: 14 * scaleH),
                             MenuTextButton(
@@ -309,9 +323,8 @@ class _MainMenuViewState extends State<MainMenuView>
                               neon: const Color(0xFFFFD700),
                               scale: scaleH,
                               onPressed: () => _primeMenuInteraction(
-                                    () =>
-                                        Navigator.of(context).pushNamed('/stats'),
-                                  ),
+                                () => Navigator.of(context).pushNamed('/stats'),
+                              ),
                             ),
                             SizedBox(height: 14 * scaleH),
                             MenuTextButton(
@@ -319,9 +332,10 @@ class _MainMenuViewState extends State<MainMenuView>
                               neon: te.colorForId(4),
                               scale: scaleH,
                               onPressed: () => _primeMenuInteraction(
-                                    () => Navigator.of(context)
-                                        .pushNamed('/settings'),
-                                  ),
+                                () => Navigator.of(
+                                  context,
+                                ).pushNamed('/settings'),
+                              ),
                             ),
                             SizedBox(height: 28 * scaleH),
                             Consumer<GameState>(

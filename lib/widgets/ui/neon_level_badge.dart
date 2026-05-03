@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:velour_app/l10n/app_localizations.dart';
 
 import '../../utils/responsive.dart';
 
@@ -39,6 +40,7 @@ class _NeonLevelBadgeState extends State<NeonLevelBadge>
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
     final double sT = Responsive.textScale(context);
     // Keep badge readable on dense screens; avoid tiny readout.
     final double w = (NeonLevelBadge.layoutWidth * sT).clamp(54.0, 72.0);
@@ -51,21 +53,26 @@ class _NeonLevelBadgeState extends State<NeonLevelBadge>
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            'LEVEL',
-            style: GoogleFonts.montserrat(
-              fontSize: labelSize,
-              letterSpacing: 3,
-              fontWeight: FontWeight.w600,
-              color: Colors.white.withValues(alpha: 0.42),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              l10n.gameHudLevelTag,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.montserrat(
+                fontSize: labelSize,
+                letterSpacing: l10n.gameHudLevelTag.length > 5 ? 1.2 : 2.4,
+                fontWeight: FontWeight.w600,
+                color: Colors.white.withValues(alpha: 0.48),
+              ),
             ),
           ),
           SizedBox(height: gap2),
           AnimatedBuilder(
             animation: _pulse,
             builder: (context, _) {
-              final double w =
-                  math.sin(_pulse.value * math.pi * 2) * 0.5 + 0.5;
+              final double w = math.sin(_pulse.value * math.pi * 2) * 0.5 + 0.5;
               final double glowA = 0.42 + 0.18 * w;
               return AnimatedSwitcher(
                 duration: const Duration(milliseconds: 220),
@@ -100,8 +107,9 @@ class _NeonLevelBadgeState extends State<NeonLevelBadge>
                         blurRadius: (8 * sT).clamp(6.0, 12.0),
                       ),
                       Shadow(
-                        color: const Color(0x6600FFFF)
-                            .withValues(alpha: 0.55 * glowA),
+                        color: const Color(
+                          0x6600FFFF,
+                        ).withValues(alpha: 0.55 * glowA),
                         blurRadius: (16 * sT).clamp(12.0, 24.0),
                       ),
                     ],

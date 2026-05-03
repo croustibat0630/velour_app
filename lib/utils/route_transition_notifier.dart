@@ -21,4 +21,3 @@ class RouteTransitionNotifier {
     _active.value = (_active.value - 1).clamp(0, 999999);
   }
 }
-

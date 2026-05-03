@@ -126,8 +126,7 @@ class NarrativeOracleMessageBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AppLocalizations l10n = AppLocalizations.of(context)!;
-    final String message =
-        resolveOracleDockMessage(l10n, messageId);
+    final String message = resolveOracleDockMessage(l10n, messageId);
     if (message.isEmpty) return const SizedBox.shrink();
 
     final TextStyle oracleStyle = GoogleFonts.montserrat(

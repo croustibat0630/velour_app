@@ -35,8 +35,9 @@ class _StatsViewState extends State<StatsView> {
     final double sH = Responsive.heightScale(context);
     final double sT = Responsive.textScale(context);
 
-    final double accuracy =
-        (_stats.shapesPlaced <= 0) ? 0 : (_stats.totalMatchesPlayed / _stats.shapesPlaced).clamp(0.0, 1.0);
+    final double accuracy = (_stats.shapesPlaced <= 0)
+        ? 0
+        : (_stats.totalMatchesPlayed / _stats.shapesPlaced).clamp(0.0, 1.0);
 
     return Scaffold(
       body: Stack(
@@ -75,10 +76,13 @@ class _StatsViewState extends State<StatsView> {
                           Text(
                             l10n.statsTitle,
                             textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  letterSpacing: 6,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(
+                                  letterSpacing: 4,
                                   fontWeight: FontWeight.w600,
-                                  color: _gold.withValues(alpha: 0.95),
+                                  color: _gold.withValues(alpha: 0.96),
                                   fontSize: (16 * sT).clamp(14.0, 19.0),
                                 ),
                           ),
@@ -87,10 +91,13 @@ class _StatsViewState extends State<StatsView> {
                             Text(
                               l10n.statsStreakSession(_stats.streakDays),
                               textAlign: TextAlign.center,
-                              style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                                    letterSpacing: 2.8,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.labelLarge
+                                  ?.copyWith(
+                                    letterSpacing: 2.2,
                                     fontWeight: FontWeight.w700,
-                                    color: _gold.withValues(alpha: 0.78),
+                                    color: _gold.withValues(alpha: 0.84),
                                     fontSize: (11 * sT).clamp(10.0, 13.0),
                                   ),
                             ),
@@ -139,7 +146,9 @@ class _StatsViewState extends State<StatsView> {
                                   ),
                                   _StatCard(
                                     title: l10n.statsTotalTime,
-                                    value: _formatDuration(_stats.totalPlayTime),
+                                    value: _formatDuration(
+                                      _stats.totalPlayTime,
+                                    ),
                                     accent: _gold,
                                     icon: Icons.schedule_rounded,
                                   ),
@@ -163,16 +172,21 @@ class _StatsViewState extends State<StatsView> {
                                         value: accuracy,
                                         strokeWidth: 6,
                                         color: _gold.withValues(alpha: 0.92),
-                                        backgroundColor:
-                                            Colors.white.withValues(alpha: 0.08),
+                                        backgroundColor: Colors.white
+                                            .withValues(alpha: 0.08),
                                       ),
                                       Center(
                                         child: Text(
                                           '${(accuracy * 100).round()}%',
-                                          style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .labelLarge
+                                              ?.copyWith(
                                                 fontWeight: FontWeight.w800,
                                                 letterSpacing: 1.2,
-                                                color: Colors.white.withValues(alpha: 0.80),
+                                                color: Colors.white.withValues(
+                                                  alpha: 0.80,
+                                                ),
                                               ),
                                         ),
                                       ),
@@ -183,9 +197,12 @@ class _StatsViewState extends State<StatsView> {
                                 Expanded(
                                   child: Text(
                                     l10n.statsPrecisionHelp,
-                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    style: Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(
                                           height: 1.35,
-                                          color: Colors.white.withValues(alpha: 0.50),
+                                          color: Colors.white.withValues(
+                                            alpha: 0.50,
+                                          ),
                                         ),
                                   ),
                                 ),
@@ -200,23 +217,34 @@ class _StatsViewState extends State<StatsView> {
                               children: [
                                 _ModeBar(
                                   label: l10n.statsModeCasual,
-                                  value: _ratio(_stats.casualRuns, _stats.totalRuns),
+                                  value: _ratio(
+                                    _stats.casualRuns,
+                                    _stats.totalRuns,
+                                  ),
                                   count: _stats.casualRuns,
                                   accent: Colors.white.withValues(alpha: 0.72),
                                 ),
                                 const SizedBox(height: 10),
                                 _ModeBar(
                                   label: l10n.statsModeHighStakes,
-                                  value: _ratio(_stats.highStakesRuns, _stats.totalRuns),
+                                  value: _ratio(
+                                    _stats.highStakesRuns,
+                                    _stats.totalRuns,
+                                  ),
                                   count: _stats.highStakesRuns,
                                   accent: _gold.withValues(alpha: 0.92),
                                 ),
                                 const SizedBox(height: 10),
                                 _ModeBar(
                                   label: l10n.statsModeRoyal,
-                                  value: _ratio(_stats.royalRuns, _stats.totalRuns),
+                                  value: _ratio(
+                                    _stats.royalRuns,
+                                    _stats.totalRuns,
+                                  ),
                                   count: _stats.royalRuns,
-                                  accent: const Color(0xFFE49BFF).withValues(alpha: 0.90),
+                                  accent: const Color(
+                                    0xFFE49BFF,
+                                  ).withValues(alpha: 0.90),
                                 ),
                               ],
                             ),
@@ -279,11 +307,11 @@ class _Panel extends StatelessWidget {
             Text(
               title,
               style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    letterSpacing: 4.2,
-                    fontWeight: FontWeight.w700,
-                    fontSize: (11 * sT).clamp(10.0, 13.0),
-                    color: accent.withValues(alpha: 0.82),
-                  ),
+                letterSpacing: 4.2,
+                fontWeight: FontWeight.w700,
+                fontSize: (11 * sT).clamp(10.0, 13.0),
+                color: accent.withValues(alpha: 0.82),
+              ),
             ),
             SizedBox(height: (10 * sH).clamp(8.0, 14.0)),
             child,
@@ -319,11 +347,11 @@ class _ModeBar extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  letterSpacing: 2.2,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white.withValues(alpha: 0.60),
-                  fontSize: (11.5 * sT).clamp(10.0, 13.0),
-                ),
+              letterSpacing: 2.2,
+              fontWeight: FontWeight.w700,
+              color: Colors.white.withValues(alpha: 0.60),
+              fontSize: (11.5 * sT).clamp(10.0, 13.0),
+            ),
           ),
         ),
         Expanded(
@@ -344,10 +372,10 @@ class _ModeBar extends StatelessWidget {
             '$count',
             textAlign: TextAlign.right,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  letterSpacing: 1.2,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white.withValues(alpha: 0.55),
-                ),
+              letterSpacing: 1.2,
+              fontWeight: FontWeight.w700,
+              color: Colors.white.withValues(alpha: 0.55),
+            ),
           ),
         ),
       ],
@@ -388,7 +416,11 @@ class _StatCard extends StatelessWidget {
               children: [
                 Padding(
                   padding: const EdgeInsets.only(top: 2),
-                  child: Icon(icon, size: 16, color: accent.withValues(alpha: 0.80)),
+                  child: Icon(
+                    icon,
+                    size: 16,
+                    color: accent.withValues(alpha: 0.80),
+                  ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
@@ -397,12 +429,12 @@ class _StatCard extends StatelessWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          letterSpacing: 2.0,
-                          fontWeight: FontWeight.w700,
-                          height: 1.2,
-                          fontSize: (10.5 * sT).clamp(10.0, 13.0),
-                          color: Colors.white.withValues(alpha: 0.60),
-                        ),
+                      letterSpacing: 2.0,
+                      fontWeight: FontWeight.w700,
+                      height: 1.2,
+                      fontSize: (10.5 * sT).clamp(10.0, 13.0),
+                      color: Colors.white.withValues(alpha: 0.60),
+                    ),
                   ),
                 ),
               ],
@@ -413,17 +445,14 @@ class _StatCard extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    letterSpacing: 1.0,
-                    fontWeight: FontWeight.w800,
-                    fontSize: (22 * sT).clamp(18.0, 28.0),
-                    color: Colors.white.withValues(alpha: 0.88),
-                    shadows: [
-                      Shadow(
-                        color: accent.withValues(alpha: 0.18),
-                        blurRadius: 10,
-                      ),
-                    ],
-                  ),
+                letterSpacing: 1.0,
+                fontWeight: FontWeight.w800,
+                fontSize: (22 * sT).clamp(18.0, 28.0),
+                color: Colors.white.withValues(alpha: 0.88),
+                shadows: [
+                  Shadow(color: accent.withValues(alpha: 0.18), blurRadius: 10),
+                ],
+              ),
             ),
           ],
         ),
@@ -431,4 +460,3 @@ class _StatCard extends StatelessWidget {
     );
   }
 }
-

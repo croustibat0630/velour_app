@@ -48,19 +48,13 @@ enum OracleDockMessageId {
 }
 
 /// Bannière tutoriel « Trinité » (hors run narrative).
-enum TrinityBannerId {
-  none,
-  shapeIntro,
-  colorIntro,
-  perfectIntro,
-}
+enum TrinityBannerId { none, shapeIntro, colorIntro, perfectIntro }
 
 /// Floater LUX fixe pendant le tutoriel narratif (sinon libellé runtime).
-enum NarrativeFloatingKey {
-  shapeBonus,
-  colorBonus,
-  perfectBonus,
-}
+enum NarrativeFloatingKey { shapeBonus, colorBonus, perfectBonus }
+
+/// Floater LUX hors tutoriel narratif — résolu en UI via [AppLocalizations].
+enum RuntimeLuxFloatKind { luxGain, luxGainMult, perfectGain, perfectGainMult }
 
 class FlightFx {
   FlightFx({
@@ -87,6 +81,9 @@ class FloatingTextFx {
     required this.colorId,
     this.isNarrativePerfectBurst = false,
     this.narrativeFloatKey,
+    this.runtimeLuxKind,
+    this.runtimeGain,
+    this.runtimeChainMult,
   });
 
   final String id;
@@ -100,6 +97,11 @@ class FloatingTextFx {
 
   /// Si non null, l’UI affiche la chaîne ARB correspondante au lieu de [text].
   final NarrativeFloatingKey? narrativeFloatKey;
+
+  /// Gain LUX runtime (hors [narrativeFloatKey]) — résolu en UI.
+  final RuntimeLuxFloatKind? runtimeLuxKind;
+  final int? runtimeGain;
+  final String? runtimeChainMult;
 }
 
 /// Petit « +1 » tutoriel narratif : part de la gemme vers le haut / la zone score.
@@ -139,11 +141,11 @@ class MatchParticleFx {
 class ComboFloaterFx {
   ComboFloaterFx({
     required this.id,
-    required this.text,
     required this.position,
+    required this.chainMult,
   });
 
   final String id;
-  final String text;
   final Offset position;
+  final double chainMult;
 }

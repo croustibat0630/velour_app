@@ -59,14 +59,16 @@ abstract final class GemGlassPaint {
     canvas.drawRect(bounds, p);
   }
 
-  static void paintBody(Canvas canvas, Path silhouette, Rect bounds, Color neon) {
+  static void paintBody(
+    Canvas canvas,
+    Path silhouette,
+    Rect bounds,
+    Color neon,
+  ) {
     canvas.drawPath(silhouette, Paint()..color = core);
     canvas.save();
     canvas.clipPath(silhouette);
-    canvas.drawRect(
-      bounds,
-      Paint()..shader = volumeShader(bounds, neon),
-    );
+    canvas.drawRect(bounds, Paint()..shader = volumeShader(bounds, neon));
     // soft diagonal sheen
     paintSheen(canvas, bounds, neon);
     canvas.restore();

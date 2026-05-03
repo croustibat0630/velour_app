@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:velour_app/l10n/app_localizations.dart';
 
+import '../providers/game_state.dart';
 import '../services/app_settings.dart';
 import '../services/audio_handler.dart';
 import '../services/stats_service.dart';
@@ -46,6 +47,10 @@ class _SplashScreenState extends State<SplashScreen>
   Future<void> _bootstrapThenNavigate() async {
     final DateTime t0 = DateTime.now();
 
+    try {
+      await context.read<GameState>().bootstrapCloudAfterLocalLoad();
+    } catch (_) {}
+
     // Ne jamais bloquer la navigation sur l’audio (Chrome : AudioContext
     // inactif avant geste → init/preload peut pendre sur resume()).
     await Future.wait<void>([
@@ -81,22 +86,27 @@ class _SplashScreenState extends State<SplashScreen>
     return PageRouteBuilder<dynamic>(
       transitionDuration: const Duration(milliseconds: 800),
       reverseTransitionDuration: const Duration(milliseconds: 400),
-      pageBuilder: (BuildContext context, Animation<double> animation,
-          Animation<double> secondaryAnimation) {
-        return const MainMenuView();
-      },
-      transitionsBuilder: (
-        BuildContext context,
-        Animation<double> animation,
-        Animation<double> secondaryAnimation,
-        Widget child,
-      ) {
-        final Animation<double> curved = CurvedAnimation(
-          parent: animation,
-          curve: Curves.easeInOutCubic,
-        );
-        return FadeTransition(opacity: curved, child: child);
-      },
+      pageBuilder:
+          (
+            BuildContext context,
+            Animation<double> animation,
+            Animation<double> secondaryAnimation,
+          ) {
+            return const MainMenuView();
+          },
+      transitionsBuilder:
+          (
+            BuildContext context,
+            Animation<double> animation,
+            Animation<double> secondaryAnimation,
+            Widget child,
+          ) {
+            final Animation<double> curved = CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeInOutCubic,
+            );
+            return FadeTransition(opacity: curved, child: child);
+          },
     );
   }
 
@@ -139,11 +149,11 @@ class _SplashScreenState extends State<SplashScreen>
                 l10n.brandTitleDisplay,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                      fontSize: 52,
-                      fontWeight: FontWeight.w200,
-                      letterSpacing: 10,
-                      color: fill.withValues(alpha: 0.94),
-                    ),
+                  fontSize: 52,
+                  fontWeight: FontWeight.w200,
+                  letterSpacing: 10,
+                  color: fill.withValues(alpha: 0.94),
+                ),
               ),
             );
           },

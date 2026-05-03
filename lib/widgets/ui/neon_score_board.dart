@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:velour_app/l10n/app_localizations.dart';
 
 import '../../providers/game_state.dart';
 import '../../services/haptics_handler.dart';
@@ -65,9 +66,10 @@ class _NeonLuxCaptionState extends State<NeonLuxCaption>
       duration: const Duration(milliseconds: 450),
     )..value = 1.0;
     // Scale : léger rebond fin (tube néon qui se stabilise). Fade : sans overshoot.
-    _luxIntroScale = Tween<double>(begin: 0.85, end: 1.0).animate(
-      CurvedAnimation(parent: _luxIntro, curve: Curves.easeOutBack),
-    );
+    _luxIntroScale = Tween<double>(
+      begin: 0.85,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _luxIntro, curve: Curves.easeOutBack));
     _luxIntroFade = CurvedAnimation(
       parent: _luxIntro,
       curve: Curves.easeOutCubic,
@@ -144,7 +146,7 @@ class _NeonLuxCaptionState extends State<NeonLuxCaption>
           child: ScaleTransition(
             scale: _luxIntroScale,
             alignment: Alignment.centerRight,
-            child: _luxValuePulseLayer(),
+            child: _luxValuePulseLayer(context),
           ),
         );
       },
@@ -152,7 +154,7 @@ class _NeonLuxCaptionState extends State<NeonLuxCaption>
   }
 
   /// Pulse court quand le montant LUX change (inchangé).
-  Widget _luxValuePulseLayer() {
+  Widget _luxValuePulseLayer(BuildContext context) {
     final double glowA = 0.6 + 0.2 * math.cos(_glow.value * 2 * math.pi);
     final double comboT = Curves.easeInOutCubic.transform(_comboFlash.value);
     final double whiteMix = math.sin(math.pi * comboT);
@@ -180,34 +182,43 @@ class _NeonLuxCaptionState extends State<NeonLuxCaption>
         scale: _punchScale,
         alignment: Alignment.centerRight,
         filterQuality: FilterQuality.high,
-        child: Text(
-          '${widget.lux} LUX',
-          textAlign: TextAlign.right,
-          style: GoogleFonts.montserrat(
-            fontSize: widget.fontSize,
-            height: 0.95,
-            letterSpacing: 1.2,
-            fontWeight: FontWeight.w600,
-            color: luxColor,
-            shadows: [
-              Shadow(
-                color: Colors.black.withValues(alpha: readabilityA),
-                blurRadius: 6,
-                offset: const Offset(0, 1),
+        child: Semantics(
+          label: AppLocalizations.of(context)!.gameHudLuxAmount(widget.lux),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerRight,
+            child: Text(
+              AppLocalizations.of(context)!.gameHudLuxAmount(widget.lux),
+              textAlign: TextAlign.right,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.montserrat(
+                fontSize: widget.fontSize,
+                height: 0.95,
+                letterSpacing: 0.9,
+                fontWeight: FontWeight.w600,
+                color: luxColor,
+                shadows: [
+                  Shadow(
+                    color: Colors.black.withValues(alpha: readabilityA),
+                    blurRadius: 6,
+                    offset: const Offset(0, 1),
+                  ),
+                  Shadow(
+                    color: luxColor.withValues(
+                      alpha: effGlowA * (1 - whiteMix) + 0.95 * whiteMix,
+                    ),
+                    blurRadius: 6 + 8 * whiteMix,
+                  ),
+                  Shadow(
+                    color: const Color(0xFF00FFFF).withValues(
+                      alpha: (effGlowA * 0.72) * (1 - 0.85 * whiteMix),
+                    ),
+                    blurRadius: 14,
+                  ),
+                ],
               ),
-              Shadow(
-                color: luxColor.withValues(
-                  alpha: effGlowA * (1 - whiteMix) + 0.95 * whiteMix,
-                ),
-                blurRadius: 6 + 8 * whiteMix,
-              ),
-              Shadow(
-                color: const Color(
-                  0xFF00FFFF,
-                ).withValues(alpha: (effGlowA * 0.72) * (1 - 0.85 * whiteMix)),
-                blurRadius: 14,
-              ),
-            ],
+            ),
           ),
         ),
       ),
@@ -295,6 +306,7 @@ class NeonScoreBoard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
     final GameState gs = context.watch<GameState>();
     final double progress = gs.scoreProgress.clamp(0.0, 1.0);
 
@@ -303,7 +315,7 @@ class NeonScoreBoard extends StatelessWidget {
 
     final TextStyle levelStyle = GoogleFonts.montserrat(
       fontSize: (18 * scaleT).clamp(14.0, 20.0),
-      letterSpacing: 3.0,
+      letterSpacing: 2.0,
       fontWeight: FontWeight.w500,
       height: 0.95,
       color: _levelBlue,
@@ -314,9 +326,9 @@ class NeonScoreBoard extends StatelessWidget {
 
     final TextStyle barLabelStyle = GoogleFonts.montserrat(
       fontSize: (10 * scaleT).clamp(9.0, 12.0),
-      letterSpacing: 1.2,
+      letterSpacing: 0.75,
       fontWeight: FontWeight.w600,
-      color: Colors.white.withValues(alpha: 0.85),
+      color: Colors.white.withValues(alpha: 0.9),
       height: 1.0,
     );
 
@@ -347,11 +359,15 @@ class NeonScoreBoard extends StatelessWidget {
                       opacity: levelOpacity,
                       child: Padding(
                         padding: const EdgeInsets.only(bottom: 2),
-                        child: _LevelPulseText(
-                          tick: levelUpFlashTick,
-                          text: 'LV $gameLevel',
-                          baseStyle: levelStyle,
-                          gold: _levelGold,
+                        child: Semantics(
+                          label:
+                              '${l10n.gameHudLevelTag} ${l10n.gameHudLevelShort(gameLevel)}',
+                          child: _LevelPulseText(
+                            tick: levelUpFlashTick,
+                            text: l10n.gameHudLevelShort(gameLevel),
+                            baseStyle: levelStyle,
+                            gold: _levelGold,
+                          ),
                         ),
                       ),
                     ),
@@ -374,40 +390,57 @@ class NeonScoreBoard extends StatelessWidget {
                           SizedBox(height: 12 * scaleH),
                           Opacity(
                             opacity: scoreColumnOpacity,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text('SCORE', style: barLabelStyle),
-                                const SizedBox(height: 2),
-                                _flatTrack(
-                                  progress: progress,
-                                  thickness: barThickness,
-                                  fill: _cyan,
-                                ),
-                              ],
+                            child: Semantics(
+                              label:
+                                  '${l10n.gameHudScore}: '
+                                  '${(progress * 100).round()}%',
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  _HudBarLabel(
+                                    text: l10n.gameHudScore,
+                                    style: barLabelStyle,
+                                  ),
+                                  const SizedBox(height: 2),
+                                  _flatTrack(
+                                    progress: progress,
+                                    thickness: barThickness,
+                                    fill: _cyan,
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                           const SizedBox(height: 6),
                           Opacity(
                             opacity: timeColumnOpacity,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text('TEMPS', style: barLabelStyle),
-                                const SizedBox(height: 2),
-                                ValueListenableBuilder<double>(
-                                  valueListenable: gs.timeBar,
-                                  builder: (context, timerV, _) {
-                                    return NeonTimerBar(
-                                      value: timerV,
-                                      height: barThickness * 2,
-                                      skinPrimary: gs.currentSkin.primaryColor,
-                                    );
-                                  },
-                                ),
-                              ],
+                            child: ValueListenableBuilder<double>(
+                              valueListenable: gs.timeBar,
+                              builder: (context, timerV, _) {
+                                return Semantics(
+                                  label:
+                                      '${l10n.gameHudTime}: '
+                                      '${(timerV * 100).round()}%',
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      _HudBarLabel(
+                                        text: l10n.gameHudTime,
+                                        style: barLabelStyle,
+                                      ),
+                                      const SizedBox(height: 2),
+                                      NeonTimerBar(
+                                        value: timerV,
+                                        height: barThickness * 2,
+                                        skinPrimary:
+                                            gs.currentSkin.primaryColor,
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
                             ),
                           ),
                         ],
@@ -419,6 +452,35 @@ class NeonScoreBoard extends StatelessWidget {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+/// Libellé SCORE / TEMPS : ne doit pas empiéter sur les barres — largeur colonne bornée.
+class _HudBarLabel extends StatelessWidget {
+  const _HudBarLabel({required this.text, required this.style});
+
+  final String text;
+  final TextStyle style;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: Align(
+        alignment: Alignment.centerRight,
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerRight,
+          child: Text(
+            text,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.right,
+            style: style,
+          ),
+        ),
       ),
     );
   }
@@ -481,16 +543,28 @@ class _LevelPulseTextState extends State<_LevelPulseText>
           scale: scale,
           alignment: Alignment.centerLeft,
           filterQuality: FilterQuality.high,
-          child: Text(
-            widget.text,
-            textAlign: TextAlign.left,
-            style: widget.baseStyle.copyWith(
-              color: c,
-              shadows: <Shadow>[
-                ...(widget.baseStyle.shadows ?? const <Shadow>[]),
-                Shadow(color: c.withValues(alpha: 0.30 * tri), blurRadius: 14),
-                Shadow(color: c.withValues(alpha: 0.22 * tri), blurRadius: 32),
-              ],
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              widget.text,
+              textAlign: TextAlign.left,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: widget.baseStyle.copyWith(
+                color: c,
+                shadows: <Shadow>[
+                  ...(widget.baseStyle.shadows ?? const <Shadow>[]),
+                  Shadow(
+                    color: c.withValues(alpha: 0.30 * tri),
+                    blurRadius: 14,
+                  ),
+                  Shadow(
+                    color: c.withValues(alpha: 0.22 * tri),
+                    blurRadius: 32,
+                  ),
+                ],
+              ),
             ),
           ),
         );

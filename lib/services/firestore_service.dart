@@ -1,16 +1,27 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 import '../models/skin_config.dart';
 import 'firestore_dense_world_rank_snapshot.dart';
+import 'velour_observability.dart';
 
 /// Rang dense mondial + égalité de score (footer « Votre rang »).
-typedef MyDenseWorldRank = ({
-  int denseRank,
-  bool tiedWithOthersSameScore,
+typedef MyDenseWorldRank = ({int denseRank, bool tiedWithOthersSameScore});
+
+/// Données joueur lues sur Firestore après auth (fusion avec le disque local).
+typedef PlayerCloudPull = ({
+  List<String>? inventory,
+  String? activeSkinId,
+  int cloudLuxCoins,
+  int cloudHighScore,
 });
+
+/// Réponse de la callable [velourApplyLuxDelta] (`functions/src/index.ts`).
+typedef LuxDeltaApplyResult = ({bool ok, int? newLux});
 
 /// Accès Firestore / auth anonyme pour le profil joueur et le classement.
 ///
@@ -19,6 +30,9 @@ typedef MyDenseWorldRank = ({
 class FirestoreService {
   FirestoreService._();
   static final FirestoreService instance = FirestoreService._();
+
+  /// Même région que les callables dans `functions/src/index.ts`.
+  static const String cloudFunctionsRegion = 'europe-west3';
 
   /// Lazy : ne pas toucher Firebase au premier accès à [instance] (tests sans init).
   FirebaseFirestore get _db => FirebaseFirestore.instance;
@@ -40,10 +54,10 @@ class FirestoreService {
       .limit(10);
 
   /// Un seul flux Firestore pour le Top 10 (partage entre écouteurs).
-  late final Stream<QuerySnapshot<Map<String, dynamic>>> leaderboardTopTenStream =
-      _topTenQuery
-          .snapshots(includeMetadataChanges: true)
-          .asBroadcastStream();
+  late final Stream<QuerySnapshot<Map<String, dynamic>>>
+  leaderboardTopTenStream = _topTenQuery
+      .snapshots(includeMetadataChanges: true)
+      .asBroadcastStream();
 
   bool get isCloudReady => _authReady && _playerRef != null;
 
@@ -77,8 +91,9 @@ class FirestoreService {
   /// Stream du rang dense mondial : recalcul **à chaque snapshot** du doc joueur
   /// (score / méta) + tick lent pour les cas où le classement bouge sans ton doc.
   Stream<MyDenseWorldRank> getMyRankStream(String uid) {
-    final DocumentReference<Map<String, dynamic>> ref =
-        _db.collection('players').doc(uid);
+    final DocumentReference<Map<String, dynamic>> ref = _db
+        .collection('players')
+        .doc(uid);
 
     return Stream<MyDenseWorldRank>.multi((controller) {
       StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? docSub;
@@ -90,8 +105,7 @@ class FirestoreService {
       ) async {
         final int g = ++publishGen;
         if (controller.isClosed) return;
-        final int myScore =
-            (snap.data()?['highScore'] as num?)?.toInt() ?? 0;
+        final int myScore = (snap.data()?['highScore'] as num?)?.toInt() ?? 0;
         final MyDenseWorldRank r = await _denseWorldRankForHighScore(myScore);
         if (controller.isClosed || g != publishGen) return;
         controller.add(r);
@@ -101,34 +115,35 @@ class FirestoreService {
         (DocumentSnapshot<Map<String, dynamic>> snap) {
           unawaited(publishForSnapshot(snap));
         },
-        onError: (_) {
+        onError: (e, st) {
+          VelourObservability.logFirestoreFailure(
+            'getMyRankStream.playerDoc',
+            error: e,
+            stackTrace: st,
+          );
           if (!controller.isClosed) {
-            controller.add((
-              denseRank: 0,
-              tiedWithOthersSameScore: false,
-            ));
+            controller.add((denseRank: 0, tiedWithOthersSameScore: false));
           }
         },
       );
 
-      clockSub = Stream<int>.periodic(const Duration(seconds: 45)).listen(
-        (_) {
-          unawaited(() async {
-            try {
-              final DocumentSnapshot<Map<String, dynamic>> snap =
-                  await ref.get();
-              await publishForSnapshot(snap);
-            } catch (_) {
-              if (!controller.isClosed) {
-                controller.add((
-                  denseRank: 0,
-                  tiedWithOthersSameScore: false,
-                ));
-              }
+      clockSub = Stream<int>.periodic(const Duration(seconds: 45)).listen((_) {
+        unawaited(() async {
+          try {
+            final DocumentSnapshot<Map<String, dynamic>> snap = await ref.get();
+            await publishForSnapshot(snap);
+          } catch (e, st) {
+            VelourObservability.logFirestoreFailure(
+              'getMyRankStream.periodicRefresh',
+              error: e,
+              stackTrace: st,
+            );
+            if (!controller.isClosed) {
+              controller.add((denseRank: 0, tiedWithOthersSameScore: false));
             }
-          }());
-        },
-      );
+          }
+        }());
+      });
 
       controller.onCancel = () {
         docSub?.cancel();
@@ -157,9 +172,20 @@ class FirestoreService {
     while (true) {
       try {
         return await op();
-      } catch (e) {
+      } catch (e, st) {
         attempt++;
         if (attempt >= 3 || !_isNetworkFirebaseException(e)) {
+          if (attempt >= 3) {
+            VelourObservability.logFirestoreFailure(
+              'firestore_retry_exhausted',
+              error: e,
+              stackTrace: st,
+              context: <String, Object?>{
+                'attempts': attempt,
+                'transientNetwork': _isNetworkFirebaseException(e),
+              },
+            );
+          }
           rethrow;
         }
         await Future<void>.delayed(Duration(milliseconds: backoffMs));
@@ -168,14 +194,13 @@ class FirestoreService {
     }
   }
 
-  /// Auth anonyme + doc joueur + lecture inventaire / skin actif (best-effort).
+  /// Auth anonyme + doc joueur + lecture inventaire / skin / LUX / high score.
   ///
-  /// Retourne `null` si pas de session cloud ; sinon paires optionnelles si la
-  /// lecture Firestore a échoué.
-  Future<({List<String>? inventory, String? activeSkinId})?>
-  initializeAuthAndPullSkins() async {
+  /// Retourne `null` si pas de session cloud ; sinon [inventory] / [activeSkinId]
+  /// peuvent être null si la lecture a échoué (les entiers restent à 0).
+  Future<PlayerCloudPull?> initializeAuthAndPullSkins() async {
     if (_authReady) {
-      return await _pullSkinsSnapshot();
+      return await _pullPlayerEconomySnapshot();
     }
     if (_authInitInProgress) return null;
     _authInitInProgress = true;
@@ -188,8 +213,8 @@ class FirestoreService {
       }
       if (u == null) {
         try {
-          final UserCredential cred =
-              await FirebaseAuth.instance.signInAnonymously();
+          final UserCredential cred = await FirebaseAuth.instance
+              .signInAnonymously();
           u = cred.user;
         } catch (_) {
           return null;
@@ -200,8 +225,9 @@ class FirestoreService {
       _authReady = true;
 
       try {
-        final DocumentReference<Map<String, dynamic>> doc =
-            _db.collection('players').doc(u.uid);
+        final DocumentReference<Map<String, dynamic>> doc = _db
+            .collection('players')
+            .doc(u.uid);
         final DocumentSnapshot<Map<String, dynamic>> snap = await doc.get();
         if (!snap.exists) {
           await doc.set(<String, dynamic>{
@@ -219,19 +245,7 @@ class FirestoreService {
         }
       } catch (_) {}
 
-      final ({List<String>? inventory, String? activeSkinId})? skins =
-          await _pullSkinsSnapshot();
-
-      final int? hs = _pendingCloudHighScore;
-      _pendingCloudHighScore = null;
-      if (hs != null) {
-        unawaited(syncHighScoreToCloud(hs));
-      }
-      final int? lux = _pendingCloudLuxCoins;
-      _pendingCloudLuxCoins = null;
-      if (lux != null) {
-        unawaited(syncLuxToCloud(lux));
-      }
+      final PlayerCloudPull? skins = await _pullPlayerEconomySnapshot();
 
       return skins;
     } finally {
@@ -239,20 +253,70 @@ class FirestoreService {
     }
   }
 
-  Future<({List<String>? inventory, String? activeSkinId})?> _pullSkinsSnapshot() async {
+  Future<PlayerCloudPull?> _pullPlayerEconomySnapshot() async {
     final DocumentReference<Map<String, dynamic>>? ref = _playerRef;
     if (!_authReady || ref == null) return null;
     try {
-      final DocumentSnapshot<Map<String, dynamic>> me =
-          await ref.get();
+      final DocumentSnapshot<Map<String, dynamic>> me = await ref.get();
       final Map<String, dynamic>? d = me.data();
       final List<dynamic>? inv = d?['inventory'] as List<dynamic>?;
       final String? active = d?['activeSkinId'] as String?;
-      final List<String>? inventory =
-          inv?.map((dynamic e) => e.toString()).toList();
-      return (inventory: inventory, activeSkinId: active);
+      final List<String>? inventory = inv
+          ?.map((dynamic e) => e.toString())
+          .toList();
+      final int cloudLux = (d?['totalLux'] as num?)?.toInt() ?? 0;
+      final int cloudHs = (d?['highScore'] as num?)?.toInt() ?? 0;
+      return (
+        inventory: inventory,
+        activeSkinId: active,
+        cloudLuxCoins: cloudLux,
+        cloudHighScore: cloudHs,
+      );
     } catch (_) {
-      return (inventory: null, activeSkinId: null);
+      return (
+        inventory: null,
+        activeSkinId: null,
+        cloudLuxCoins: 0,
+        cloudHighScore: 0,
+      );
+    }
+  }
+
+  /// Écriture consolidée après fusion multi-appareils (préserve `pseudo`, etc.).
+  /// Valeurs en attente d’écriture cloud (auth pas prête) — à intégrer au merge.
+  ({int? luxCoins, int? highScore}) consumePendingCloudSyncHints() {
+    final int? lux = _pendingCloudLuxCoins;
+    final int? hs = _pendingCloudHighScore;
+    _pendingCloudLuxCoins = null;
+    _pendingCloudHighScore = null;
+    return (luxCoins: lux, highScore: hs);
+  }
+
+  Future<void> pushMergedPlayerProgress({
+    required int totalLux,
+    required int highScore,
+    required List<String> inventory,
+    required String activeSkinId,
+  }) async {
+    final DocumentReference<Map<String, dynamic>>? ref = _playerRef;
+    if (!_authReady || ref == null) return;
+    try {
+      await _firestoreRetry(() async {
+        await ref.set(<String, dynamic>{
+          'totalLux': totalLux,
+          'highScore': highScore,
+          'inventory': inventory,
+          'activeSkinId': activeSkinId,
+          'lastSeen': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+      });
+    } catch (e, st) {
+      VelourObservability.logFirestoreFailure(
+        'pushMergedPlayerProgress',
+        error: e,
+        stackTrace: st,
+      );
     }
   }
 
@@ -270,7 +334,13 @@ class FirestoreService {
           'updatedAt': FieldValue.serverTimestamp(),
         }, SetOptions(merge: true));
       });
-    } catch (_) {
+    } catch (e, st) {
+      VelourObservability.logFirestoreFailure(
+        'syncHighScoreToCloud',
+        error: e,
+        stackTrace: st,
+        context: <String, Object?>{'score': score},
+      );
       _pendingCloudHighScore = score;
     }
   }
@@ -288,7 +358,13 @@ class FirestoreService {
           'lastSeen': FieldValue.serverTimestamp(),
         }, SetOptions(merge: true));
       });
-    } catch (_) {
+    } catch (e, st) {
+      VelourObservability.logFirestoreFailure(
+        'syncLuxToCloud',
+        error: e,
+        stackTrace: st,
+        context: <String, Object?>{'amount': amount},
+      );
       _pendingCloudLuxCoins = amount;
     }
   }
@@ -307,7 +383,12 @@ class FirestoreService {
         }, SetOptions(merge: true));
       });
       return true;
-    } catch (_) {
+    } catch (e, st) {
+      VelourObservability.logFirestoreFailure(
+        'updateOraclePseudo',
+        error: e,
+        stackTrace: st,
+      );
       return false;
     }
   }
@@ -317,25 +398,87 @@ class FirestoreService {
     final DocumentReference<Map<String, dynamic>>? ref = _playerRef;
     if (!_authReady || ref == null) return false;
     try {
-      final DocumentSnapshot<Map<String, dynamic>> me =
-          await _firestoreRetry(() => ref.get());
+      final DocumentSnapshot<Map<String, dynamic>> me = await _firestoreRetry(
+        () => ref.get(),
+      );
       final Map<String, dynamic>? d = me.data();
       final String? pseudo = d?['pseudo'] as String?;
-      final bool needsName = pseudo == null ||
+      final bool needsName =
+          pseudo == null ||
           pseudo.startsWith('Oracle_') ||
           pseudo.startsWith('oracle_');
       if (!needsName) return false;
 
-      final QuerySnapshot<Map<String, dynamic>> top =
-          await _firestoreRetry(() => _topTenQuery.get());
+      final QuerySnapshot<Map<String, dynamic>> top = await _firestoreRetry(
+        () => _topTenQuery.get(),
+      );
       final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs = top.docs;
       final bool inTop = docs.length < 10
           ? true
           : newHighScore >=
                 ((docs.last.data()['highScore'] as num?)?.toInt() ?? 0);
       return inTop;
-    } catch (_) {
+    } catch (e, st) {
+      VelourObservability.logFirestoreFailure(
+        'shouldOfferOracleNamingForNewHighScore',
+        error: e,
+        stackTrace: st,
+        context: <String, Object?>{'newHighScore': newHighScore},
+      );
       return false;
+    }
+  }
+
+  /// Applique un delta LUX en transaction serveur ([velourApplyLuxDelta]).
+  ///
+  /// Retourne `null` si l’appel est impossible (pas d’auth, hors ligne, fonction non
+  /// déployée) — l’appelant bascule alors sur [syncLuxToCloud] (écriture directe).
+  Future<LuxDeltaApplyResult?> tryApplyLuxDeltaViaCallable(int delta) async {
+    if (delta == 0) {
+      return (ok: true, newLux: null);
+    }
+    if (!_authReady || _uid == null) {
+      return null;
+    }
+    try {
+      final FirebaseFunctions fns = FirebaseFunctions.instanceFor(
+        app: Firebase.app(),
+        region: cloudFunctionsRegion,
+      );
+      final HttpsCallable callable = fns.httpsCallable(
+        'velourApplyLuxDelta',
+        options: HttpsCallableOptions(timeout: const Duration(seconds: 25)),
+      );
+      final HttpsCallableResult res = await callable.call(
+        <String, dynamic>{'delta': delta},
+      );
+      final Object? data = res.data;
+      if (data is! Map) {
+        return (ok: false, newLux: null);
+      }
+      final Map<String, dynamic> raw = Map<String, dynamic>.from(data);
+      final bool ok = raw['ok'] == true;
+      final int? newLux = (raw['newLux'] as num?)?.toInt();
+      if (!ok) {
+        return (ok: false, newLux: newLux);
+      }
+      return (ok: true, newLux: newLux);
+    } on FirebaseFunctionsException catch (e, st) {
+      VelourObservability.logFirestoreFailure(
+        'velourApplyLuxDelta',
+        error: e,
+        stackTrace: st,
+        context: <String, Object?>{'delta': delta, 'code': e.code},
+      );
+      return null;
+    } catch (e, st) {
+      VelourObservability.logFirestoreFailure(
+        'velourApplyLuxDelta',
+        error: e,
+        stackTrace: st,
+        context: <String, Object?>{'delta': delta},
+      );
+      return null;
     }
   }
 
@@ -349,7 +492,14 @@ class FirestoreService {
           'lastSeen': FieldValue.serverTimestamp(),
         }, SetOptions(merge: true));
       });
-    } catch (_) {}
+    } catch (e, st) {
+      VelourObservability.logFirestoreFailure(
+        'mergeActiveSkinOnly',
+        error: e,
+        stackTrace: st,
+        context: <String, Object?>{'skinId': skinId},
+      );
+    }
   }
 
   Future<void> mergeSkinPurchaseAndEquip(String skinId) async {
@@ -363,6 +513,13 @@ class FirestoreService {
           'lastSeen': FieldValue.serverTimestamp(),
         }, SetOptions(merge: true));
       });
-    } catch (_) {}
+    } catch (e, st) {
+      VelourObservability.logFirestoreFailure(
+        'mergeSkinPurchaseAndEquip',
+        error: e,
+        stackTrace: st,
+        context: <String, Object?>{'skinId': skinId},
+      );
+    }
   }
 }

@@ -44,11 +44,7 @@ class SettingsView extends StatelessWidget {
           SafeArea(
             child: Stack(
               children: [
-                const Positioned(
-                  top: 6,
-                  left: 6,
-                  child: UniversalBackButton(),
-                ),
+                const Positioned(top: 6, left: 6, child: UniversalBackButton()),
                 Center(
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 560),
@@ -66,10 +62,13 @@ class SettingsView extends StatelessWidget {
                           Text(
                             l10n.settingsTitle,
                             textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  letterSpacing: 6,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(
+                                  letterSpacing: 4,
                                   fontWeight: FontWeight.w600,
-                                  color: accent.withValues(alpha: 0.95),
+                                  color: accent.withValues(alpha: 0.96),
                                   fontSize: (16 * sT).clamp(14.0, 19.0),
                                 ),
                           ),
@@ -119,7 +118,8 @@ class SettingsView extends StatelessWidget {
                             accent: accent,
                             children: [
                               ValueListenableBuilder<bool>(
-                                valueListenable: HapticsHandler.instance.enabled,
+                                valueListenable:
+                                    HapticsHandler.instance.enabled,
                                 builder: (context, enabled, _) {
                                   return _SettingsSwitchTile(
                                     icon: Icons.vibration_rounded,
@@ -129,8 +129,8 @@ class SettingsView extends StatelessWidget {
                                         : l10n.settingsHapticsOff,
                                     value: enabled,
                                     accent: accent,
-                                    onChanged: (v) =>
-                                        AppSettings.instance.setHapticsEnabled(v),
+                                    onChanged: (v) => AppSettings.instance
+                                        .setHapticsEnabled(v),
                                   );
                                 },
                               ),
@@ -152,7 +152,9 @@ class SettingsView extends StatelessWidget {
                                     value: pref,
                                     onChanged: (v) {
                                       if (v == null) return;
-                                      AppSettings.instance.setLocalePreference(v);
+                                      AppSettings.instance.setLocalePreference(
+                                        v,
+                                      );
                                     },
                                   );
                                 },
@@ -191,7 +193,9 @@ class SettingsView extends StatelessWidget {
                                 accent: const Color(0xFFFF4D4D),
                                 onTap: () {
                                   unawaited(() async {
-                                    await context.read<GameState>().fullHardReset();
+                                    await context
+                                        .read<GameState>()
+                                        .fullHardReset();
                                     if (!context.mounted) return;
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
@@ -207,7 +211,8 @@ class SettingsView extends StatelessWidget {
                           Text(
                             l10n.settingsFooterTagline,
                             textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            style: Theme.of(context).textTheme.labelSmall
+                                ?.copyWith(
                                   letterSpacing: 2.0,
                                   color: Colors.white.withValues(alpha: 0.30),
                                   fontSize: (10 * sT).clamp(9.0, 12.0),
@@ -233,21 +238,23 @@ class SettingsView extends StatelessWidget {
         final AppLocalizations dl10n = AppLocalizations.of(dialogContext)!;
         return AlertDialog(
           backgroundColor: _panel.withValues(alpha: 0.96),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
           title: Text(
             dl10n.settingsCreditsDialogTitle,
             style: Theme.of(dialogContext).textTheme.titleSmall?.copyWith(
-                  letterSpacing: 4,
-                  fontWeight: FontWeight.w700,
-                  color: accent.withValues(alpha: 0.92),
-                ),
+              letterSpacing: 4,
+              fontWeight: FontWeight.w700,
+              color: accent.withValues(alpha: 0.92),
+            ),
           ),
           content: Text(
             dl10n.settingsCreditsBody,
             style: Theme.of(dialogContext).textTheme.bodyMedium?.copyWith(
-                  height: 1.35,
-                  color: Colors.white.withValues(alpha: 0.72),
-                ),
+              height: 1.35,
+              color: Colors.white.withValues(alpha: 0.72),
+            ),
           ),
           actions: [
             TextButton(
@@ -255,9 +262,9 @@ class SettingsView extends StatelessWidget {
               child: Text(
                 dl10n.settingsClose,
                 style: Theme.of(dialogContext).textTheme.labelLarge?.copyWith(
-                      letterSpacing: 3,
-                      color: Colors.white.withValues(alpha: 0.70),
-                    ),
+                  letterSpacing: 3,
+                  color: Colors.white.withValues(alpha: 0.70),
+                ),
               ),
             ),
           ],
@@ -301,11 +308,11 @@ class _SectionCard extends StatelessWidget {
             Text(
               title,
               style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    letterSpacing: 4.2,
-                    fontWeight: FontWeight.w700,
-                    fontSize: (11 * sT).clamp(10.0, 13.0),
-                    color: accent.withValues(alpha: 0.82),
-                  ),
+                letterSpacing: 4.2,
+                fontWeight: FontWeight.w700,
+                fontSize: (11 * sT).clamp(10.0, 13.0),
+                color: accent.withValues(alpha: 0.82),
+              ),
             ),
             SizedBox(height: (10 * sH).clamp(8.0, 14.0)),
             ...children,
@@ -365,11 +372,11 @@ class _SettingsSwitchTile extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 1.2,
-                      fontSize: (14 * sT).clamp(12.0, 16.0),
-                      color: Colors.white.withValues(alpha: 0.78),
-                    ),
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 1.2,
+                  fontSize: (14 * sT).clamp(12.0, 16.0),
+                  color: Colors.white.withValues(alpha: 0.78),
+                ),
               ),
               const SizedBox(height: 3),
               Text(
@@ -377,10 +384,10 @@ class _SettingsSwitchTile extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      letterSpacing: 0.6,
-                      fontSize: (12 * sT).clamp(11.0, 14.0),
-                      color: Colors.white.withValues(alpha: 0.42),
-                    ),
+                  letterSpacing: 0.6,
+                  fontSize: (12 * sT).clamp(11.0, 14.0),
+                  color: Colors.white.withValues(alpha: 0.42),
+                ),
               ),
             ],
           ),
@@ -424,11 +431,11 @@ class _LanguageTile extends StatelessWidget {
           child: Text(
             l10n.settingsLanguageRowTitle,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 1.2,
-                  fontSize: (14 * sT).clamp(12.0, 16.0),
-                  color: Colors.white.withValues(alpha: 0.78),
-                ),
+              fontWeight: FontWeight.w600,
+              letterSpacing: 1.2,
+              fontSize: (14 * sT).clamp(12.0, 16.0),
+              color: Colors.white.withValues(alpha: 0.78),
+            ),
           ),
         ),
         DropdownButtonHideUnderline(
@@ -437,9 +444,9 @@ class _LanguageTile extends StatelessWidget {
             onChanged: onChanged,
             dropdownColor: const Color(0xFF0A0C12),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.white.withValues(alpha: 0.78),
-                  letterSpacing: 1.0,
-                ),
+              color: Colors.white.withValues(alpha: 0.78),
+              letterSpacing: 1.0,
+            ),
             items: [
               DropdownMenuItem(
                 value: AppLocalePreference.system,
@@ -452,6 +459,10 @@ class _LanguageTile extends StatelessWidget {
               DropdownMenuItem(
                 value: AppLocalePreference.fr,
                 child: Text(l10n.settingsLocaleFrench),
+              ),
+              DropdownMenuItem(
+                value: AppLocalePreference.de,
+                child: Text(l10n.settingsLocaleGerman),
               ),
             ],
           ),
@@ -494,8 +505,8 @@ class _AsyncVersionInfoTile extends StatelessWidget {
         final String value = snapshot.hasData
             ? _formatAppVersion(snapshot.data!)
             : snapshot.hasError
-                ? '—'
-                : '…';
+            ? '—'
+            : '…';
         return _InfoTile(
           icon: icon,
           title: title,
@@ -531,20 +542,20 @@ class _InfoTile extends StatelessWidget {
           child: Text(
             title,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 1.2,
-                  fontSize: (14 * sT).clamp(12.0, 16.0),
-                  color: Colors.white.withValues(alpha: 0.78),
-                ),
+              fontWeight: FontWeight.w600,
+              letterSpacing: 1.2,
+              fontSize: (14 * sT).clamp(12.0, 16.0),
+              color: Colors.white.withValues(alpha: 0.78),
+            ),
           ),
         ),
         Text(
           value,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                letterSpacing: 1.6,
-                fontSize: (12 * sT).clamp(11.0, 14.0),
-                color: Colors.white.withValues(alpha: 0.48),
-              ),
+            letterSpacing: 1.6,
+            fontSize: (12 * sT).clamp(11.0, 14.0),
+            color: Colors.white.withValues(alpha: 0.48),
+          ),
         ),
       ],
     );
@@ -588,20 +599,20 @@ class _ActionTile extends StatelessWidget {
                   Text(
                     title,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 1.2,
-                          fontSize: (14 * sT).clamp(12.0, 16.0),
-                          color: Colors.white.withValues(alpha: 0.78),
-                        ),
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 1.2,
+                      fontSize: (14 * sT).clamp(12.0, 16.0),
+                      color: Colors.white.withValues(alpha: 0.78),
+                    ),
                   ),
                   const SizedBox(height: 3),
                   Text(
                     subtitle,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          letterSpacing: 0.6,
-                          fontSize: (12 * sT).clamp(11.0, 14.0),
-                          color: Colors.white.withValues(alpha: 0.42),
-                        ),
+                      letterSpacing: 0.6,
+                      fontSize: (12 * sT).clamp(11.0, 14.0),
+                      color: Colors.white.withValues(alpha: 0.42),
+                    ),
                   ),
                 ],
               ),
@@ -634,12 +645,7 @@ class _TileIcon extends StatelessWidget {
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
       ),
-      child: Icon(
-        icon,
-        size: 18,
-        color: accent.withValues(alpha: 0.82),
-      ),
+      child: Icon(icon, size: 18, color: accent.withValues(alpha: 0.82)),
     );
   }
 }
-

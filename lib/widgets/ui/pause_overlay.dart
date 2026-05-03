@@ -38,22 +38,27 @@ class PauseOverlay extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: const Color(0xFF000000).withValues(alpha: 0.72),
                     borderRadius: BorderRadius.circular(12),
-                    border:
-                        Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.08),
+                    ),
                   ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
                         l10n.pauseTitle,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              letterSpacing: 6,
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
+                              letterSpacing: 4,
                               fontWeight: FontWeight.w500,
-                              color: Colors.white.withValues(alpha: 0.72),
-                              fontSize: (Theme.of(context)
-                                          .textTheme
-                                          .titleMedium
-                                          ?.fontSize ??
+                              color: Colors.white.withValues(alpha: 0.78),
+                              fontSize:
+                                  (Theme.of(
+                                        context,
+                                      ).textTheme.titleMedium?.fontSize ??
                                       16) *
                                   s,
                             ),
@@ -73,11 +78,11 @@ class PauseOverlay extends StatelessWidget {
                         onPressed: () async {
                           final GameState gs = context.read<GameState>();
                           if (gs.hasPremiumStakeSession) {
-                            final bool confirm =
-                                await gs.showPremiumForfeitAlert(
-                              context,
-                              gs.activeSessionAnteLux,
-                            );
+                            final bool confirm = await gs
+                                .showPremiumForfeitAlert(
+                                  context,
+                                  gs.activeSessionAnteLux,
+                                );
                             if (!confirm) return;
                           }
                           onBackToMenu();
@@ -94,4 +99,3 @@ class PauseOverlay extends StatelessWidget {
     );
   }
 }
-

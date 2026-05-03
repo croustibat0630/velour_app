@@ -64,6 +64,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsLocaleFrench => 'French';
 
   @override
+  String get settingsLocaleGerman => 'German';
+
+  @override
   String get settingsTitle => 'SETTINGS';
 
   @override
@@ -376,4 +379,138 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gameNarrativePerfectMatchBanner => 'PERFECT MATCH';
+
+  @override
+  String get prepTitle => 'SESSION SETUP';
+
+  @override
+  String get prepModeCasualTitle => 'CLASSIC MODE';
+
+  @override
+  String prepModeCasualBody(int ante) {
+    return 'Stake: $ante LUX. Free practice.';
+  }
+
+  @override
+  String get prepModeHighStakesTitle => 'HIGH STAKES';
+
+  @override
+  String prepModeHighStakesBody(int ante, int goal, int reward) {
+    return 'Stake: $ante LUX. Goal: Level $goal. Reward: $reward LUX.';
+  }
+
+  @override
+  String get prepModeRoyalTitle => 'VELOUR ROYAL';
+
+  @override
+  String prepModeRoyalBody(int ante, int goal, int reward) {
+    return 'Stake: $ante LUX. Goal: Level $goal. Reward: $reward LUX.';
+  }
+
+  @override
+  String get prepInsufficientLux => 'Insufficient LUX balance.';
+
+  @override
+  String get prepConfirm => 'CONFIRM';
+
+  @override
+  String get prepBuyLux => 'BUY LUX';
+
+  @override
+  String get prepSelectedChip => 'SELECTED';
+
+  @override
+  String get leaderboardTitle => 'WORLD LEADERBOARD';
+
+  @override
+  String get leaderboardColRank => 'RANK';
+
+  @override
+  String get leaderboardColPlayer => 'PLAYER';
+
+  @override
+  String get leaderboardColScore => 'SCORE';
+
+  @override
+  String leaderboardError(String details) {
+    return 'Leaderboard unavailable for now.\nCheck your connection or Firestore rules.\n($details)';
+  }
+
+  @override
+  String get leaderboardLoading => 'Loading rankings…';
+
+  @override
+  String get leaderboardEmpty => 'No scores recorded yet.';
+
+  @override
+  String get leaderboardYourRankFooter => 'YOUR RANK';
+
+  @override
+  String leaderboardPlayerAnon(String id) {
+    return 'Player $id';
+  }
+
+  @override
+  String get leaderboardPodiumFirst => 'First place';
+
+  @override
+  String get leaderboardPodiumSecond => 'Second place';
+
+  @override
+  String get leaderboardPodiumThird => 'Third place';
+
+  @override
+  String get leaderboardPodiumOther => 'Podium';
+
+  @override
+  String gameFloatLuxGain(int gain) {
+    return '+$gain LUX';
+  }
+
+  @override
+  String gameFloatLuxGainMult(int gain, String mult) {
+    return '+$gain LUX ×$mult';
+  }
+
+  @override
+  String gameFloatPerfectGain(int gain) {
+    return '+$gain PERFECT';
+  }
+
+  @override
+  String gameFloatPerfectGainMult(int gain, String mult) {
+    return '+$gain PERFECT ×$mult';
+  }
+
+  @override
+  String gameFloatCombo(String mult) {
+    return 'COMBO ×$mult';
+  }
+
+  @override
+  String get gameHudScore => 'SCORE';
+
+  @override
+  String get gameHudTime => 'TIME';
+
+  @override
+  String gameHudLevelShort(int level) {
+    return 'LV $level';
+  }
+
+  @override
+  String gameHudLuxAmount(int lux) {
+    return '$lux LUX';
+  }
+
+  @override
+  String get gameHudLevelTag => 'LEVEL';
+
+  @override
+  String get gameHudLevelUpTitle => 'LEVEL UP!';
+
+  @override
+  String gameHudLevelUpSubtitle(int level) {
+    return 'LEVEL $level';
+  }
 }

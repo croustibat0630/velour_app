@@ -37,6 +37,20 @@ service cloud.firestore {
       return v is int && v >= 0 && v <= 2000000000;
     }
 
+    /// Empêche l’ajout de champs arbitraires sur mise à jour (patch merge).
+    function playerPatchKeysAllowlisted() {
+      return request.resource.data.diff(resource.data).affectedKeys()
+        .hasOnly([
+          'highScore',
+          'totalLux',
+          'inventory',
+          'activeSkinId',
+          'pseudo',
+          'lastSeen',
+          'updatedAt',
+        ]);
+    }
+
     /// Aligné sur [OraclePseudo] : 1–15 caractères [A-Za-z0-9_].
     function isValidPseudoIfPresent() {
       return !request.resource.data.keys().hasAny(['pseudo'])
@@ -54,8 +68,11 @@ service cloud.firestore {
     }
 
     /// Création profil (auth anonyme + doc initial).
+    /// Lecture : utilisateur Firebase connecté (y compris anonyme). Réduit le scraping
+    /// totalement non authentifié ; le top 10 lit toujours des docs complets — voir
+    /// docs/PRODUCTION_HARDENING.md (collection `leaderboardPublic` recommandée).
     match /players/{userId} {
-      allow read: if true;
+      allow read: if isSignedIn();
 
       allow create: if isSignedIn()
         && isOwner(userId)
@@ -84,6 +101,7 @@ service cloud.firestore {
 
       allow update: if isSignedIn()
         && isOwner(userId)
+        && playerPatchKeysAllowlisted()
         && isValidHighScore()
         && isInventoryMonotone()
         && isValidTotalLux()

@@ -8,4 +8,3 @@ class NeonColors {
   static const gold = Color(0xFFFFD400);
   static const green = Color(0xFF00FF85);
 }
-

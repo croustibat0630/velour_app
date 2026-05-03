@@ -15,6 +15,7 @@
   "settingsLocaleSystem": "Langue du système",
   "settingsLocaleEnglish": "English",
   "settingsLocaleFrench": "Français",
+  "settingsLocaleGerman": "Allemand",
   "settingsTitle": "PARAMÈTRES",
   "settingsSectionAudio": "AUDIO",
   "settingsMusicTitle": "Musique",
@@ -109,5 +110,112 @@
   "narrativeFloatShapeBonus": "+100 LUX : STRUCTURE (FORME)",
   "narrativeFloatColorBonus": "+150 LUX : HARMONIE (COULEUR)",
   "narrativeFloatPerfectBonus": "+500 LUX : ÉCLAT TOTAL",
-  "gameNarrativePerfectMatchBanner": "PERFECT MATCH"
+  "gameNarrativePerfectMatchBanner": "MATCH PARFAIT",
+  "prepTitle": "PRÉPARATION DE SESSION",
+  "prepModeCasualTitle": "MODE CLASSIQUE",
+  "prepModeCasualBody": "Mise : {ante} LUX. Entraînement libre.",
+  "@prepModeCasualBody": {
+    "placeholders": {
+      "ante": {"type": "int"}
+    }
+  },
+  "prepModeHighStakesTitle": "HIGH STAKES",
+  "prepModeHighStakesBody": "Mise : {ante} LUX. Objectif : niveau {goal}. Récompense : {reward} LUX.",
+  "@prepModeHighStakesBody": {
+    "placeholders": {
+      "ante": {"type": "int"},
+      "goal": {"type": "int"},
+      "reward": {"type": "int"}
+    }
+  },
+  "prepModeRoyalTitle": "VELOUR ROYAL",
+  "prepModeRoyalBody": "Mise : {ante} LUX. Objectif : niveau {goal}. Récompense : {reward} LUX.",
+  "@prepModeRoyalBody": {
+    "placeholders": {
+      "ante": {"type": "int"},
+      "goal": {"type": "int"},
+      "reward": {"type": "int"}
+    }
+  },
+  "prepInsufficientLux": "Solde LUX insuffisant.",
+  "prepConfirm": "CONFIRMER",
+  "prepBuyLux": "ACHETER DES LUX",
+  "prepSelectedChip": "SÉLECTIONNÉ",
+  "leaderboardTitle": "CLASSEMENT MONDIAL",
+  "leaderboardColRank": "RANG",
+  "leaderboardColPlayer": "JOUEUR",
+  "leaderboardColScore": "SCORE",
+  "leaderboardError": "Classement indisponible pour le moment.\nVérifiez la connexion ou les règles Firestore.\n({details})",
+  "@leaderboardError": {
+    "placeholders": {
+      "details": {"type": "String"}
+    }
+  },
+  "leaderboardLoading": "Chargement du classement…",
+  "leaderboardEmpty": "Aucun score enregistré pour l'instant.",
+  "leaderboardYourRankFooter": "VOTRE RANG",
+  "leaderboardPlayerAnon": "Joueur {id}",
+  "@leaderboardPlayerAnon": {
+    "placeholders": {
+      "id": {"type": "String"}
+    }
+  },
+  "leaderboardPodiumFirst": "Premier du classement",
+  "leaderboardPodiumSecond": "Deuxième du classement",
+  "leaderboardPodiumThird": "Troisième du classement",
+  "leaderboardPodiumOther": "Podium",
+  "gameFloatLuxGain": "+{gain} LUX",
+  "@gameFloatLuxGain": {
+    "placeholders": {
+      "gain": {"type": "int"}
+    }
+  },
+  "gameFloatLuxGainMult": "+{gain} LUX ×{mult}",
+  "@gameFloatLuxGainMult": {
+    "placeholders": {
+      "gain": {"type": "int"},
+      "mult": {"type": "String"}
+    }
+  },
+  "gameFloatPerfectGain": "+{gain} PARFAIT",
+  "@gameFloatPerfectGain": {
+    "placeholders": {
+      "gain": {"type": "int"}
+    }
+  },
+  "gameFloatPerfectGainMult": "+{gain} PARFAIT ×{mult}",
+  "@gameFloatPerfectGainMult": {
+    "placeholders": {
+      "gain": {"type": "int"},
+      "mult": {"type": "String"}
+    }
+  },
+  "gameFloatCombo": "COMBO ×{mult}",
+  "@gameFloatCombo": {
+    "placeholders": {
+      "mult": {"type": "String"}
+    }
+  },
+  "gameHudScore": "SCORE",
+  "gameHudTime": "TEMPS",
+  "gameHudLevelShort": "NIV {level}",
+  "@gameHudLevelShort": {
+    "placeholders": {
+      "level": {"type": "int"}
+    }
+  },
+  "gameHudLuxAmount": "{lux} LUX",
+  "@gameHudLuxAmount": {
+    "placeholders": {
+      "lux": {"type": "int"}
+    }
+  },
+  "gameHudLevelTag": "NIV",
+  "gameHudLevelUpTitle": "NIVEAU ATTEINT !",
+  "gameHudLevelUpSubtitle": "NIVEAU {level}",
+  "@gameHudLevelUpSubtitle": {
+    "placeholders": {
+      "level": {"type": "int"}
+    }
+  }
 }

@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart' as intl;
 
+import 'app_localizations_de.dart';
 import 'app_localizations_en.dart';
 import 'app_localizations_fr.dart';
 
@@ -94,6 +95,7 @@ abstract class AppLocalizations {
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
+    Locale('de'),
     Locale('en'),
     Locale('fr'),
   ];
@@ -187,6 +189,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'French'**
   String get settingsLocaleFrench;
+
+  /// No description provided for @settingsLocaleGerman.
+  ///
+  /// In en, this message translates to:
+  /// **'German'**
+  String get settingsLocaleGerman;
 
   /// Settings screen main heading.
   ///
@@ -757,6 +765,222 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'PERFECT MATCH'**
   String get gameNarrativePerfectMatchBanner;
+
+  /// No description provided for @prepTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'SESSION SETUP'**
+  String get prepTitle;
+
+  /// No description provided for @prepModeCasualTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'CLASSIC MODE'**
+  String get prepModeCasualTitle;
+
+  /// No description provided for @prepModeCasualBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Stake: {ante} LUX. Free practice.'**
+  String prepModeCasualBody(int ante);
+
+  /// No description provided for @prepModeHighStakesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'HIGH STAKES'**
+  String get prepModeHighStakesTitle;
+
+  /// No description provided for @prepModeHighStakesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Stake: {ante} LUX. Goal: Level {goal}. Reward: {reward} LUX.'**
+  String prepModeHighStakesBody(int ante, int goal, int reward);
+
+  /// No description provided for @prepModeRoyalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'VELOUR ROYAL'**
+  String get prepModeRoyalTitle;
+
+  /// No description provided for @prepModeRoyalBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Stake: {ante} LUX. Goal: Level {goal}. Reward: {reward} LUX.'**
+  String prepModeRoyalBody(int ante, int goal, int reward);
+
+  /// No description provided for @prepInsufficientLux.
+  ///
+  /// In en, this message translates to:
+  /// **'Insufficient LUX balance.'**
+  String get prepInsufficientLux;
+
+  /// No description provided for @prepConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'CONFIRM'**
+  String get prepConfirm;
+
+  /// No description provided for @prepBuyLux.
+  ///
+  /// In en, this message translates to:
+  /// **'BUY LUX'**
+  String get prepBuyLux;
+
+  /// No description provided for @prepSelectedChip.
+  ///
+  /// In en, this message translates to:
+  /// **'SELECTED'**
+  String get prepSelectedChip;
+
+  /// No description provided for @leaderboardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'WORLD LEADERBOARD'**
+  String get leaderboardTitle;
+
+  /// No description provided for @leaderboardColRank.
+  ///
+  /// In en, this message translates to:
+  /// **'RANK'**
+  String get leaderboardColRank;
+
+  /// No description provided for @leaderboardColPlayer.
+  ///
+  /// In en, this message translates to:
+  /// **'PLAYER'**
+  String get leaderboardColPlayer;
+
+  /// No description provided for @leaderboardColScore.
+  ///
+  /// In en, this message translates to:
+  /// **'SCORE'**
+  String get leaderboardColScore;
+
+  /// No description provided for @leaderboardError.
+  ///
+  /// In en, this message translates to:
+  /// **'Leaderboard unavailable for now.\nCheck your connection or Firestore rules.\n({details})'**
+  String leaderboardError(String details);
+
+  /// No description provided for @leaderboardLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading rankings…'**
+  String get leaderboardLoading;
+
+  /// No description provided for @leaderboardEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No scores recorded yet.'**
+  String get leaderboardEmpty;
+
+  /// No description provided for @leaderboardYourRankFooter.
+  ///
+  /// In en, this message translates to:
+  /// **'YOUR RANK'**
+  String get leaderboardYourRankFooter;
+
+  /// No description provided for @leaderboardPlayerAnon.
+  ///
+  /// In en, this message translates to:
+  /// **'Player {id}'**
+  String leaderboardPlayerAnon(String id);
+
+  /// No description provided for @leaderboardPodiumFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'First place'**
+  String get leaderboardPodiumFirst;
+
+  /// No description provided for @leaderboardPodiumSecond.
+  ///
+  /// In en, this message translates to:
+  /// **'Second place'**
+  String get leaderboardPodiumSecond;
+
+  /// No description provided for @leaderboardPodiumThird.
+  ///
+  /// In en, this message translates to:
+  /// **'Third place'**
+  String get leaderboardPodiumThird;
+
+  /// No description provided for @leaderboardPodiumOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Podium'**
+  String get leaderboardPodiumOther;
+
+  /// No description provided for @gameFloatLuxGain.
+  ///
+  /// In en, this message translates to:
+  /// **'+{gain} LUX'**
+  String gameFloatLuxGain(int gain);
+
+  /// No description provided for @gameFloatLuxGainMult.
+  ///
+  /// In en, this message translates to:
+  /// **'+{gain} LUX ×{mult}'**
+  String gameFloatLuxGainMult(int gain, String mult);
+
+  /// No description provided for @gameFloatPerfectGain.
+  ///
+  /// In en, this message translates to:
+  /// **'+{gain} PERFECT'**
+  String gameFloatPerfectGain(int gain);
+
+  /// No description provided for @gameFloatPerfectGainMult.
+  ///
+  /// In en, this message translates to:
+  /// **'+{gain} PERFECT ×{mult}'**
+  String gameFloatPerfectGainMult(int gain, String mult);
+
+  /// No description provided for @gameFloatCombo.
+  ///
+  /// In en, this message translates to:
+  /// **'COMBO ×{mult}'**
+  String gameFloatCombo(String mult);
+
+  /// No description provided for @gameHudScore.
+  ///
+  /// In en, this message translates to:
+  /// **'SCORE'**
+  String get gameHudScore;
+
+  /// No description provided for @gameHudTime.
+  ///
+  /// In en, this message translates to:
+  /// **'TIME'**
+  String get gameHudTime;
+
+  /// No description provided for @gameHudLevelShort.
+  ///
+  /// In en, this message translates to:
+  /// **'LV {level}'**
+  String gameHudLevelShort(int level);
+
+  /// No description provided for @gameHudLuxAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'{lux} LUX'**
+  String gameHudLuxAmount(int lux);
+
+  /// No description provided for @gameHudLevelTag.
+  ///
+  /// In en, this message translates to:
+  /// **'LEVEL'**
+  String get gameHudLevelTag;
+
+  /// No description provided for @gameHudLevelUpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'LEVEL UP!'**
+  String get gameHudLevelUpTitle;
+
+  /// No description provided for @gameHudLevelUpSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'LEVEL {level}'**
+  String gameHudLevelUpSubtitle(int level);
 }
 
 class _AppLocalizationsDelegate
@@ -770,7 +994,7 @@ class _AppLocalizationsDelegate
 
   @override
   bool isSupported(Locale locale) =>
-      <String>['en', 'fr'].contains(locale.languageCode);
+      <String>['de', 'en', 'fr'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
@@ -779,6 +1003,8 @@ class _AppLocalizationsDelegate
 AppLocalizations lookupAppLocalizations(Locale locale) {
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
+    case 'de':
+      return AppLocalizationsDe();
     case 'en':
       return AppLocalizationsEn();
     case 'fr':

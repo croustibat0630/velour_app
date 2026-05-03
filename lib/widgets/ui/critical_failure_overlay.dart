@@ -4,10 +4,7 @@ import 'dart:math' as math;
 import '../../utils/responsive.dart';
 
 class CriticalFailureOverlay extends StatefulWidget {
-  const CriticalFailureOverlay({
-    super.key,
-    required this.onReset,
-  });
+  const CriticalFailureOverlay({super.key, required this.onReset});
 
   final VoidCallback onReset;
 
@@ -40,9 +37,7 @@ class _CriticalFailureOverlayState extends State<CriticalFailureOverlay>
     return Stack(
       fit: StackFit.expand,
       children: [
-        const ColoredBox(
-          color: Color(0x66FF0000),
-        ),
+        const ColoredBox(color: Color(0x66FF0000)),
         // Shift below top HUD (LUX + safe zone) so titles never collide with the score.
         Align(
           alignment: const Alignment(0, 0.22),
@@ -60,8 +55,7 @@ class _CriticalFailureOverlayState extends State<CriticalFailureOverlay>
                     LayoutBuilder(
                       builder: (context, c) {
                         final double w = c.maxWidth;
-                        final double size =
-                            ((w * 0.095).clamp(16, 44)) * s;
+                        final double size = ((w * 0.095).clamp(16, 44)) * s;
                         return FittedBox(
                           fit: BoxFit.scaleDown,
                           child: Opacity(

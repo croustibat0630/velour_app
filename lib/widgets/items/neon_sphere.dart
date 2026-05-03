@@ -3,11 +3,7 @@ import 'package:flutter/material.dart';
 import 'gem_glass_paint.dart';
 
 class NeonSphere extends StatelessWidget {
-  const NeonSphere({
-    super.key,
-    required this.neon,
-    this.size = 45,
-  });
+  const NeonSphere({super.key, required this.neon, this.size = 45});
 
   final double size;
   final Color neon;
@@ -41,4 +37,3 @@ class _NeonSpherePainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _NeonSpherePainter oldDelegate) => false;
 }
-

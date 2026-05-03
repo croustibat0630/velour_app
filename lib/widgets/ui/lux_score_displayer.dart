@@ -28,47 +28,66 @@ class LuxScoreDisplayer extends StatelessWidget {
     final double begin = beginInt.toDouble();
     final double end = lux.toDouble();
 
-    return TweenAnimationBuilder<double>(
-      key: ValueKey('lux_$beginInt->$lux'),
-      tween: Tween<double>(begin: begin, end: end),
-      duration: const Duration(milliseconds: 1500),
-      curve: Curves.easeOutExpo,
-      builder: (context, v, _) {
-        final int shown = v.round();
-        return FittedBox(
-          fit: BoxFit.scaleDown,
-          alignment: Alignment.centerRight,
-          child: RichText(
-            textAlign: TextAlign.right,
-            text: TextSpan(
-              style: GoogleFonts.montserrat(
-                fontSize: labelSize,
-                fontWeight: FontWeight.w500,
-                letterSpacing: 2.4,
-                height: 1.0,
-                color: Colors.white.withValues(alpha: 0.44),
-              ),
-              children: [
-                TextSpan(text: '$prefix  '),
-                TextSpan(
-                  text: '$shown',
-                  style: GoogleFonts.montserrat(
-                    fontSize: valueSize,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 2.4,
-                    height: 1.0,
-                    color: color.withValues(alpha: 0.95),
-                    shadows: [
-                      Shadow(
-                        color: color.withValues(alpha: 0.40),
-                        blurRadius: (5 * sH).clamp(4.0, 6.0),
-                      ),
-                    ],
+    return LayoutBuilder(
+      builder: (context, cons) {
+        final double maxW = cons.maxWidth.isFinite ? cons.maxWidth : 560.0;
+        final double letterTight = prefix.length > 36
+            ? 1.15
+            : (prefix.length > 24 ? 1.8 : 2.4);
+
+        return TweenAnimationBuilder<double>(
+          key: ValueKey('lux_$beginInt->$lux'),
+          tween: Tween<double>(begin: begin, end: end),
+          duration: const Duration(milliseconds: 1500),
+          curve: Curves.easeOutExpo,
+          builder: (context, v, _) {
+            final int shown = v.round();
+            return ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: maxW),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    prefix,
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.montserrat(
+                      fontSize: labelSize,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: letterTight,
+                      height: 1.22,
+                      color: Colors.white.withValues(alpha: 0.54),
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ),
+                  SizedBox(height: (5 * sH).clamp(4.0, 8.0)),
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.center,
+                    child: Text(
+                      '$shown',
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      style: GoogleFonts.montserrat(
+                        fontSize: valueSize,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 2.4,
+                        height: 1.0,
+                        color: color.withValues(alpha: 0.95),
+                        shadows: [
+                          Shadow(
+                            color: color.withValues(alpha: 0.40),
+                            blurRadius: (5 * sH).clamp(4.0, 6.0),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
         );
       },
     );

@@ -83,10 +83,7 @@ class _WelcomeGiftGlobalLayerState extends State<WelcomeGiftGlobalLayer>
         ).chain(CurveTween(curve: Curves.easeOutCubic)),
         weight: 0.5,
       ),
-      TweenSequenceItem(
-        tween: ConstantTween<Offset>(Offset.zero),
-        weight: 3.5,
-      ),
+      TweenSequenceItem(tween: ConstantTween<Offset>(Offset.zero), weight: 3.5),
       TweenSequenceItem(
         tween: Tween<Offset>(
           begin: Offset.zero,
@@ -97,19 +94,25 @@ class _WelcomeGiftGlobalLayerState extends State<WelcomeGiftGlobalLayer>
     ]).animate(_welcomeBanner);
     _welcomeBannerFade = TweenSequence<double>([
       TweenSequenceItem(
-        tween: Tween<double>(begin: 0, end: 1)
-            .chain(CurveTween(curve: Curves.easeOut)),
+        tween: Tween<double>(
+          begin: 0,
+          end: 1,
+        ).chain(CurveTween(curve: Curves.easeOut)),
         weight: 0.5,
       ),
       TweenSequenceItem(tween: ConstantTween<double>(1), weight: 3.5),
       TweenSequenceItem(
-        tween: Tween<double>(begin: 1, end: 0)
-            .chain(CurveTween(curve: Curves.easeIn)),
+        tween: Tween<double>(
+          begin: 1,
+          end: 0,
+        ).chain(CurveTween(curve: Curves.easeIn)),
         weight: 0.5,
       ),
     ]).animate(_welcomeBanner);
 
-    RouteTransitionNotifier.activeTransitions.addListener(_onRouteTransitionTick);
+    RouteTransitionNotifier.activeTransitions.addListener(
+      _onRouteTransitionTick,
+    );
   }
 
   @override
@@ -124,8 +127,9 @@ class _WelcomeGiftGlobalLayerState extends State<WelcomeGiftGlobalLayer>
 
   @override
   void dispose() {
-    RouteTransitionNotifier.activeTransitions
-        .removeListener(_onRouteTransitionTick);
+    RouteTransitionNotifier.activeTransitions.removeListener(
+      _onRouteTransitionTick,
+    );
     _gameState?.removeListener(_onGameState);
     _luxCounter.dispose();
     _luxPulse.dispose();
@@ -245,16 +249,14 @@ class _WelcomeLuxBanner extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: _gold.withValues(alpha: 0.55), width: 1),
             boxShadow: [
-              BoxShadow(
-                color: _gold.withValues(alpha: 0.12),
-                blurRadius: 24,
-              ),
+              BoxShadow(color: _gold.withValues(alpha: 0.12), blurRadius: 24),
             ],
           ),
           child: Text(
             'DOTATION VELOUR : +250 LUX',
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            style:
+                Theme.of(context).textTheme.bodySmall?.copyWith(
                   fontSize: 12 * scale,
                   fontWeight: FontWeight.w600,
                   letterSpacing: 3.2,

@@ -5,11 +5,7 @@ import 'package:flutter/material.dart';
 import 'gem_glass_paint.dart';
 
 class NeonStar extends StatelessWidget {
-  const NeonStar({
-    super.key,
-    required this.neon,
-    this.size = 45,
-  });
+  const NeonStar({super.key, required this.neon, this.size = 45});
 
   final double size;
   final Color neon;

@@ -9,67 +9,128 @@ import 'game_state_types.dart';
 export 'game_state_types.dart';
 
 import '../game/oracle_pseudo.dart';
+import '../game/session_stake_resolution.dart';
 import '../models/game_item.dart';
 import '../models/skin_config.dart';
 import '../services/audio_handler.dart';
+import '../services/economy_service.dart';
 import '../services/firestore_service.dart';
 import '../services/haptics_handler.dart';
 import '../services/stats_service.dart';
 import '../widgets/ui/premium_alert_view.dart';
 
-class GameState extends ChangeNotifier {
+class GameState extends ChangeNotifier with WidgetsBindingObserver {
   static const int slotCount = 7;
   static const GameStateLocalStore _localDisk = GameStateLocalStore();
   static const Duration _baseMatchDelay = Duration(milliseconds: 350);
 
+  final EconomyService _economy = EconomyService();
+
+  /// Aligné sur [EconomyService.welcomeLuxGrant] (API stable pour l’UI).
+  static int get welcomeLuxGrant => EconomyService.welcomeLuxGrant;
+
   GameState() {
-    unawaited(_initializeAuth());
+    _economy.addListener(notifyListeners);
+    _economy.onPersonalBestCommitted = _maybeTriggerOracleNamingCeremony;
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  bool _cloudLifecycleFlushBusy = false;
+
+  /// Annule le debounce LUX, persiste le disque puis pousse LUX / record / skins
+  /// vers Firestore (best-effort). Appelé sur [AppLifecycleState.paused] / [hidden].
+  Future<void> flushCloudSyncOnAppHidden() async {
+    if (_cloudLifecycleFlushBusy) return;
+    _cloudLifecycleFlushBusy = true;
+    try {
+      await _economy.flushCloudSyncOnLifecycleHide();
+      if (FirestoreService.instance.isCloudReady) {
+        await FirestoreService.instance.pushMergedPlayerProgress(
+          totalLux: _economy.luxCoins,
+          highScore: _economy.highScore,
+          inventory: List<String>.from(_unlockedSkins),
+          activeSkinId: _activeSkinId,
+        );
+      }
+    } catch (_) {
+    } finally {
+      _cloudLifecycleFlushBusy = false;
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    switch (state) {
+      case AppLifecycleState.paused:
+      case AppLifecycleState.hidden:
+        unawaited(flushCloudSyncOnAppHidden());
+        break;
+      default:
+        break;
+    }
   }
 
   // ---------------------------------------------------------------------------
   // Cloud — délégué à [FirestoreService] (auth + Firestore best-effort).
   // ---------------------------------------------------------------------------
 
-  Timer? _luxCloudSyncDebounce;
+  /// À appeler **après** chargement disque (ex. splash) : auth anonyme, merge
+  /// local ∪ cloud (max LUX / max high score / union skins), persistance puis push.
+  Future<void> bootstrapCloudAfterLocalLoad() async {
+    await loadEconomyWelcome();
+    await loadHighScore();
 
-  Future<void> _initializeAuth() async {
-    final ({List<String>? inventory, String? activeSkinId})? pulled =
-        await FirestoreService.instance.initializeAuthAndPullSkins();
+    final PlayerCloudPull? pulled = await FirestoreService.instance
+        .initializeAuthAndPullSkins();
     if (pulled == null && !FirestoreService.instance.isCloudReady) {
       return;
     }
-    if (pulled != null) {
-      try {
-        final List<String>? inv = pulled.inventory;
-        final String? active = pulled.activeSkinId;
-        if (inv != null) {
-          _unlockedSkins = List<String>.from(inv);
-          if (!_unlockedSkins.contains(SkinCatalog.standard.id)) {
-            _unlockedSkins = <String>[
-              SkinCatalog.standard.id,
-              ..._unlockedSkins,
-            ];
-          }
-        }
-        if (active != null && active.isNotEmpty) {
-          _activeSkinId = active;
-        }
-        if (!_unlockedSkins.contains(_activeSkinId)) {
+    if (pulled == null) return;
+
+    try {
+      final ({int? luxCoins, int? highScore}) pending = FirestoreService
+          .instance
+          .consumePendingCloudSyncHints();
+      await _economy.mergeBootstrapFromCloud(
+        pulled: pulled,
+        pendingLux: pending.luxCoins,
+        pendingHigh: pending.highScore,
+      );
+      if (_runStartedAt == null) {
+        _runHighScoreBaseline = _economy.highScore;
+      }
+
+      final Set<String> union = <String>{..._unlockedSkins};
+      if (pulled.inventory != null) {
+        union.addAll(pulled.inventory!);
+      }
+      if (!union.contains(SkinCatalog.standard.id)) {
+        union.add(SkinCatalog.standard.id);
+      }
+      _unlockedSkins = List<String>.from(union);
+
+      final String? cActive = pulled.activeSkinId;
+      if (!_unlockedSkins.contains(_activeSkinId)) {
+        if (cActive != null &&
+            cActive.isNotEmpty &&
+            _unlockedSkins.contains(cActive)) {
+          _activeSkinId = cActive;
+        } else {
           _activeSkinId = SkinCatalog.standard.id;
         }
-        unawaited(_persistSkinsLocal());
-        notifyListeners();
-      } catch (_) {}
-    }
-  }
+      }
 
-  Future<void> _syncHighScoreToCloud(int score) async {
-    await FirestoreService.instance.syncHighScoreToCloud(score);
-  }
+      await _economy.persistLuxAndHighScoreLocalAfterBootstrap();
+      await _persistSkinsLocal();
+      notifyListeners();
 
-  /// Best-effort : envoie le solde LUX coins (meta) dans Firestore.
-  Future<void> syncLuxToCloud(int amount) async {
-    await FirestoreService.instance.syncLuxToCloud(amount);
+      await FirestoreService.instance.pushMergedPlayerProgress(
+        totalLux: _economy.luxCoins,
+        highScore: _economy.highScore,
+        inventory: List<String>.from(_unlockedSkins),
+        activeSkinId: _activeSkinId,
+      );
+    } catch (_) {}
   }
 
   bool _shouldShowNamingDialog = false;
@@ -95,8 +156,7 @@ class GameState extends ChangeNotifier {
       notifyListeners();
       return true;
     }
-    final bool ok =
-        await FirestoreService.instance.updateOraclePseudo(cleaned);
+    final bool ok = await FirestoreService.instance.updateOraclePseudo(cleaned);
     if (ok) {
       _shouldShowNamingDialog = false;
       notifyListeners();
@@ -496,8 +556,7 @@ class GameState extends ChangeNotifier {
   SessionStakeKind? _replaySuggestedStake;
   SessionStakeKind? get replaySuggestedStake => _replaySuggestedStake;
 
-  int _luxCoins = 0;
-  int get luxCoins => _luxCoins;
+  int get luxCoins => _economy.luxCoins;
 
   List<String> _unlockedSkins = <String>[SkinCatalog.standard.id];
   List<String> get unlockedSkins => List.unmodifiable(_unlockedSkins);
@@ -509,14 +568,12 @@ class GameState extends ChangeNotifier {
 
   /// Crédit meta en attente : utilisé pour déclencher le "juice" (count-up + SFX)
   /// à l'arrivée sur l'écran suivant (ex: retour du Shop).
-  int pendingLuxAnimation = 0;
-  bool _pendingLuxJuiceSilent = false;
+  int get pendingLuxAnimation => _economy.pendingLuxAnimation;
 
   SessionStakeKind _sessionStake = SessionStakeKind.casual;
   SessionStakeKind get sessionStake => _sessionStake;
 
-  SessionStakeFooterLine _sessionStakeFooterLine =
-      SessionStakeFooterLine.none;
+  SessionStakeFooterLine _sessionStakeFooterLine = SessionStakeFooterLine.none;
   SessionStakeFooterLine get sessionStakeFooterLine => _sessionStakeFooterLine;
 
   bool get sessionStakeFooterIsFailure =>
@@ -550,37 +607,15 @@ class GameState extends ChangeNotifier {
   static const int royalTargetLevel = 5;
 
   void addLuxCoins(int delta) {
-    if (delta == 0) return;
-    _luxCoins = math.max(0, _luxCoins + delta);
-    if (delta > 0) {
-      pendingLuxAnimation += delta;
-    }
-    notifyListeners();
-    unawaited(_persistLuxCoins());
-    // Cloud sync (debounced).
-    _luxCloudSyncDebounce?.cancel();
-    _luxCloudSyncDebounce = Timer(const Duration(milliseconds: 650), () {
-      final int v = _luxCoins;
-      unawaited(syncLuxToCloud(v));
-    });
+    _economy.addLuxCoins(delta);
   }
 
   ({int amount, bool silent}) takePendingLuxJuice() {
-    final int v = pendingLuxAnimation;
-    final bool silent = _pendingLuxJuiceSilent;
-    pendingLuxAnimation = 0;
-    _pendingLuxJuiceSilent = false;
-    return (amount: v, silent: silent);
+    return _economy.takePendingLuxJuice();
   }
 
-  /// Capital de départ (premier lancement) + persistance des LUX coins.
-  static const int welcomeLuxGrant = 250;
-
-  bool _economyLoaded = false;
-  bool _firstLaunchPendingWelcome = false;
-
   /// True tant que le cadeau de bienvenue n’a pas été accordé (persisté).
-  bool get hasPendingWelcomeGift => _firstLaunchPendingWelcome;
+  bool get hasPendingWelcomeGift => _economy.hasPendingWelcomeGift;
 
   bool _welcomeGiftGestureBusy = false;
   int _welcomeGiftVisualBurstId = 0;
@@ -590,23 +625,19 @@ class GameState extends ChangeNotifier {
 
   /// Premier lancement : premier clic menu (n’importe quel bouton) — audio + persistance + signal UI.
   Future<void> fireWelcomeGiftFromFirstMenuGestureIfPending() async {
-    if (!_firstLaunchPendingWelcome) return;
+    if (!_economy.hasPendingWelcomeGift) return;
     if (_welcomeGiftGestureBusy) return;
     _welcomeGiftGestureBusy = true;
     try {
       await AudioHandler.instance.unlockAudio();
-      if (!_firstLaunchPendingWelcome) return;
+      if (!_economy.hasPendingWelcomeGift) return;
       AudioHandler.instance.playCredit();
-      await grantWelcomeLuxIfPending();
+      await _economy.grantWelcomeLuxIfPending();
       _welcomeGiftVisualBurstId++;
       notifyListeners();
     } finally {
       _welcomeGiftGestureBusy = false;
     }
-  }
-
-  Future<void> _persistLuxCoins() async {
-    await _localDisk.persistLuxCoins(_luxCoins);
   }
 
   Future<void> _persistSkinsLocal() async {
@@ -618,7 +649,7 @@ class GameState extends ChangeNotifier {
 
   /// Force une écriture disque immédiate du solde LUX.
   Future<void> flushLuxCoinsPersistence() async {
-    await _persistLuxCoins();
+    await _economy.flushLuxCoinsPersistenceOnly();
   }
 
   /// Charge l'économie (solde LUX) et détecte le premier lancement.
@@ -626,17 +657,14 @@ class GameState extends ChangeNotifier {
   ///
   /// Retourne `true` si un cadeau de bienvenue doit être joué.
   Future<bool> loadEconomyWelcome() async {
-    if (_economyLoaded) return _firstLaunchPendingWelcome;
-    _economyLoaded = true;
+    if (_economy.economyLoadedFromDisk) return _economy.hasPendingWelcomeGift;
     try {
       final EconomyWelcomeLoad? disk = await _localDisk.loadEconomyWelcome();
       if (disk == null) return false;
-      _luxCoins = math.max(0, disk.luxCoinsRaw);
-      _firstLaunchPendingWelcome = disk.isFirstLaunch;
+      _economy.hydrateLuxAndWelcomeFromDisk(disk);
       _trinityTutorialComplete = disk.trinityTutorialComplete;
       _isFirstTimeGame = disk.isFirstTimeGame;
-      _activeSkinId =
-          disk.activeSkinIdRaw ?? SkinCatalog.standard.id;
+      _activeSkinId = disk.activeSkinIdRaw ?? SkinCatalog.standard.id;
       _unlockedSkins =
           disk.unlockedSkinsRaw ?? <String>[SkinCatalog.standard.id];
       if (!_unlockedSkins.contains(SkinCatalog.standard.id)) {
@@ -646,7 +674,7 @@ class GameState extends ChangeNotifier {
         _activeSkinId = SkinCatalog.standard.id;
       }
       notifyListeners();
-      return _firstLaunchPendingWelcome;
+      return _economy.hasPendingWelcomeGift;
     } catch (_) {
       return false;
     }
@@ -654,26 +682,12 @@ class GameState extends ChangeNotifier {
 
   /// Déclenche le cadeau de bienvenue (1 seule fois, persistant).
   Future<void> grantWelcomeLuxIfPending() async {
-    if (!_firstLaunchPendingWelcome) return;
-    _firstLaunchPendingWelcome = false;
-    final int before = _luxCoins;
-    _luxCoins = welcomeLuxGrant;
-    final int delta = _luxCoins - before;
-    if (delta > 0) {
-      pendingLuxAnimation += delta;
-      // Le SFX "credit" est déjà joué côté menu (premier geste).
-      // On veut seulement le count-up sur l'écran suivant.
-      _pendingLuxJuiceSilent = true;
-    }
-    notifyListeners();
-    await _localDisk.persistWelcomeGrant(_luxCoins);
+    await _economy.grantWelcomeLuxIfPending();
   }
 
   /// Debug : remet l’état « premier lancement » et le solde LUX à 0 (prefs).
   Future<void> debugResetFirstLaunchWelcome() async {
-    await _localDisk.debugResetFirstLaunchWelcome();
-    _luxCoins = 0;
-    _firstLaunchPendingWelcome = true;
+    await _economy.debugResetFirstLaunchWelcome();
     notifyListeners();
   }
 
@@ -681,11 +695,7 @@ class GameState extends ChangeNotifier {
   Future<void> fullHardReset() async {
     await _localDisk.clearAll();
 
-    _economyLoaded = false;
-    _highScoreLoaded = false;
-    _luxCoins = 0;
-    _highScore = 0;
-    _firstLaunchPendingWelcome = true;
+    _economy.resetForFullHardReset();
     _trinityTutorialComplete = false;
     _trinityTutorialPhase = TrinityTutorialPhase.none;
     _shouldShowNamingDialog = false;
@@ -726,7 +736,7 @@ class GameState extends ChangeNotifier {
       return SkinPurchaseOutcome.equippedFromOwned;
     }
 
-    if (skin.price > 0 && _luxCoins < skin.price) {
+    if (skin.price > 0 && _economy.luxCoins < skin.price) {
       return SkinPurchaseOutcome.insufficientLux;
     }
     if (skin.price > 0) {
@@ -749,7 +759,7 @@ class GameState extends ChangeNotifier {
       return true;
     }
     if (kind == SessionStakeKind.highStakes) {
-      if (_luxCoins < highStakesAnteLux) {
+      if (_economy.luxCoins < highStakesAnteLux) {
         return false;
       }
       addLuxCoins(-highStakesAnteLux);
@@ -758,7 +768,7 @@ class GameState extends ChangeNotifier {
       return true;
     }
     if (kind == SessionStakeKind.royal) {
-      if (_luxCoins < royalAnteLux) {
+      if (_economy.luxCoins < royalAnteLux) {
         return false;
       }
       addLuxCoins(-royalAnteLux);
@@ -774,7 +784,7 @@ class GameState extends ChangeNotifier {
   /// [_resolveSessionStakeOnGameOver] quand l’objectif de niveau est atteint.
   Future<bool> consumeStake(SessionStakeKind kind) async {
     if (!beginSession(kind)) return false;
-    await _persistLuxCoins();
+    await _economy.flushLuxCoinsPersistenceOnly();
     return true;
   }
 
@@ -812,28 +822,21 @@ class GameState extends ChangeNotifier {
     _lastEndedRunStakeKind = _sessionStake;
     _lastStakeRewardLuxCoins = 0;
 
-    if (_sessionStake == SessionStakeKind.casual) {
-      _replaySuggestedStake = SessionStakeKind.casual;
-      return;
+    final SessionStakeResolution r = resolveSessionStakeOnGameOver(
+      sessionStake: _sessionStake,
+      gameLevel: _gameLevel,
+      highStakesTargetLevel: highStakesTargetLevel,
+      royalTargetLevel: royalTargetLevel,
+      highStakesWinLux: highStakesWinLux,
+      royalWinLux: royalWinLux,
+    );
+
+    _sessionStakeFooterLine = r.footerLine;
+    if (r.rewardLuxCoins > 0) {
+      addLuxCoins(r.rewardLuxCoins);
+      _lastStakeRewardLuxCoins = r.rewardLuxCoins;
     }
-    if (_sessionStake == SessionStakeKind.highStakes) {
-      if (_gameLevel < highStakesTargetLevel) {
-        _sessionStakeFooterLine = SessionStakeFooterLine.highStakesFail;
-      } else {
-        addLuxCoins(highStakesWinLux);
-        _lastStakeRewardLuxCoins = highStakesWinLux;
-        _sessionStakeFooterLine = SessionStakeFooterLine.highStakesWin150Lux;
-      }
-    } else if (_sessionStake == SessionStakeKind.royal) {
-      if (_gameLevel < royalTargetLevel) {
-        _sessionStakeFooterLine = SessionStakeFooterLine.royalFail;
-      } else {
-        addLuxCoins(royalWinLux);
-        _lastStakeRewardLuxCoins = royalWinLux;
-        _sessionStakeFooterLine = SessionStakeFooterLine.royalWin1250Lux;
-      }
-    }
-    _replaySuggestedStake = _lastEndedRunStakeKind;
+    _replaySuggestedStake = r.replaySuggestedStake;
     _sessionStake = SessionStakeKind.casual;
   }
 
@@ -845,29 +848,19 @@ class GameState extends ChangeNotifier {
     notifyListeners();
   }
 
-  int _highScore = 0;
-  int get highScore => _highScore;
+  int get highScore => _economy.highScore;
   int _runHighScoreBaseline = 0;
   bool _recordVibrateFired = false;
 
-  bool _highScoreLoaded = false;
-
   Future<void> loadHighScore() async {
-    if (_highScoreLoaded) return;
-    _highScoreLoaded = true;
-    _highScore = await _localDisk.loadHighScoreOrZero();
+    await _economy.loadHighScoreFromDisk();
     if (_runStartedAt == null) {
-      _runHighScoreBaseline = _highScore;
+      _runHighScoreBaseline = _economy.highScore;
     }
-    notifyListeners();
   }
 
   Future<void> _persistHighScoreIfNeeded() async {
-    if (_lux <= _highScore) return;
-    _highScore = _lux;
-    await _localDisk.persistHighScore(_highScore);
-    unawaited(_syncHighScoreToCloud(_highScore));
-    unawaited(_maybeTriggerOracleNamingCeremony(_highScore));
+    await _economy.commitRunHighScoreIfBetter(_lux);
   }
 
   /// 0…1 — (LUX actuel − LUX au début du segment) / objectif LUX pour passer au palier suivant.
@@ -988,7 +981,7 @@ class GameState extends ChangeNotifier {
     _lux = 0;
     _runMatchLuxRawTotal = 0;
     _lastGameWasPersonalBest = false;
-    _runHighScoreBaseline = _highScore;
+    _runHighScoreBaseline = _economy.highScore;
     _recordVibrateFired = false;
     _lastStakeRewardLuxCoins = 0;
     _lastEndedRunStakeKind = SessionStakeKind.casual;
@@ -1024,7 +1017,7 @@ class GameState extends ChangeNotifier {
       _startTimeLoop();
     }
     _runStartedAt ??= DateTime.now();
-    _runHighScoreBaseline = _highScore;
+    _runHighScoreBaseline = _economy.highScore;
     // If layout is already known but board hasn't been seeded (e.g. reset before layout),
     // seed now.
     if ((_playZoneRect != null && !(_playZoneRect?.isEmpty ?? true)) &&
@@ -1057,7 +1050,7 @@ class GameState extends ChangeNotifier {
     _removalColorIdById.clear();
     _isGameOver = false;
     _criticalFailure = false;
-    _runHighScoreBaseline = _highScore;
+    _runHighScoreBaseline = _economy.highScore;
     _recordVibrateFired = false;
     _sequenceTick = 0;
     _luxComboFlashTick = 0;
@@ -1475,7 +1468,7 @@ class GameState extends ChangeNotifier {
         stake: _sessionStake,
       ),
     );
-    _lastGameWasPersonalBest = _lux > _highScore;
+    _lastGameWasPersonalBest = _lux > _economy.highScore;
     _resolveSessionStakeOnGameOver();
     _persistHighScoreIfNeeded();
     _playGameOverSound();
@@ -2160,7 +2153,7 @@ class GameState extends ChangeNotifier {
 
     // Nouveau record en direct (une seule fois par run).
     if (!_recordVibrateFired &&
-        _highScoreLoaded &&
+        _economy.highScoreLoaded &&
         _runHighScoreBaseline > 0 &&
         _lux > _runHighScoreBaseline) {
       _recordVibrateFired = true;
@@ -2187,14 +2180,28 @@ class GameState extends ChangeNotifier {
       (false, true) => '+$gain LUX ×${chainScoreMult.toStringAsFixed(1)}',
       (false, false) => '+$gain LUX',
     };
-    final NarrativeFloatingKey? narrativeFloatKey =
-        _narrativeFloatingKey(basis);
+    final NarrativeFloatingKey? narrativeFloatKey = _narrativeFloatingKey(
+      basis,
+    );
+    final RuntimeLuxFloatKind? runtimeLuxKind = narrativeFloatKey != null
+        ? null
+        : switch ((basis == RunBasis.perfect, isCascade)) {
+            (true, true) => RuntimeLuxFloatKind.perfectGainMult,
+            (true, false) => RuntimeLuxFloatKind.perfectGain,
+            (false, true) => RuntimeLuxFloatKind.luxGainMult,
+            (false, false) => RuntimeLuxFloatKind.luxGain,
+          };
+    final String? runtimeChainMult =
+        (runtimeLuxKind == RuntimeLuxFloatKind.perfectGainMult ||
+            runtimeLuxKind == RuntimeLuxFloatKind.luxGainMult)
+        ? chainScoreMult.toStringAsFixed(1)
+        : null;
 
     if (isCascade) {
       _comboFloater = ComboFloaterFx(
         id: _nextId(),
-        text: 'COMBO ×${chainScoreMult.toStringAsFixed(1)}',
         position: center + Offset(0, -itemSize * 0.85),
+        chainMult: chainScoreMult,
       );
       _comboFloaterTick++;
       _comboFloaterClearTimer?.cancel();
@@ -2223,6 +2230,9 @@ class GameState extends ChangeNotifier {
         colorId: (basis == RunBasis.perfect) ? 0 : 1,
         isNarrativePerfectBurst: false,
         narrativeFloatKey: narrativeFloatKey,
+        runtimeLuxKind: runtimeLuxKind,
+        runtimeGain: runtimeLuxKind != null ? gain : null,
+        runtimeChainMult: runtimeChainMult,
       );
       _floatingTick++;
     }
@@ -2370,7 +2380,7 @@ class GameState extends ChangeNotifier {
       _criticalFailure = true;
       _cancelMatchScheduling();
       if (!wasCritical) {
-        _lastGameWasPersonalBest = _lux > _highScore;
+        _lastGameWasPersonalBest = _lux > _economy.highScore;
         _resolveSessionStakeOnGameOver();
         _playGameOverSound();
         AudioHandler.instance.cutAllAudio();
@@ -2403,14 +2413,16 @@ class GameState extends ChangeNotifier {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     // Timers annulés ici ; pas de StreamSubscription dans GameState.
     _cancelMatchScheduling();
     _stopTimeLoop();
     _matchParticleClearTimer?.cancel();
     _comboFloaterClearTimer?.cancel();
     _levelTransitionTimer?.cancel();
-    _luxCloudSyncDebounce?.cancel();
     _narrativeFinalizeTimer?.cancel();
+    _economy.removeListener(notifyListeners);
+    _economy.dispose();
     timeBar.dispose();
     super.dispose();
   }

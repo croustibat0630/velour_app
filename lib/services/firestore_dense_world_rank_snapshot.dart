@@ -5,10 +5,7 @@ import 'dense_world_rank_logic.dart';
 /// Rang dense mondial + indicateur d’ex-aequo sur le même [highScore],
 /// pour un [FirebaseFirestore] injectable (prod ou fake).
 Future<({int denseRank, bool tiedWithOthersSameScore})>
-    computeMyDenseWorldRankFromFirestore(
-  FirebaseFirestore db,
-  int myScore,
-) async {
+computeMyDenseWorldRankFromFirestore(FirebaseFirestore db, int myScore) async {
   final int dense = await computeDenseWorldRank1Based(
     myScore: myScore,
     readScoresAboveSortedAsc: (int cursor, int limit) async {
@@ -32,8 +29,5 @@ Future<({int denseRank, bool tiedWithOthersSameScore})>
       .count()
       .get();
   final int same = sameAgg.count ?? 0;
-  return (
-    denseRank: dense,
-    tiedWithOthersSameScore: same > 1,
-  );
+  return (denseRank: dense, tiedWithOthersSameScore: same > 1);
 }

@@ -12,4 +12,3 @@ class DarkMatteOverlay extends StatelessWidget {
     );
   }
 }
-

@@ -49,4 +49,3 @@ class Responsive {
     return (h < threshold) ? 0.8 : 1.0;
   }
 }
-

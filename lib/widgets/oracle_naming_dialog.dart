@@ -109,9 +109,7 @@ class _OracleNamingDialogState extends State<OracleNamingDialog> {
                             child: Text(
                               'L\'EXCELLENCE VOUS DÉFINIT',
                               textAlign: TextAlign.center,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleSmall
+                              style: Theme.of(context).textTheme.titleSmall
                                   ?.copyWith(
                                     letterSpacing: 4,
                                     fontWeight: FontWeight.w700,
@@ -123,7 +121,10 @@ class _OracleNamingDialogState extends State<OracleNamingDialog> {
                             tooltip: 'Fermer',
                             onPressed: () {
                               context.read<GameState>().dismissNamingDialog();
-                              Navigator.of(context, rootNavigator: true).pop(false);
+                              Navigator.of(
+                                context,
+                                rootNavigator: true,
+                              ).pop(false);
                             },
                             icon: Icon(
                               Icons.close_rounded,
@@ -139,10 +140,10 @@ class _OracleNamingDialogState extends State<OracleNamingDialog> {
                         'Il sera enregistré en minuscules pour éviter les doublons.',
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              height: 1.35,
-                              letterSpacing: 0.6,
-                              color: Colors.white.withValues(alpha: 0.68),
-                            ),
+                          height: 1.35,
+                          letterSpacing: 0.6,
+                          color: Colors.white.withValues(alpha: 0.68),
+                        ),
                       ),
                       const SizedBox(height: 14),
                       TextField(
@@ -150,16 +151,14 @@ class _OracleNamingDialogState extends State<OracleNamingDialog> {
                         maxLength: 15,
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              letterSpacing: 2.0,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white.withValues(alpha: 0.90),
-                            ),
+                          letterSpacing: 2.0,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white.withValues(alpha: 0.90),
+                        ),
                         decoration: InputDecoration(
                           counterText: '',
                           hintText: 'ORACLE_NAME',
-                          hintStyle: Theme.of(context)
-                              .textTheme
-                              .titleSmall
+                          hintStyle: Theme.of(context).textTheme.titleSmall
                               ?.copyWith(
                                 letterSpacing: 2.0,
                                 color: Colors.white.withValues(alpha: 0.25),
@@ -167,8 +166,10 @@ class _OracleNamingDialogState extends State<OracleNamingDialog> {
                           errorText: _error,
                           filled: true,
                           fillColor: Colors.black.withValues(alpha: 0.35),
-                          contentPadding:
-                              const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
+                          ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide(
@@ -209,7 +210,8 @@ class _OracleNamingDialogState extends State<OracleNamingDialog> {
                         child: Text(
                           'SCELLER MON NOM',
                           textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          style: Theme.of(context).textTheme.labelLarge
+                              ?.copyWith(
                                 letterSpacing: 3.0,
                                 fontWeight: FontWeight.w700,
                               ),
@@ -226,4 +228,3 @@ class _OracleNamingDialogState extends State<OracleNamingDialog> {
     );
   }
 }
-

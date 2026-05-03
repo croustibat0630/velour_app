@@ -2,10 +2,7 @@ import 'package:velour_app/l10n/app_localizations.dart';
 
 import '../providers/game_state_types.dart';
 
-String resolveOracleDockMessage(
-  AppLocalizations l10n,
-  OracleDockMessageId id,
-) {
+String resolveOracleDockMessage(AppLocalizations l10n, OracleDockMessageId id) {
   return switch (id) {
     OracleDockMessageId.none => '',
     OracleDockMessageId.step1Shape => l10n.oracleDockStep1Shape,

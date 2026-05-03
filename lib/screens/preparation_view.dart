@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
+import 'package:velour_app/l10n/app_localizations.dart';
+
 import '../providers/game_state.dart';
 import '../services/audio_handler.dart';
 import '../theme/theme_engine.dart';
@@ -147,6 +149,7 @@ class _PreparationViewState extends State<PreparationView> with RouteAware {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
     final ThemeEngine te = context.watch<ThemeEngine>();
     final GameState gs = context.watch<GameState>();
     final double scaleH = Responsive.compactHeightScale(context);
@@ -182,21 +185,27 @@ class _PreparationViewState extends State<PreparationView> with RouteAware {
                       child: UniversalBackButton(),
                     ),
                     SizedBox(height: 8 * scaleH),
-                    Text(
-                      'PRÉPARATION DE SESSION',
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            letterSpacing: 4,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.white.withValues(alpha: 0.72),
-                          ),
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.center,
+                      child: Text(
+                        l10n.prepTitle,
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
+                              letterSpacing: 3,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white.withValues(alpha: 0.78),
+                            ),
+                      ),
                     ),
                     SizedBox(height: 18 * scaleH),
                     Expanded(
                       child: LayoutBuilder(
                         builder: (context, cons) {
-                          final double gap =
-                              (26 * scaleH).clamp(20.0, 30.0);
+                          final double gap = (26 * scaleH).clamp(20.0, 30.0);
                           // ~87,5 % de la largeur (cible 85–90 %).
                           final double cardW = cons.maxWidth * 0.875;
                           final double availH = cons.maxHeight;
@@ -214,80 +223,86 @@ class _PreparationViewState extends State<PreparationView> with RouteAware {
                           final bool scroll = contentH > availH + 0.5;
 
                           Widget stakeCard(_LuxuryModeCard child) => Center(
-                                child: Padding(
-                                  // Laisse respirer les halos des cartes.
-                                  padding:
-                                      EdgeInsets.symmetric(
-                                        vertical: scroll ? outerCardPadV : 0,
-                                      ),
-                                  child: SizedBox(
-                                    width: cardW,
-                                    height: cardH,
-                                    child: child,
-                                  ),
-                                ),
-                              );
+                            child: Padding(
+                              // Laisse respirer les halos des cartes.
+                              padding: EdgeInsets.symmetric(
+                                vertical: scroll ? outerCardPadV : 0,
+                              ),
+                              child: SizedBox(
+                                width: cardW,
+                                height: cardH,
+                                child: child,
+                              ),
+                            ),
+                          );
 
                           final List<Widget> stack = <Widget>[
                             stakeCard(
                               _LuxuryModeCard(
-                                title: 'MODE CLASSIQUE',
+                                title: l10n.prepModeCasualTitle,
                                 titleColor: te.colorForId(1),
-                                body:
-                                    'Mise : 0 LUX. Entraînement libre.',
+                                body: l10n.prepModeCasualBody(0),
+                                selectedChipLabel: l10n.prepSelectedChip,
                                 mode: SessionStakeKind.casual,
                                 hasSelection: _selectedStake != null,
-                                selected: _selectedStake ==
-                                    SessionStakeKind.casual,
+                                selected:
+                                    _selectedStake == SessionStakeKind.casual,
                                 enabled: true,
                                 errorText: null,
-                                onSelect: () => _selectStake(
-                                  SessionStakeKind.casual,
-                                ),
+                                onSelect: () =>
+                                    _selectStake(SessionStakeKind.casual),
                               ),
                             ),
                             SizedBox(height: gap),
                             stakeCard(
                               _LuxuryModeCard(
-                                title: 'HIGH STAKES',
+                                title: l10n.prepModeHighStakesTitle,
                                 titleColor: gold,
-                                body:
-                                    'Mise : 50 LUX. Objectif : Niveau 3. Récompense : 150 LUX.',
+                                body: l10n.prepModeHighStakesBody(
+                                  GameState.highStakesAnteLux,
+                                  GameState.highStakesTargetLevel,
+                                  GameState.highStakesWinLux,
+                                ),
+                                selectedChipLabel: l10n.prepSelectedChip,
                                 mode: SessionStakeKind.highStakes,
                                 hasSelection: _selectedStake != null,
-                                selected: _selectedStake ==
+                                selected:
+                                    _selectedStake ==
                                     SessionStakeKind.highStakes,
                                 enabled: true,
-                                errorText: _stakeBeginError &&
+                                errorText:
+                                    _stakeBeginError &&
                                         _selectedStake ==
                                             SessionStakeKind.highStakes
-                                    ? 'Solde insuffisant.'
+                                    ? l10n.prepInsufficientLux
                                     : null,
-                                onSelect: () => _selectStake(
-                                  SessionStakeKind.highStakes,
-                                ),
+                                onSelect: () =>
+                                    _selectStake(SessionStakeKind.highStakes),
                               ),
                             ),
                             SizedBox(height: gap),
                             stakeCard(
                               _LuxuryModeCard(
-                                title: 'VELOUR ROYAL',
+                                title: l10n.prepModeRoyalTitle,
                                 titleColor: royalViolet,
-                                body:
-                                    'Mise : 250 LUX. Objectif : Niveau 5. Récompense : 1250 LUX.',
+                                body: l10n.prepModeRoyalBody(
+                                  GameState.royalAnteLux,
+                                  GameState.royalTargetLevel,
+                                  GameState.royalWinLux,
+                                ),
+                                selectedChipLabel: l10n.prepSelectedChip,
                                 mode: SessionStakeKind.royal,
                                 hasSelection: _selectedStake != null,
-                                selected: _selectedStake ==
-                                    SessionStakeKind.royal,
+                                selected:
+                                    _selectedStake == SessionStakeKind.royal,
                                 enabled: true,
-                                errorText: _stakeBeginError &&
-                                        _selectedStake ==
-                                            SessionStakeKind.royal
-                                    ? 'Solde insuffisant.'
+                                errorText:
+                                    _stakeBeginError &&
+                                        _selectedStake == SessionStakeKind.royal
+                                    ? l10n.prepInsufficientLux
                                     : null,
-                                onSelect: () => _selectStake(
-                                  SessionStakeKind.royal,
-                                ),
+                                onSelect: () =>
+                                    _selectStake(SessionStakeKind.royal),
                               ),
                             ),
                           ];
@@ -357,22 +372,23 @@ class _PreparationViewState extends State<PreparationView> with RouteAware {
                             child: _canAffordStake(gs, _selectedStake!)
                                 ? _ConfirmSessionButton(
                                     scale: scaleH,
-                                    accent: _selectedStake ==
+                                    label: l10n.prepConfirm,
+                                    accent:
+                                        _selectedStake ==
                                             SessionStakeKind.highStakes
                                         ? gold
                                         : _selectedStake ==
-                                                SessionStakeKind.royal
-                                            ? royalViolet
-                                            : te.colorForId(1),
-                                    onPressed: () => _launchGame(
-                                      _selectedStake!,
-                                    ),
+                                              SessionStakeKind.royal
+                                        ? royalViolet
+                                        : te.colorForId(1),
+                                    onPressed: () =>
+                                        _launchGame(_selectedStake!),
                                   )
                                 : _BuyLuxButton(
                                     scale: scaleH,
+                                    label: l10n.prepBuyLux,
                                     onPressed: () {
-                                      Navigator.of(context)
-                                          .pushNamed('/shop');
+                                      Navigator.of(context).pushNamed('/shop');
                                     },
                                   ),
                           ),
@@ -390,11 +406,13 @@ class _PreparationViewState extends State<PreparationView> with RouteAware {
 class _ConfirmSessionButton extends StatelessWidget {
   const _ConfirmSessionButton({
     required this.scale,
+    required this.label,
     required this.accent,
     required this.onPressed,
   });
 
   final double scale;
+  final String label;
   final Color accent;
   final VoidCallback onPressed;
 
@@ -408,17 +426,21 @@ class _ConfirmSessionButton extends StatelessWidget {
         backgroundColor: const Color(0xFF0C0C10),
         foregroundColor: accent.withValues(alpha: 0.95),
         side: BorderSide(color: accent.withValues(alpha: 0.55), width: 1.2),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
-      child: Text(
-        'CONFIRMER',
-        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              fontSize: 12 * scale,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 3.2,
-            ),
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.labelLarge?.copyWith(
+            fontSize: 12 * scale,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 2.4,
+          ),
+        ),
       ),
     );
   }
@@ -427,10 +449,12 @@ class _ConfirmSessionButton extends StatelessWidget {
 class _BuyLuxButton extends StatelessWidget {
   const _BuyLuxButton({
     required this.scale,
+    required this.label,
     required this.onPressed,
   });
 
   final double scale;
+  final String label;
   final VoidCallback onPressed;
 
   static const Color _violet = Color(0xFF9D50BB);
@@ -446,17 +470,21 @@ class _BuyLuxButton extends StatelessWidget {
         backgroundColor: const Color(0xFF120818),
         foregroundColor: _neon.withValues(alpha: 0.96),
         side: BorderSide(color: _violet.withValues(alpha: 0.65), width: 1.35),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
-      child: Text(
-        'ACHETER DES LUX',
-        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              fontSize: 11.5 * scale,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 2.8,
-            ),
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.labelLarge?.copyWith(
+            fontSize: 11.5 * scale,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 2.2,
+          ),
+        ),
       ),
     );
   }
@@ -467,6 +495,7 @@ class _LuxuryModeCard extends StatelessWidget {
     required this.title,
     required this.titleColor,
     required this.body,
+    required this.selectedChipLabel,
     required this.mode,
     required this.hasSelection,
     required this.selected,
@@ -478,6 +507,7 @@ class _LuxuryModeCard extends StatelessWidget {
   final String title;
   final Color titleColor;
   final String body;
+  final String selectedChipLabel;
   final SessionStakeKind mode;
   final bool hasSelection;
   final bool selected;
@@ -487,6 +517,7 @@ class _LuxuryModeCard extends StatelessWidget {
 
   static const Color _matteTop = Color(0xFF060608);
   static const Color _matteBottom = Color(0xFF15171E);
+
   /// Fond carte sélectionnée : gris très sombre (plus clair que le noir mat).
   static const Color _matteLitTop = Color(0xFF1E222C);
   static const Color _matteLitBottom = Color(0xFF323844);
@@ -556,20 +587,17 @@ class _LuxuryModeCard extends StatelessWidget {
     ];
 
     final Widget modeGlyph = switch (mode) {
-      SessionStakeKind.casual => _ClassicGlyph(
-          color: glyphColor,
-          bright: lit,
-        ),
+      SessionStakeKind.casual => _ClassicGlyph(color: glyphColor, bright: lit),
       SessionStakeKind.highStakes => _HighStakesGlyph(
-          color: glyphColor,
-          dim: !enabled,
-          bright: lit,
-        ),
+        color: glyphColor,
+        dim: !enabled,
+        bright: lit,
+      ),
       SessionStakeKind.royal => _RoyalDiamondGlyph(
-          color: glyphColor,
-          dim: !enabled,
-          bright: lit,
-        ),
+        color: glyphColor,
+        dim: !enabled,
+        bright: lit,
+      ),
     };
 
     final Widget innerContent = Stack(
@@ -579,9 +607,7 @@ class _LuxuryModeCard extends StatelessWidget {
           child: IgnorePointer(
             child: Opacity(
               opacity: lit ? 0.18 : 0.12,
-              child: CustomPaint(
-                painter: _MatteGrainPainter(seed: _grainSeed),
-              ),
+              child: CustomPaint(painter: _MatteGrainPainter(seed: _grainSeed)),
             ),
           ),
         ),
@@ -627,8 +653,11 @@ class _LuxuryModeCard extends StatelessWidget {
                       Text(
                         title,
                         textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              letterSpacing: 6.0,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
+                              letterSpacing: title.length > 18 ? 3.2 : 5.0,
                               fontWeight: FontWeight.w600,
                               color: titleColor.withValues(
                                 alpha: lit ? 1.0 : (muted ? 0.45 : 0.95),
@@ -638,52 +667,57 @@ class _LuxuryModeCard extends StatelessWidget {
                       if (lit) ...[
                         const SizedBox(height: 6),
                         Text(
-                          'SÉLECTIONNÉ',
+                          selectedChipLabel,
                           textAlign: TextAlign.center,
-                          style:
-                              Theme.of(context).textTheme.labelSmall?.copyWith(
-                                    fontSize: 9.5,
-                                    fontWeight: FontWeight.w700,
-                                    letterSpacing: 3.4,
-                                    color: accentNeon.withValues(alpha: 0.92),
-                                    shadows: [
-                                      Shadow(
-                                        color:
-                                            accentNeon.withValues(alpha: 0.55),
-                                        blurRadius: 10,
-                                      ),
-                                      Shadow(
-                                        color:
-                                            accentNeon.withValues(alpha: 0.25),
-                                        blurRadius: 22,
-                                      ),
-                                    ],
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 2.6,
+                                color: accentNeon.withValues(alpha: 0.92),
+                                shadows: [
+                                  Shadow(
+                                    color: accentNeon.withValues(alpha: 0.55),
+                                    blurRadius: 10,
                                   ),
+                                  Shadow(
+                                    color: accentNeon.withValues(alpha: 0.25),
+                                    blurRadius: 22,
+                                  ),
+                                ],
+                              ),
                         ),
                       ],
                       const SizedBox(height: 12),
                       Text(
                         body,
                         textAlign: TextAlign.center,
+                        maxLines: 5,
+                        overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              height: 1.48,
-                              letterSpacing: 0.65,
-                              color: Colors.white.withValues(
-                                alpha: lit ? 0.68 : (muted ? 0.35 : 0.62),
-                              ),
-                            ),
+                          height: 1.48,
+                          letterSpacing: 0.65,
+                          color: Colors.white.withValues(
+                            alpha: lit ? 0.72 : (muted ? 0.38 : 0.64),
+                          ),
+                        ),
                       ),
                       if (errorText != null) ...[
                         const SizedBox(height: 10),
                         Text(
                           errorText!,
                           textAlign: TextAlign.center,
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: const Color(0xFFFF6B6B)
-                                        .withValues(alpha: 0.9),
-                                    letterSpacing: 0.6,
-                                  ),
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: const Color(
+                                  0xFFFF6B6B,
+                                ).withValues(alpha: 0.94),
+                                letterSpacing: 0.5,
+                              ),
                         ),
                       ],
                     ],
@@ -709,56 +743,56 @@ class _LuxuryModeCard extends StatelessWidget {
 
     final List<BoxShadow> litGlowShadows = switch (mode) {
       SessionStakeKind.casual => <BoxShadow>[
-          BoxShadow(
-            color: accentNeon.withValues(alpha: 0.55),
-            blurRadius: br(30),
-            spreadRadius: sr(15),
-          ),
-          BoxShadow(
-            color: accentNeon.withValues(alpha: 0.28),
-            blurRadius: br(52),
-            spreadRadius: sr(4),
-          ),
-          BoxShadow(
-            color: accentNeon.withValues(alpha: 0.14),
-            blurRadius: br(72),
-            spreadRadius: sr(2),
-          ),
-        ],
+        BoxShadow(
+          color: accentNeon.withValues(alpha: 0.55),
+          blurRadius: br(30),
+          spreadRadius: sr(15),
+        ),
+        BoxShadow(
+          color: accentNeon.withValues(alpha: 0.28),
+          blurRadius: br(52),
+          spreadRadius: sr(4),
+        ),
+        BoxShadow(
+          color: accentNeon.withValues(alpha: 0.14),
+          blurRadius: br(72),
+          spreadRadius: sr(2),
+        ),
+      ],
       SessionStakeKind.highStakes => <BoxShadow>[
-          BoxShadow(
-            color: accentNeon.withValues(alpha: 0.55),
-            blurRadius: br(30),
-            spreadRadius: sr(15),
-          ),
-          BoxShadow(
-            color: accentNeon.withValues(alpha: 0.28),
-            blurRadius: br(52),
-            spreadRadius: sr(4),
-          ),
-          BoxShadow(
-            color: accentNeon.withValues(alpha: 0.16),
-            blurRadius: br(72),
-            spreadRadius: sr(2),
-          ),
-        ],
+        BoxShadow(
+          color: accentNeon.withValues(alpha: 0.55),
+          blurRadius: br(30),
+          spreadRadius: sr(15),
+        ),
+        BoxShadow(
+          color: accentNeon.withValues(alpha: 0.28),
+          blurRadius: br(52),
+          spreadRadius: sr(4),
+        ),
+        BoxShadow(
+          color: accentNeon.withValues(alpha: 0.16),
+          blurRadius: br(72),
+          spreadRadius: sr(2),
+        ),
+      ],
       SessionStakeKind.royal => <BoxShadow>[
-          BoxShadow(
-            color: _royalNeon.withValues(alpha: 0.62),
-            blurRadius: br(36),
-            spreadRadius: sr(18),
-          ),
-          BoxShadow(
-            color: _royalPure.withValues(alpha: 0.36),
-            blurRadius: br(58),
-            spreadRadius: sr(6),
-          ),
-          BoxShadow(
-            color: _royalNeon.withValues(alpha: 0.22),
-            blurRadius: br(78),
-            spreadRadius: sr(3),
-          ),
-        ],
+        BoxShadow(
+          color: _royalNeon.withValues(alpha: 0.62),
+          blurRadius: br(36),
+          spreadRadius: sr(18),
+        ),
+        BoxShadow(
+          color: _royalPure.withValues(alpha: 0.36),
+          blurRadius: br(58),
+          spreadRadius: sr(6),
+        ),
+        BoxShadow(
+          color: _royalNeon.withValues(alpha: 0.22),
+          blurRadius: br(78),
+          spreadRadius: sr(3),
+        ),
+      ],
     };
 
     final Widget cardBody = lit
@@ -805,8 +839,9 @@ class _LuxuryModeCard extends StatelessWidget {
                     : _accentBorder.withValues(alpha: enabled ? 0.22 : 0.28),
                 width: 1,
               ),
-              boxShadow:
-                  muted || idlePremiumGlow.isEmpty ? null : idlePremiumGlow,
+              boxShadow: muted || idlePremiumGlow.isEmpty
+                  ? null
+                  : idlePremiumGlow,
             ),
             child: innerContent,
           );
@@ -861,10 +896,7 @@ class _MatteGrainPainter extends CustomPainter {
 }
 
 class _InnerShadowPainter extends CustomPainter {
-  _InnerShadowPainter({
-    required this.radius,
-    required this.strength,
-  });
+  _InnerShadowPainter({required this.radius, required this.strength});
 
   final double radius;
   final double strength;
@@ -886,7 +918,12 @@ class _InnerShadowPainter extends CustomPainter {
     canvas.drawRRect(rr, light);
 
     // Inner shadow: draw a bigger rect and cut the inside (even-odd)
-    final Rect outer = Rect.fromLTWH(-40, -40, size.width + 80, size.height + 80);
+    final Rect outer = Rect.fromLTWH(
+      -40,
+      -40,
+      size.width + 80,
+      size.height + 80,
+    );
     final Path cut = Path()
       ..fillType = PathFillType.evenOdd
       ..addRect(outer)
@@ -938,10 +975,7 @@ class _HexOutlinePainter extends CustomPainter {
     final Path path = Path();
     for (int i = 0; i < 6; i++) {
       final double a = (i * 60 - 90) * math.pi / 180;
-      final Offset p = Offset(
-        c.dx + r * math.cos(a),
-        c.dy + r * math.sin(a),
-      );
+      final Offset p = Offset(c.dx + r * math.cos(a), c.dy + r * math.sin(a));
       if (i == 0) {
         path.moveTo(p.dx, p.dy);
       } else {

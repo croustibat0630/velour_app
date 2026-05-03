@@ -120,8 +120,7 @@ class AudioHandler {
     // Best-effort: on Web, some operations can be slower/unsupported depending on backend.
     try {
       const int steps = 3;
-      final int stepMs =
-          (duration.inMilliseconds / steps).round().clamp(1, 50);
+      final int stepMs = (duration.inMilliseconds / steps).round().clamp(1, 50);
       for (int i = 0; i < steps; i++) {
         final double v = (1.0 - (i + 1) / steps).clamp(0.0, 1.0);
         try {
@@ -240,13 +239,7 @@ class AudioHandler {
   void playMenuClick() {
     if (_disabled) return;
     if (sfxMuted.value) return;
-    unawaited(
-      _playDisposableOneShot(
-        _menuClickFile,
-        volume: 1.0,
-        holdMs: 220,
-      ),
-    );
+    unawaited(_playDisposableOneShot(_menuClickFile, volume: 1.0, holdMs: 220));
   }
 
   /// Tap gemme (sélection) : distinct du combo (court + plus bas).
@@ -571,7 +564,9 @@ class AudioHandler {
         try {
           await _sfxLevelUp.setVolume(v);
         } catch (_) {}
-        await Future<void>.delayed(const Duration(milliseconds: fadeMs ~/ steps));
+        await Future<void>.delayed(
+          const Duration(milliseconds: fadeMs ~/ steps),
+        );
       }
       await _sfxLevelUp.stop();
       await _sfxLevelUp.setVolume(1.0);

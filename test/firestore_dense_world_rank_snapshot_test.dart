@@ -45,14 +45,17 @@ void main() {
     expect(r.tiedWithOthersSameScore, isFalse);
   });
 
-  test('plusieurs joueurs au même palier supérieur (un seul palier au-dessus)', () async {
-    for (int i = 0; i < 5; i++) {
-      await setPlayer('top$i', 1000);
-    }
-    await setPlayer('me', 10);
-    final ({int denseRank, bool tiedWithOthersSameScore}) r =
-        await computeMyDenseWorldRankFromFirestore(fake, 10);
-    expect(r.denseRank, 2);
-    expect(r.tiedWithOthersSameScore, isFalse);
-  });
+  test(
+    'plusieurs joueurs au même palier supérieur (un seul palier au-dessus)',
+    () async {
+      for (int i = 0; i < 5; i++) {
+        await setPlayer('top$i', 1000);
+      }
+      await setPlayer('me', 10);
+      final ({int denseRank, bool tiedWithOthersSameScore}) r =
+          await computeMyDenseWorldRankFromFirestore(fake, 10);
+      expect(r.denseRank, 2);
+      expect(r.tiedWithOthersSameScore, isFalse);
+    },
+  );
 }

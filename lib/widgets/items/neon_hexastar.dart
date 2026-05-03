@@ -6,11 +6,7 @@ import 'gem_glass_paint.dart';
 
 /// 6-branch star (12 points) — visually distinct from the 5-point star.
 class NeonHexaStar extends StatelessWidget {
-  const NeonHexaStar({
-    super.key,
-    required this.neon,
-    this.size = 45,
-  });
+  const NeonHexaStar({super.key, required this.neon, this.size = 45});
 
   final double size;
   final Color neon;
@@ -59,4 +55,3 @@ class _NeonHexaStarPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _NeonHexaStarPainter oldDelegate) => false;
 }
-

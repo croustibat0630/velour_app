@@ -3,6 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
+import 'package:velour_app/l10n/app_localizations.dart';
+
 import '../game/oracle_pseudo.dart';
 import '../providers/game_state.dart';
 import '../services/firestore_service.dart';
@@ -19,9 +21,12 @@ List<QueryDocumentSnapshot<Map<String, dynamic>>> sortedLeaderboardDocs(
   List<QueryDocumentSnapshot<Map<String, dynamic>>> raw,
 ) {
   if (raw.length <= 1) return raw;
-  final List<QueryDocumentSnapshot<Map<String, dynamic>>> out = List<QueryDocumentSnapshot<Map<String, dynamic>>>.of(raw);
-  out.sort((QueryDocumentSnapshot<Map<String, dynamic>> a,
-      QueryDocumentSnapshot<Map<String, dynamic>> b) {
+  final List<QueryDocumentSnapshot<Map<String, dynamic>>> out =
+      List<QueryDocumentSnapshot<Map<String, dynamic>>>.of(raw);
+  out.sort((
+    QueryDocumentSnapshot<Map<String, dynamic>> a,
+    QueryDocumentSnapshot<Map<String, dynamic>> b,
+  ) {
     final int c = _docHighScore(b).compareTo(_docHighScore(a));
     if (c != 0) return c;
     return a.id.compareTo(b.id);
@@ -48,13 +53,40 @@ List<int> denseRanksForSortedLeaderboardDocs(
   return out;
 }
 
-String _leaderboardDisplayName(Map<String, dynamic> data, String id) {
+String _ordinalRankCore(BuildContext context, int d) {
+  final String lang = Localizations.localeOf(
+    context,
+  ).languageCode.toLowerCase();
+  if (lang == 'fr') {
+    return d == 1 ? '1ᵉʳ' : '$dᵉ';
+  }
+  if (d % 100 >= 11 && d % 100 <= 13) {
+    return '${d}th';
+  }
+  return switch (d % 10) {
+    1 => '${d}st',
+    2 => '${d}nd',
+    3 => '${d}rd',
+    _ => '${d}th',
+  };
+}
+
+String _denseRankOrdinalLabel(BuildContext context, int d, bool tie) {
+  if (d <= 0) return '—';
+  final String core = _ordinalRankCore(context, d);
+  return tie ? '=$core' : core;
+}
+
+String _leaderboardDisplayName(
+  AppLocalizations l10n,
+  Map<String, dynamic> data,
+  String id,
+) {
   final String? raw = data['pseudo'] as String?;
   final String t = raw?.trim() ?? '';
   if (t.isEmpty || t.startsWith('Oracle_') || t.startsWith('oracle_')) {
-    final String frag =
-        id.length >= 4 ? id.substring(0, 4).toUpperCase() : id;
-    return 'Joueur $frag';
+    final String frag = id.length >= 4 ? id.substring(0, 4).toUpperCase() : id;
+    return l10n.leaderboardPlayerAnon(frag);
   }
   return OraclePseudo.formatForDisplay(t);
 }
@@ -77,16 +109,23 @@ class _LeaderboardViewState extends State<LeaderboardView> {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
     final te = context.watch<ThemeEngine>();
     final gs = context.watch<GameState>();
     final double sH = Responsive.heightScale(context);
     final double sT = Responsive.textScale(context);
+    final double rankColW = (34 * sH).clamp(30.0, 40.0);
+    final double rankGap = (12 * sH).clamp(10.0, 14.0);
 
     return Scaffold(
       body: Stack(
         fit: StackFit.expand,
         children: [
-          const Positioned.fill(child: DecoratedBox(decoration: BoxDecoration(color: Color(0xFF000000)))),
+          const Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(color: Color(0xFF000000)),
+            ),
+          ),
           const Positioned.fill(child: DarkMatteOverlay()),
           SafeArea(
             bottom: false,
@@ -108,108 +147,220 @@ class _LeaderboardViewState extends State<LeaderboardView> {
                         children: [
                           SizedBox(height: 6 * sH),
                           Text(
-                            'CLASSEMENT MONDIAL',
+                            l10n.leaderboardTitle,
                             textAlign: TextAlign.center,
-                            maxLines: 1,
+                            maxLines: 2,
                             overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  letterSpacing: 5,
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(
+                                  letterSpacing: 3.5,
                                   fontWeight: FontWeight.w500,
-                                  color: te.colorForId(5).withValues(alpha: 0.92),
+                                  color: te
+                                      .colorForId(5)
+                                      .withValues(alpha: 0.94),
                                   fontSize: (16 * sT).clamp(14.0, 18.0),
                                 ),
                           ),
                           SizedBox(height: (16 * sH).clamp(12.0, 20.0)),
-                          Expanded(
-                            child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-                              stream: _top10Stream,
-                              builder: (context, snap) {
-                                if (snap.hasError) {
-                                  return Center(
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 20,
-                                      ),
-                                      child: Text(
-                                        'Classement indisponible pour le moment.\n'
-                                        'Vérifie la connexion ou les règles Firestore.\n'
-                                        '(${snap.error})',
-                                        textAlign: TextAlign.center,
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodyMedium
-                                            ?.copyWith(
-                                              color: Colors.white.withValues(
-                                                alpha: 0.65,
-                                              ),
-                                              height: 1.4,
-                                            ),
-                                      ),
-                                    ),
-                                  );
-                                }
-                                if (snap.connectionState ==
-                                        ConnectionState.waiting &&
-                                    !snap.hasData) {
-                                  return const Center(
-                                    child: CircularProgressIndicator.adaptive(),
-                                  );
-                                }
-                                final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs =
-                                    sortedLeaderboardDocs(
-                                  snap.data?.docs ?? const <QueryDocumentSnapshot<Map<String, dynamic>>>[],
-                                );
-                                if (docs.isEmpty) {
-                                  return Center(
-                                    child: Text(
-                                      'Aucun score enregistré pour l’instant.',
-                                      textAlign: TextAlign.center,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium
-                                          ?.copyWith(
-                                            color: Colors.white.withValues(
-                                              alpha: 0.55,
-                                            ),
+                          Padding(
+                            padding: EdgeInsets.fromLTRB(
+                              4,
+                              0,
+                              4,
+                              (8 * sH).clamp(6.0, 12.0),
+                            ),
+                            child: Row(
+                              children: [
+                                SizedBox(
+                                  width: rankColW,
+                                  child: Text(
+                                    l10n.leaderboardColRank,
+                                    textAlign: TextAlign.center,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .labelSmall
+                                        ?.copyWith(
+                                          letterSpacing: 2.2,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: (10 * sT).clamp(9.0, 12.0),
+                                          color: Colors.white.withValues(
+                                            alpha: 0.42,
                                           ),
-                                    ),
-                                  );
-                                }
-                                final List<int> denseRanks =
-                                    denseRanksForSortedLeaderboardDocs(docs);
-                                return ListView.builder(
-                                  physics: const BouncingScrollPhysics(),
-                                  itemCount: docs.length,
-                                  padding: EdgeInsets.only(bottom: 12 * sH),
-                                  itemBuilder: (context, i) {
-                                    final Map<String, dynamic> data = docs[i].data();
-                                    final String id = docs[i].id;
-                                    final String username =
-                                        _leaderboardDisplayName(data, id);
-                                    final int lux =
-                                        (data['highScore'] as num?)?.toInt() ?? 0;
-                                    final int d = denseRanks[i];
-                                    final bool tiedAbove =
-                                        i > 0 && denseRanks[i - 1] == d;
-                                    final String rankLabel =
-                                        tiedAbove ? '=$d' : '$d';
-                                    return Padding(
-                                      padding: EdgeInsets.symmetric(
-                                        vertical: (8 * sH).clamp(6.0, 10.0),
+                                        ),
+                                  ),
+                                ),
+                                SizedBox(width: rankGap),
+                                Expanded(
+                                  child: Text(
+                                    l10n.leaderboardColPlayer,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .labelSmall
+                                        ?.copyWith(
+                                          letterSpacing: 2.2,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: (10 * sT).clamp(9.0, 12.0),
+                                          color: Colors.white.withValues(
+                                            alpha: 0.42,
+                                          ),
+                                        ),
+                                  ),
+                                ),
+                                Text(
+                                  l10n.leaderboardColScore,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(context).textTheme.labelSmall
+                                      ?.copyWith(
+                                        letterSpacing: 2.2,
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: (10 * sT).clamp(9.0, 12.0),
+                                        color: Colors.white.withValues(
+                                          alpha: 0.42,
+                                        ),
                                       ),
-                                      child: _LeaderboardTile(
-                                        denseRank: d,
-                                        rankLabel: rankLabel,
-                                        username: username,
-                                        lux: lux,
-                                        scaleH: sH,
-                                        scaleT: sT,
-                                      ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Expanded(
+                            child:
+                                StreamBuilder<
+                                  QuerySnapshot<Map<String, dynamic>>
+                                >(
+                                  stream: _top10Stream,
+                                  builder: (context, snap) {
+                                    if (snap.hasError) {
+                                      return Center(
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 20,
+                                          ),
+                                          child: Text(
+                                            l10n.leaderboardError(
+                                              snap.error.toString(),
+                                            ),
+                                            textAlign: TextAlign.center,
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodyMedium
+                                                ?.copyWith(
+                                                  color: Colors.white
+                                                      .withValues(alpha: 0.65),
+                                                  height: 1.4,
+                                                ),
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                    if (snap.connectionState ==
+                                            ConnectionState.waiting &&
+                                        !snap.hasData) {
+                                      return Center(
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const CircularProgressIndicator.adaptive(),
+                                            SizedBox(
+                                              height: (14 * sH).clamp(
+                                                12.0,
+                                                20.0,
+                                              ),
+                                            ),
+                                            Text(
+                                              l10n.leaderboardLoading,
+                                              textAlign: TextAlign.center,
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .bodySmall
+                                                  ?.copyWith(
+                                                    color: Colors.white
+                                                        .withValues(alpha: 0.5),
+                                                    letterSpacing: 1.1,
+                                                  ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    }
+                                    final List<
+                                      QueryDocumentSnapshot<
+                                        Map<String, dynamic>
+                                      >
+                                    >
+                                    docs = sortedLeaderboardDocs(
+                                      snap.data?.docs ??
+                                          const <
+                                            QueryDocumentSnapshot<
+                                              Map<String, dynamic>
+                                            >
+                                          >[],
+                                    );
+                                    if (docs.isEmpty) {
+                                      return Center(
+                                        child: Text(
+                                          l10n.leaderboardEmpty,
+                                          textAlign: TextAlign.center,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodyMedium
+                                              ?.copyWith(
+                                                color: Colors.white.withValues(
+                                                  alpha: 0.55,
+                                                ),
+                                              ),
+                                        ),
+                                      );
+                                    }
+                                    final List<int> denseRanks =
+                                        denseRanksForSortedLeaderboardDocs(
+                                          docs,
+                                        );
+                                    return ListView.builder(
+                                      physics: const BouncingScrollPhysics(),
+                                      itemCount: docs.length,
+                                      padding: EdgeInsets.only(bottom: 12 * sH),
+                                      itemBuilder: (context, i) {
+                                        final Map<String, dynamic> data =
+                                            docs[i].data();
+                                        final String id = docs[i].id;
+                                        final String username =
+                                            _leaderboardDisplayName(
+                                              l10n,
+                                              data,
+                                              id,
+                                            );
+                                        final int lux =
+                                            (data['highScore'] as num?)
+                                                ?.toInt() ??
+                                            0;
+                                        final int d = denseRanks[i];
+                                        final bool tiedAbove =
+                                            i > 0 && denseRanks[i - 1] == d;
+                                        final String rankLabel = tiedAbove
+                                            ? '=$d'
+                                            : '$d';
+                                        return Padding(
+                                          padding: EdgeInsets.symmetric(
+                                            vertical: (8 * sH).clamp(6.0, 10.0),
+                                          ),
+                                          child: _LeaderboardTile(
+                                            denseRank: d,
+                                            rankLabel: rankLabel,
+                                            username: username,
+                                            lux: lux,
+                                            scaleH: sH,
+                                            scaleT: sT,
+                                          ),
+                                        );
+                                      },
                                     );
                                   },
-                                );
-                              },
-                            ),
+                                ),
                           ),
                         ],
                       ),
@@ -225,6 +376,7 @@ class _LeaderboardViewState extends State<LeaderboardView> {
         scaleH: sH,
         scaleT: sT,
         fallbackLux: gs.highScore,
+        yourRankFooterLabel: l10n.leaderboardYourRankFooter,
       ),
     );
   }
@@ -237,11 +389,13 @@ class _LeaderboardBottomBar extends StatefulWidget {
     required this.scaleH,
     required this.scaleT,
     required this.fallbackLux,
+    required this.yourRankFooterLabel,
   });
 
   final double scaleH;
   final double scaleT;
   final int fallbackLux;
+  final String yourRankFooterLabel;
 
   @override
   State<_LeaderboardBottomBar> createState() => _LeaderboardBottomBarState();
@@ -267,6 +421,7 @@ class _LeaderboardBottomBarState extends State<_LeaderboardBottomBar> {
       return _YourRankBar(
         scaleH: widget.scaleH,
         scaleT: widget.scaleT,
+        yourRankFooterLabel: widget.yourRankFooterLabel,
         rankLabel: '—',
         yourLux: widget.fallbackLux,
       );
@@ -283,11 +438,11 @@ class _LeaderboardBottomBarState extends State<_LeaderboardBottomBar> {
             final MyDenseWorldRank? fr = rankSnap.data;
             final int d = fr?.denseRank ?? 0;
             final bool tie = fr?.tiedWithOthersSameScore ?? false;
-            final String ord = d == 1 ? '1ᵉʳ' : '$dᵉ';
-            final String label = d <= 0 ? '—' : (tie ? '=$ord' : ord);
+            final String label = _denseRankOrdinalLabel(context, d, tie);
             return _YourRankBar(
               scaleH: widget.scaleH,
               scaleT: widget.scaleT,
+              yourRankFooterLabel: widget.yourRankFooterLabel,
               rankLabel: label,
               yourLux: myScore,
             );
@@ -313,18 +468,20 @@ class _PodiumGlyph extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (denseRank > 3) return const SizedBox.shrink();
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
     final IconData icon = denseRank == 1
         ? Icons.emoji_events_rounded
         : Icons.military_tech_rounded;
     final double size = (19 * scaleT).clamp(17.0, 24.0);
     final bool isFirst = denseRank == 1;
+    final String semLabel = switch (denseRank) {
+      1 => l10n.leaderboardPodiumFirst,
+      2 => l10n.leaderboardPodiumSecond,
+      3 => l10n.leaderboardPodiumThird,
+      _ => l10n.leaderboardPodiumOther,
+    };
     return Semantics(
-      label: switch (denseRank) {
-        1 => 'Premier du classement',
-        2 => 'Deuxième du classement',
-        3 => 'Troisième du classement',
-        _ => 'Podium',
-      },
+      label: semLabel,
       child: Icon(
         icon,
         size: size,
@@ -441,11 +598,11 @@ class _LeaderboardTile extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontSize: fontBase,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 1.2,
-                          color: Colors.white.withValues(alpha: 0.86),
-                        ),
+                      fontSize: fontBase,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 1.2,
+                      color: Colors.white.withValues(alpha: 0.86),
+                    ),
                   ),
                 ),
               ],
@@ -532,7 +689,11 @@ class _LuxAmount extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(Icons.brightness_1, size: iconSize, color: accent.withValues(alpha: 0.9)),
+        Icon(
+          Icons.brightness_1,
+          size: iconSize,
+          color: accent.withValues(alpha: 0.9),
+        ),
         const SizedBox(width: 8),
         Text(
           '$lux',
@@ -554,12 +715,14 @@ class _YourRankBar extends StatelessWidget {
   const _YourRankBar({
     required this.scaleH,
     required this.scaleT,
+    required this.yourRankFooterLabel,
     required this.rankLabel,
     required this.yourLux,
   });
 
   final double scaleH;
   final double scaleT;
+  final String yourRankFooterLabel;
   final String rankLabel;
   final int yourLux;
 
@@ -596,15 +759,15 @@ class _YourRankBar extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    'VOTRE RANG',
+                    yourRankFooterLabel,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          fontSize: labelSize,
-                          letterSpacing: 3.2,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white.withValues(alpha: 0.55),
-                        ),
+                      fontSize: labelSize,
+                      letterSpacing: 3.2,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white.withValues(alpha: 0.55),
+                    ),
                   ),
                 ),
                 Text(
@@ -628,4 +791,3 @@ class _YourRankBar extends StatelessWidget {
     );
   }
 }
-

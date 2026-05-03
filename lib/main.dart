@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:velour_app/l10n/app_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -23,9 +21,7 @@ import 'utils/velour_route_observer.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized(); // Indispensable
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   // Web stability: prefer long-polling over unstable websocket/QUIC paths.
   // These flags are no-ops on mobile/desktop, but help Chrome on flaky networks.
   FirebaseFirestore.instance.settings = const Settings(
@@ -42,14 +38,7 @@ class VelourApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(
-          create: (_) {
-            final GameState gs = GameState();
-            unawaited(gs.loadEconomyWelcome());
-            unawaited(gs.loadHighScore());
-            return gs;
-          },
-        ),
+        ChangeNotifierProvider(create: (_) => GameState()),
         ChangeNotifierProvider(create: (_) => ThemeEngine()),
       ],
       child: Consumer2<GameState, ThemeEngine>(
@@ -71,8 +60,7 @@ class VelourApp extends StatelessWidget {
                 ),
                 onGenerateTitle: (BuildContext context) =>
                     AppLocalizations.of(context)?.appTitle ?? 'Velour',
-                localizationsDelegates:
-                    AppLocalizations.localizationsDelegates,
+                localizationsDelegates: AppLocalizations.localizationsDelegates,
                 supportedLocales: AppLocalizations.supportedLocales,
                 debugShowCheckedModeBanner: false,
                 builder: (context, child) {

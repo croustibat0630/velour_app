@@ -109,8 +109,7 @@ class _MenuTextButtonState extends State<MenuTextButton>
                               ? const <Shadow>[]
                               : <Shadow>[
                                   Shadow(
-                                    color: widget.neon
-                                        .withValues(alpha: pulse),
+                                    color: widget.neon.withValues(alpha: pulse),
                                     blurRadius: widget.neonShadowBlur,
                                   ),
                                 ],
@@ -132,4 +131,3 @@ double sin01(double t) {
   // 0..1 sinusoid for soft pulsation
   return (math.sin(t * math.pi * 2) * 0.5 + 0.5);
 }
-

@@ -8,7 +8,9 @@ import 'package:velour_app/theme/theme_engine.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('Splash: spam maybePop pendant chargement', (WidgetTester tester) async {
+  testWidgets('Splash: spam maybePop pendant chargement', (
+    WidgetTester tester,
+  ) async {
     final GlobalKey<NavigatorState> navKey = GlobalKey<NavigatorState>();
 
     await tester.pumpWidget(

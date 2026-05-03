@@ -64,6 +64,7 @@
   },
   "settingsLocaleEnglish": "English",
   "settingsLocaleFrench": "French",
+  "settingsLocaleGerman": "German",
   "settingsTitle": "SETTINGS",
   "@settingsTitle": {
     "description": "Settings screen main heading."
@@ -186,5 +187,112 @@
   "narrativeFloatShapeBonus": "+100 LUX : STRUCTURE (SHAPE)",
   "narrativeFloatColorBonus": "+150 LUX : HARMONY (COLOR)",
   "narrativeFloatPerfectBonus": "+500 LUX : TOTAL BRILLIANCE",
-  "gameNarrativePerfectMatchBanner": "PERFECT MATCH"
+  "gameNarrativePerfectMatchBanner": "PERFECT MATCH",
+  "prepTitle": "SESSION SETUP",
+  "prepModeCasualTitle": "CLASSIC MODE",
+  "prepModeCasualBody": "Stake: {ante} LUX. Free practice.",
+  "@prepModeCasualBody": {
+    "placeholders": {
+      "ante": {"type": "int"}
+    }
+  },
+  "prepModeHighStakesTitle": "HIGH STAKES",
+  "prepModeHighStakesBody": "Stake: {ante} LUX. Goal: Level {goal}. Reward: {reward} LUX.",
+  "@prepModeHighStakesBody": {
+    "placeholders": {
+      "ante": {"type": "int"},
+      "goal": {"type": "int"},
+      "reward": {"type": "int"}
+    }
+  },
+  "prepModeRoyalTitle": "VELOUR ROYAL",
+  "prepModeRoyalBody": "Stake: {ante} LUX. Goal: Level {goal}. Reward: {reward} LUX.",
+  "@prepModeRoyalBody": {
+    "placeholders": {
+      "ante": {"type": "int"},
+      "goal": {"type": "int"},
+      "reward": {"type": "int"}
+    }
+  },
+  "prepInsufficientLux": "Insufficient LUX balance.",
+  "prepConfirm": "CONFIRM",
+  "prepBuyLux": "BUY LUX",
+  "prepSelectedChip": "SELECTED",
+  "leaderboardTitle": "WORLD LEADERBOARD",
+  "leaderboardColRank": "RANK",
+  "leaderboardColPlayer": "PLAYER",
+  "leaderboardColScore": "SCORE",
+  "leaderboardError": "Leaderboard unavailable for now.\nCheck your connection or Firestore rules.\n({details})",
+  "@leaderboardError": {
+    "placeholders": {
+      "details": {"type": "String"}
+    }
+  },
+  "leaderboardLoading": "Loading rankings…",
+  "leaderboardEmpty": "No scores recorded yet.",
+  "leaderboardYourRankFooter": "YOUR RANK",
+  "leaderboardPlayerAnon": "Player {id}",
+  "@leaderboardPlayerAnon": {
+    "placeholders": {
+      "id": {"type": "String"}
+    }
+  },
+  "leaderboardPodiumFirst": "First place",
+  "leaderboardPodiumSecond": "Second place",
+  "leaderboardPodiumThird": "Third place",
+  "leaderboardPodiumOther": "Podium",
+  "gameFloatLuxGain": "+{gain} LUX",
+  "@gameFloatLuxGain": {
+    "placeholders": {
+      "gain": {"type": "int"}
+    }
+  },
+  "gameFloatLuxGainMult": "+{gain} LUX ×{mult}",
+  "@gameFloatLuxGainMult": {
+    "placeholders": {
+      "gain": {"type": "int"},
+      "mult": {"type": "String"}
+    }
+  },
+  "gameFloatPerfectGain": "+{gain} PERFECT",
+  "@gameFloatPerfectGain": {
+    "placeholders": {
+      "gain": {"type": "int"}
+    }
+  },
+  "gameFloatPerfectGainMult": "+{gain} PERFECT ×{mult}",
+  "@gameFloatPerfectGainMult": {
+    "placeholders": {
+      "gain": {"type": "int"},
+      "mult": {"type": "String"}
+    }
+  },
+  "gameFloatCombo": "COMBO ×{mult}",
+  "@gameFloatCombo": {
+    "placeholders": {
+      "mult": {"type": "String"}
+    }
+  },
+  "gameHudScore": "SCORE",
+  "gameHudTime": "TIME",
+  "gameHudLevelShort": "LV {level}",
+  "@gameHudLevelShort": {
+    "placeholders": {
+      "level": {"type": "int"}
+    }
+  },
+  "gameHudLuxAmount": "{lux} LUX",
+  "@gameHudLuxAmount": {
+    "placeholders": {
+      "lux": {"type": "int"}
+    }
+  },
+  "gameHudLevelTag": "LEVEL",
+  "gameHudLevelUpTitle": "LEVEL UP!",
+  "gameHudLevelUpSubtitle": "LEVEL {level}",
+  "@gameHudLevelUpSubtitle": {
+    "placeholders": {
+      "level": {"type": "int"}
+    }
+  }
 }

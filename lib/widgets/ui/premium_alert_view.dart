@@ -94,8 +94,7 @@ class PremiumAlertView extends StatelessWidget {
               child: ConstrainedBox(
                 constraints: BoxConstraints(maxWidth: maxW, minWidth: 280),
                 child: Container(
-                  padding:
-                      EdgeInsets.fromLTRB(padH, padTop, padH, padBottom),
+                  padding: EdgeInsets.fromLTRB(padH, padTop, padH, padBottom),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(28),
                     gradient: const LinearGradient(
@@ -118,31 +117,27 @@ class PremiumAlertView extends StatelessWidget {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      _ForfeitGlyph(
-                        accent: accentBorderColor,
-                        size: glyphSize,
-                      ),
+                      _ForfeitGlyph(accent: accentBorderColor, size: glyphSize),
                       SizedBox(height: gap18),
                       Text(
                         l10n.premiumForfeitTitle,
                         textAlign: TextAlign.center,
-                        style:
-                            Theme.of(context).textTheme.titleLarge?.copyWith(
-                                  letterSpacing: 7,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.white.withValues(alpha: 0.94),
-                                  fontSize: titleSize,
-                                ),
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          letterSpacing: 7,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white.withValues(alpha: 0.94),
+                          fontSize: titleSize,
+                        ),
                       ),
                       SizedBox(height: gap16),
                       Text.rich(
                         TextSpan(
-                          style:
-                              Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                    fontSize: bodySize,
-                                    height: 1.48,
-                                    color: _silver.withValues(alpha: 0.92),
-                                  ),
+                          style: Theme.of(context).textTheme.bodyLarge
+                              ?.copyWith(
+                                fontSize: bodySize,
+                                height: 1.48,
+                                color: _silver.withValues(alpha: 0.92),
+                              ),
                           children: [
                             TextSpan(
                               text: l10n.premiumForfeitLead(sessionLabel),
@@ -165,14 +160,15 @@ class PremiumAlertView extends StatelessWidget {
                         children: [
                           Expanded(
                             child: FilledButton(
-                              onPressed: () =>
-                                  Navigator.of(context).pop(false),
+                              onPressed: () => Navigator.of(context).pop(false),
                               style: FilledButton.styleFrom(
                                 elevation: 0,
-                                backgroundColor:
-                                    _cyanActive.withValues(alpha: 0.18),
-                                foregroundColor:
-                                    Colors.white.withValues(alpha: 0.96),
+                                backgroundColor: _cyanActive.withValues(
+                                  alpha: 0.18,
+                                ),
+                                foregroundColor: Colors.white.withValues(
+                                  alpha: 0.96,
+                                ),
                                 side: BorderSide(
                                   color: _cyanActive.withValues(alpha: 0.72),
                                   width: 1.2,
@@ -196,13 +192,14 @@ class PremiumAlertView extends StatelessWidget {
                           const SizedBox(width: 12),
                           Expanded(
                             child: OutlinedButton(
-                              onPressed: () =>
-                                  Navigator.of(context).pop(true),
+                              onPressed: () => Navigator.of(context).pop(true),
                               style: OutlinedButton.styleFrom(
-                                foregroundColor:
-                                    _silver.withValues(alpha: 0.92),
-                                backgroundColor:
-                                    _matteDanger.withValues(alpha: 0.65),
+                                foregroundColor: _silver.withValues(
+                                  alpha: 0.92,
+                                ),
+                                backgroundColor: _matteDanger.withValues(
+                                  alpha: 0.65,
+                                ),
                                 side: BorderSide(
                                   color: _dangerRed.withValues(alpha: 0.55),
                                   width: 1.05,
@@ -251,10 +248,7 @@ class _ForfeitGlyph extends StatelessWidget {
       height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        border: Border.all(
-          color: accent.withValues(alpha: 0.72),
-          width: 1.65,
-        ),
+        border: Border.all(color: accent.withValues(alpha: 0.72), width: 1.65),
         color: Colors.black.withValues(alpha: 0.4),
       ),
       alignment: Alignment.center,

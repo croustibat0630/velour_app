@@ -197,7 +197,8 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
                             const SizedBox(width: 6),
                             Text(
                               '${context.watch<GameState>().luxCoins}',
-                              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              style: Theme.of(context).textTheme.titleSmall
+                                  ?.copyWith(
                                     fontWeight: FontWeight.w800,
                                     color: Colors.white.withValues(alpha: 0.92),
                                     letterSpacing: 0.6,
@@ -212,8 +213,7 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
                 Align(
                   alignment: Alignment.topCenter,
                   child: Padding(
-                    padding:
-                        EdgeInsets.fromLTRB(16, headerPadTop, 16, 0),
+                    padding: EdgeInsets.fromLTRB(16, headerPadTop, 16, 0),
                     child: SizedBox(
                       width: contentW,
                       child: Column(
@@ -223,13 +223,13 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
                           Text(
                             l10n.shopVaultTitle,
                             textAlign: TextAlign.center,
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleMedium
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.titleMedium
                                 ?.copyWith(
-                                  letterSpacing: 6,
+                                  letterSpacing: 3.5,
                                   fontWeight: FontWeight.w600,
-                                  color: Colors.white.withValues(alpha: 0.88),
+                                  color: Colors.white.withValues(alpha: 0.9),
                                   fontSize: (16 * s).clamp(14.0, 18.0),
                                 ),
                           ),
@@ -278,10 +278,12 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
                                     },
                                     onTap: () {
                                       AudioHandler.instance.playMatchCombo();
-                                      unawaited(_simulatePurchase(
-                                        luxAmount: 100,
-                                        startGlobal: _lastPurchaseTapGlobal,
-                                      ));
+                                      unawaited(
+                                        _simulatePurchase(
+                                          luxAmount: 100,
+                                          startGlobal: _lastPurchaseTapGlobal,
+                                        ),
+                                      );
                                     },
                                   );
                                 },
@@ -318,10 +320,12 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
                                     },
                                     onTap: () {
                                       AudioHandler.instance.playMatchCombo();
-                                      unawaited(_simulatePurchase(
-                                        luxAmount: 750,
-                                        startGlobal: _lastPurchaseTapGlobal,
-                                      ));
+                                      unawaited(
+                                        _simulatePurchase(
+                                          luxAmount: 750,
+                                          startGlobal: _lastPurchaseTapGlobal,
+                                        ),
+                                      );
                                     },
                                   );
                                 },
@@ -359,10 +363,12 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
                                     },
                                     onTap: () {
                                       AudioHandler.instance.playMatchCombo();
-                                      unawaited(_simulatePurchase(
-                                        luxAmount: 5000,
-                                        startGlobal: _lastPurchaseTapGlobal,
-                                      ));
+                                      unawaited(
+                                        _simulatePurchase(
+                                          luxAmount: 5000,
+                                          startGlobal: _lastPurchaseTapGlobal,
+                                        ),
+                                      );
                                     },
                                   );
                                 },
@@ -386,7 +392,9 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
                                         ?.copyWith(
                                           letterSpacing: 5,
                                           fontWeight: FontWeight.w600,
-                                          color: Colors.white.withValues(alpha: 0.78),
+                                          color: Colors.white.withValues(
+                                            alpha: 0.78,
+                                          ),
                                           fontSize: (14 * s).clamp(12.0, 16.0),
                                         ),
                                   ),
@@ -400,30 +408,33 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
                                       child: _SkinCard(
                                         skin: skin,
                                         equipped: gs.activeSkinId == skin.id,
-                                        owned: gs.unlockedSkins.contains(skin.id),
+                                        owned: gs.unlockedSkins.contains(
+                                          skin.id,
+                                        ),
                                         onTap: () async {
-                                          final SkinPurchaseOutcome r =
-                                              await gs.purchaseAndEquipSkin(
-                                            skin,
-                                          );
+                                          final SkinPurchaseOutcome r = await gs
+                                              .purchaseAndEquipSkin(skin);
                                           if (!context.mounted) return;
                                           final AppLocalizations sl10n =
                                               AppLocalizations.of(context)!;
                                           switch (r) {
                                             case SkinPurchaseOutcome
-                                                  .insufficientLux:
-                                              ScaffoldMessenger.of(context)
-                                                  .showSnackBar(
+                                                .insufficientLux:
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
                                                 SnackBar(
                                                   content: Text(
-                                                    sl10n.shopSnackInsufficientLux,
+                                                    sl10n
+                                                        .shopSnackInsufficientLux,
                                                   ),
                                                 ),
                                               );
                                             case SkinPurchaseOutcome
-                                                  .purchasedAndEquipped:
-                                              ScaffoldMessenger.of(context)
-                                                  .showSnackBar(
+                                                .purchasedAndEquipped:
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
                                                 SnackBar(
                                                   content: Text(
                                                     sl10n.shopSnackSkinUnlocked,
@@ -431,9 +442,10 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
                                                 ),
                                               );
                                             case SkinPurchaseOutcome
-                                                  .equippedFromOwned:
-                                              ScaffoldMessenger.of(context)
-                                                  .showSnackBar(
+                                                .equippedFromOwned:
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
                                                 SnackBar(
                                                   content: Text(
                                                     sl10n.shopSnackSkinEquipped,
@@ -441,7 +453,7 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
                                                 ),
                                               );
                                             case SkinPurchaseOutcome
-                                                  .alreadyEquipped:
+                                                .alreadyEquipped:
                                               break;
                                           }
                                         },
@@ -512,6 +524,7 @@ class _ShopProductCard extends StatelessWidget {
   final String? badge;
   final bool intense;
   final Color? haloColor;
+
   /// 0 → 1 : flash bordure/halo post-achat.
   final double highlightT;
   final VoidCallback onTap;
@@ -557,7 +570,8 @@ class _ShopProductCard extends StatelessWidget {
               colors: [_matteTop, _matteBottom],
             ),
             border: Border.all(
-              color: Color.lerp(
+              color:
+                  Color.lerp(
                     accent.withValues(alpha: 0.6),
                     neon.withValues(alpha: 0.95),
                     flash,
@@ -586,40 +600,34 @@ class _ShopProductCard extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      letterSpacing: 5.5,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white.withValues(alpha: 0.92),
-                    ),
+                  letterSpacing: 5.5,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white.withValues(alpha: 0.92),
+                ),
               ),
               const SizedBox(height: 12),
               Text(
                 AppLocalizations.of(context)!.shopLuxAmount(lux),
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      letterSpacing: 1.4,
-                      fontWeight: FontWeight.w800,
-                      color: neon.withValues(alpha: 0.96),
-                      shadows: [
-                        Shadow(
-                          color: neon.withValues(alpha: 0.55),
-                          blurRadius: 20,
-                        ),
-                        Shadow(
-                          color: neon.withValues(alpha: 0.25),
-                          blurRadius: 40,
-                        ),
-                      ],
-                    ),
+                  letterSpacing: 1.4,
+                  fontWeight: FontWeight.w800,
+                  color: neon.withValues(alpha: 0.96),
+                  shadows: [
+                    Shadow(color: neon.withValues(alpha: 0.55), blurRadius: 20),
+                    Shadow(color: neon.withValues(alpha: 0.25), blurRadius: 40),
+                  ],
+                ),
               ),
               const SizedBox(height: 10),
               Text(
                 price,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      letterSpacing: 2.2,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white.withValues(alpha: 0.68),
-                    ),
+                  letterSpacing: 2.2,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white.withValues(alpha: 0.68),
+                ),
               ),
             ],
           ),
@@ -657,10 +665,7 @@ class _EnterCard extends StatelessWidget {
         final double dy = (1 - a) * 22;
         return Opacity(
           opacity: a,
-          child: Transform.translate(
-            offset: Offset(0, dy),
-            child: child,
-          ),
+          child: Transform.translate(offset: Offset(0, dy), child: child),
         );
       },
     );
@@ -676,12 +681,8 @@ class _Badge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final double sT = Responsive.textScale(context);
-    final Color matteGold = Color.lerp(
-          accent,
-          const Color(0xFFB89A2A),
-          0.40,
-        ) ??
-        accent;
+    final Color matteGold =
+        Color.lerp(accent, const Color(0xFFB89A2A), 0.40) ?? accent;
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: (8 * sT).clamp(7.0, 9.0),
@@ -705,11 +706,11 @@ class _Badge extends StatelessWidget {
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              letterSpacing: 1.2,
-              fontWeight: FontWeight.w700,
-              fontSize: (9.5 * sT).clamp(9.0, 10.0),
-              color: const Color(0xFF0C0C10).withValues(alpha: 0.92),
-            ),
+          letterSpacing: 1.2,
+          fontWeight: FontWeight.w700,
+          fontSize: (9.5 * sT).clamp(9.0, 10.0),
+          color: const Color(0xFF0C0C10).withValues(alpha: 0.92),
+        ),
       ),
     );
   }
@@ -753,10 +754,7 @@ class _SkinCard extends StatelessWidget {
               end: Alignment.bottomRight,
               colors: [_matteTop, _matteBottom],
             ),
-            border: Border.all(
-              color: border,
-              width: equipped ? 1.8 : 1.2,
-            ),
+            border: Border.all(color: border, width: equipped ? 1.8 : 1.2),
             boxShadow: [
               BoxShadow(
                 color: accent.withValues(alpha: equipped ? 0.20 : 0.12),
@@ -773,7 +771,9 @@ class _SkinCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10),
                   color: Colors.black.withValues(alpha: 0.35),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.06),
+                  ),
                 ),
                 child: Icon(
                   equipped ? Icons.check_rounded : Icons.auto_awesome_rounded,
@@ -791,24 +791,26 @@ class _SkinCard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 2.2,
-                            color: Colors.white.withValues(alpha: 0.88),
-                          ),
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 2.2,
+                        color: Colors.white.withValues(alpha: 0.88),
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       owned
                           ? (equipped
-                              ? AppLocalizations.of(context)!.shopSkinEquipped
-                              : AppLocalizations.of(context)!.shopSkinOwned)
-                          : AppLocalizations.of(context)!.shopPriceLux(skin.price),
+                                ? AppLocalizations.of(context)!.shopSkinEquipped
+                                : AppLocalizations.of(context)!.shopSkinOwned)
+                          : AppLocalizations.of(
+                              context,
+                            )!.shopPriceLux(skin.price),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            letterSpacing: 1.2,
-                            color: Colors.white.withValues(alpha: 0.52),
-                          ),
+                        letterSpacing: 1.2,
+                        color: Colors.white.withValues(alpha: 0.52),
+                      ),
                     ),
                   ],
                 ),
@@ -891,10 +893,10 @@ class _VaultLoadingOverlay extends StatelessWidget {
                     AppLocalizations.of(context)!.shopVaultLoading,
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          letterSpacing: 2.2,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white.withValues(alpha: 0.78),
-                        ),
+                      letterSpacing: 2.2,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white.withValues(alpha: 0.78),
+                    ),
                   ),
                 ],
               ),
@@ -907,10 +909,7 @@ class _VaultLoadingOverlay extends StatelessWidget {
 }
 
 class _PurchaseSuccessOverlay extends StatelessWidget {
-  const _PurchaseSuccessOverlay({
-    required this.addedLux,
-    required this.onBack,
-  });
+  const _PurchaseSuccessOverlay({required this.addedLux, required this.onBack});
 
   final int addedLux;
   final VoidCallback onBack;
@@ -936,8 +935,10 @@ class _PurchaseSuccessOverlay extends StatelessWidget {
           Center(
             child: ConstrainedBox(
               constraints: BoxConstraints(
-                maxWidth: (MediaQuery.sizeOf(context).width * 0.78)
-                    .clamp(280.0, 520.0),
+                maxWidth: (MediaQuery.sizeOf(context).width * 0.78).clamp(
+                  280.0,
+                  520.0,
+                ),
               ),
               child: Container(
                 padding: const EdgeInsets.fromLTRB(22, 22, 22, 18),
@@ -973,17 +974,18 @@ class _PurchaseSuccessOverlay extends StatelessWidget {
                       l10n.shopPurchaseSuccess,
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            letterSpacing: 6,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white.withValues(alpha: 0.94),
-                            fontSize: 18,
-                          ),
+                        letterSpacing: 6,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white.withValues(alpha: 0.94),
+                        fontSize: 18,
+                      ),
                     ),
                     const SizedBox(height: 12),
                     Text(
                       l10n.shopPurchaseLuxAdded(addedLux),
                       textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(
                             letterSpacing: 1.2,
                             fontWeight: FontWeight.w800,
                             color: _gold.withValues(alpha: 0.95),
@@ -1015,9 +1017,9 @@ class _PurchaseSuccessOverlay extends StatelessWidget {
                       child: Text(
                         l10n.shopBackToGame,
                         style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                              letterSpacing: 3.0,
-                              fontWeight: FontWeight.w700,
-                            ),
+                          letterSpacing: 3.0,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                   ],
@@ -1060,8 +1062,10 @@ class _ShopFlyCoinsPainter extends CustomPainter {
     );
     for (int i = 0; i < _coinCount; i++) {
       final double stagger = i / (_coinCount - 1).clamp(1, 99);
-      final double u =
-          ((t - stagger * 0.28) / (1.0 - stagger * 0.28)).clamp(0.0, 1.0);
+      final double u = ((t - stagger * 0.28) / (1.0 - stagger * 0.28)).clamp(
+        0.0,
+        1.0,
+      );
       final double s = u * u * (3.0 - 2.0 * u);
       final Offset p = _quad(start, ctrl, end, s);
       final double alpha = (1.0 - u * 0.92).clamp(0.0, 1.0);
@@ -1087,9 +1091,7 @@ class _LuxuryGrainLayer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IgnorePointer(
-      child: CustomPaint(
-        painter: _LuxuryGrainPainter(seed: 17),
-      ),
+      child: CustomPaint(painter: _LuxuryGrainPainter(seed: 17)),
     );
   }
 }
@@ -1119,4 +1121,3 @@ class _LuxuryGrainPainter extends CustomPainter {
   bool shouldRepaint(covariant _LuxuryGrainPainter oldDelegate) =>
       oldDelegate.seed != seed;
 }
-

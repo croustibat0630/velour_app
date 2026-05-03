@@ -44,4 +44,3 @@ class RouteTransitionObserver extends NavigatorObserver {
     _track(newRoute);
   }
 }
-

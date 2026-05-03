@@ -43,7 +43,8 @@ class StatsService {
 
   static const String _kTotalLuxEarned = 'velour_stats_total_lux_earned';
   static const String _kHighStakeWin = 'velour_stats_high_stake_win';
-  static const String _kTotalMatchesPlayed = 'velour_stats_total_matches_played';
+  static const String _kTotalMatchesPlayed =
+      'velour_stats_total_matches_played';
   static const String _kShapesPlaced = 'velour_stats_shapes_placed';
   static const String _kBestLevelReached = 'velour_stats_best_level';
   static const String _kTotalPlayTimeMs = 'velour_stats_total_play_time_ms';
@@ -121,7 +122,9 @@ class StatsService {
 
     final int totalLux = (p.getInt(_kTotalLuxEarned) ?? 0) + luxGained;
     final int bestLevel = (p.getInt(_kBestLevelReached) ?? 0);
-    final int nextBestLevel = levelReached > bestLevel ? levelReached : bestLevel;
+    final int nextBestLevel = levelReached > bestLevel
+        ? levelReached
+        : bestLevel;
 
     final int prevHigh = p.getInt(_kHighStakeWin) ?? 0;
     final int nextHigh = luxGained > prevHigh ? luxGained : prevHigh;
@@ -130,7 +133,10 @@ class StatsService {
     final int nextShapes = (p.getInt(_kShapesPlaced) ?? 0) + shapes;
 
     final int prevMs = p.getInt(_kTotalPlayTimeMs) ?? 0;
-    final int addMs = playTime.inMilliseconds.clamp(0, 60 * 60 * 1000); // cap 1h/run
+    final int addMs = playTime.inMilliseconds.clamp(
+      0,
+      60 * 60 * 1000,
+    ); // cap 1h/run
     final int nextMs = prevMs + addMs;
 
     int casualRuns = p.getInt(_kCasualRuns) ?? 0;
@@ -183,9 +189,9 @@ class StatsService {
     if (last == 0) {
       streak = 1;
     } else {
-      final int gap = _dateFromYyyymmdd(today)
-          .difference(_dateFromYyyymmdd(last))
-          .inDays;
+      final int gap = _dateFromYyyymmdd(
+        today,
+      ).difference(_dateFromYyyymmdd(last)).inDays;
       if (gap == 1) {
         streak = (streak + 1).clamp(1, 9999);
       } else {
@@ -198,4 +204,3 @@ class StatsService {
     ]);
   }
 }
-

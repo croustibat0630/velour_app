@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 
 class ActiveTheme {
-  const ActiveTheme({
-    required this.name,
-    required this.paletteByColorId,
-  });
+  const ActiveTheme({required this.name, required this.paletteByColorId});
 
   final String name;
   final Map<int, Color> paletteByColorId;
@@ -37,7 +34,8 @@ class ThemeEngine extends ChangeNotifier {
   Color? get skinSecondaryOverride => _skinSecondaryOverride;
 
   void applySkinColors({required Color primary, required Color secondary}) {
-    if (_skinPrimaryOverride == primary && _skinSecondaryOverride == secondary) {
+    if (_skinPrimaryOverride == primary &&
+        _skinSecondaryOverride == secondary) {
       return;
     }
     _skinPrimaryOverride = primary;
@@ -60,4 +58,3 @@ class ThemeEngine extends ChangeNotifier {
     return _active.paletteByColorId[colorId] ?? const Color(0xFF00FFFF);
   }
 }
-

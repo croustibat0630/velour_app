@@ -5,15 +5,14 @@
 Future<int> computeDenseWorldRank1Based({
   required int myScore,
   required Future<List<int>> Function(int cursorExclusive, int limit)
-      readScoresAboveSortedAsc,
+  readScoresAboveSortedAsc,
   int batchSize = 64,
   int maxPages = 48,
 }) async {
   int distinctAbove = 0;
   int cursor = myScore;
   for (int p = 0; p < maxPages; p++) {
-    final List<int> page =
-        await readScoresAboveSortedAsc(cursor, batchSize);
+    final List<int> page = await readScoresAboveSortedAsc(cursor, batchSize);
     if (page.isEmpty) break;
     int? prev;
     for (final int s in page) {

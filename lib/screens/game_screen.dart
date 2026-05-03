@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:velour_app/l10n/app_localizations.dart';
+import 'package:velour_app/l10n/game_float_messages.dart';
 import 'package:velour_app/l10n/narrative_messages.dart';
 import 'package:velour_app/theme/colors.dart';
 import 'package:velour_app/theme/theme_engine.dart';
@@ -634,6 +635,9 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                               key: ValueKey(_floating!.id),
                               text: _floating!.text,
                               narrativeFloatKey: _floating!.narrativeFloatKey,
+                              runtimeLuxKind: _floating!.runtimeLuxKind,
+                              runtimeGain: _floating!.runtimeGain,
+                              runtimeChainMult: _floating!.runtimeChainMult,
                               position: _floating!.position,
                               color: neonColor(_floating!.colorId),
                               spectacularBurst:
@@ -660,7 +664,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                           child: IgnorePointer(
                             child: _ComboFloater(
                               key: ValueKey(_comboFloater!.id),
-                              text: _comboFloater!.text,
+                              chainMult: _comboFloater!.chainMult,
                               position: _comboFloater!.position,
                               accent: neonColor(2),
                             ),
@@ -694,7 +698,9 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                           child: Material(
                             type: MaterialType.transparency,
                             child: IconButton(
-                              tooltip: AppLocalizations.of(context)!.gameHudMenuTooltip,
+                              tooltip: AppLocalizations.of(
+                                context,
+                              )!.gameHudMenuTooltip,
                               onPressed: () async {
                                 if (!context.mounted) return;
                                 AudioHandler.instance.playMenuClick();
@@ -1415,6 +1421,9 @@ class _FloatingText extends StatefulWidget {
     super.key,
     required this.text,
     this.narrativeFloatKey,
+    this.runtimeLuxKind,
+    this.runtimeGain,
+    this.runtimeChainMult,
     required this.position,
     required this.color,
     this.spectacularBurst = false,
@@ -1422,6 +1431,9 @@ class _FloatingText extends StatefulWidget {
 
   final String text;
   final NarrativeFloatingKey? narrativeFloatKey;
+  final RuntimeLuxFloatKind? runtimeLuxKind;
+  final int? runtimeGain;
+  final String? runtimeChainMult;
   final Offset position;
   final Color color;
   final bool spectacularBurst;
@@ -1445,10 +1457,15 @@ class _FloatingTextState extends State<_FloatingText>
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
     final String displayText = widget.narrativeFloatKey != null
-        ? resolveNarrativeFloating(
-            AppLocalizations.of(context)!,
-            widget.narrativeFloatKey!,
+        ? resolveNarrativeFloating(l10n, widget.narrativeFloatKey!)
+        : (widget.runtimeLuxKind != null && widget.runtimeGain != null)
+        ? resolveRuntimeLuxFloat(
+            l10n,
+            widget.runtimeLuxKind!,
+            widget.runtimeGain!,
+            widget.runtimeChainMult,
           )
         : widget.text;
     final bool burst = widget.spectacularBurst;
@@ -1530,12 +1547,12 @@ class _FloatingTextState extends State<_FloatingText>
 class _ComboFloater extends StatefulWidget {
   const _ComboFloater({
     super.key,
-    required this.text,
+    required this.chainMult,
     required this.position,
     required this.accent,
   });
 
-  final String text;
+  final double chainMult;
   final Offset position;
   final Color accent;
 
@@ -1558,6 +1575,9 @@ class _ComboFloaterState extends State<_ComboFloater>
 
   @override
   Widget build(BuildContext context) {
+    final String comboText = AppLocalizations.of(
+      context,
+    )!.gameFloatCombo(widget.chainMult.toStringAsFixed(1));
     return AnimatedBuilder(
       animation: _c,
       builder: (context, _) {
@@ -1572,7 +1592,7 @@ class _ComboFloaterState extends State<_ComboFloater>
             scale: scale,
             alignment: Alignment.centerLeft,
             child: Text(
-              widget.text,
+              comboText,
               style: TextStyle(
                 fontFamily: 'monospace',
                 fontSize: 20,
@@ -2000,6 +2020,7 @@ class _LevelUpFlashState extends State<_LevelUpFlash>
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
     return AnimatedBuilder(
       animation: _c,
       builder: (context, _) {
@@ -2017,37 +2038,53 @@ class _LevelUpFlashState extends State<_LevelUpFlash>
                 opacity: (a * 0.92).clamp(0.0, 1.0),
                 child: Transform.scale(
                   scale: pulse,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'LEVEL UP!',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontFamily: 'monospace',
-                          fontSize: 44 - 8 * t,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 4,
-                          color: const Color(0xFFFFD24A),
-                          shadows: const [
-                            Shadow(color: Color(0xFFFFD24A), blurRadius: 22),
-                            Shadow(color: Color(0x99FFD24A), blurRadius: 44),
-                          ],
-                        ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            l10n.gameHudLevelUpTitle,
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontFamily: 'monospace',
+                              fontSize: 44 - 8 * t,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 2,
+                              color: const Color(0xFFFFD24A),
+                              shadows: const [
+                                Shadow(
+                                  color: Color(0xFFFFD24A),
+                                  blurRadius: 22,
+                                ),
+                                Shadow(
+                                  color: Color(0x99FFD24A),
+                                  blurRadius: 44,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            l10n.gameHudLevelUpSubtitle(widget.level),
+                            textAlign: TextAlign.center,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontFamily: 'monospace',
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 2,
+                              color: Colors.white.withValues(alpha: 0.9),
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 10),
-                      Text(
-                        'LEVEL ${widget.level}',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontFamily: 'monospace',
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 3,
-                          color: Colors.white.withValues(alpha: 0.88),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
               ),
@@ -2321,7 +2358,9 @@ class _NarrativePerfectCelebrationBannerState
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(26, 22, 26, 22),
                   child: Text(
-                    AppLocalizations.of(context)!.gameNarrativePerfectMatchBanner,
+                    AppLocalizations.of(
+                      context,
+                    )!.gameNarrativePerfectMatchBanner,
                     textAlign: TextAlign.center,
                     style: GoogleFonts.montserrat(
                       fontSize: 21,

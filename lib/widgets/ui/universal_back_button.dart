@@ -57,4 +57,3 @@ class _UniversalBackButtonState extends State<UniversalBackButton> {
     );
   }
 }
-

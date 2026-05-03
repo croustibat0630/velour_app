@@ -150,6 +150,7 @@ class StakeGemTapFxPainter extends CustomPainter {
   });
 
   final int typeId;
+
   /// 0 → 1
   final double t;
   final int particleSeed;

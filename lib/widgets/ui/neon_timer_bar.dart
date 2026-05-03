@@ -105,8 +105,7 @@ class _NeonTimerBarState extends State<NeonTimerBar>
               if (pulseT > 0.004) {
                 const Color mint = Color(0xFFB8F5D0);
                 const Color flash = Color(0xFFF5FFFA);
-                final double k =
-                    (0.42 + 0.48 * pulse) * pulseT.clamp(0.0, 1.0);
+                final double k = (0.42 + 0.48 * pulse) * pulseT.clamp(0.0, 1.0);
                 fillColor = Color.lerp(
                   fillColor,
                   Color.lerp(mint, flash, pulse * 0.55)!,
@@ -121,17 +120,13 @@ class _NeonTimerBarState extends State<NeonTimerBar>
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
-                      ColoredBox(
-                        color: Colors.grey.withValues(alpha: 0.10),
-                      ),
+                      ColoredBox(color: Colors.grey.withValues(alpha: 0.10)),
                       Align(
                         alignment: Alignment.centerRight,
                         child: SizedBox(
                           width: width,
                           height: widget.height,
-                          child: ColoredBox(
-                            color: fillColor,
-                          ),
+                          child: ColoredBox(color: fillColor),
                         ),
                       ),
                     ],
@@ -145,4 +140,3 @@ class _NeonTimerBarState extends State<NeonTimerBar>
     );
   }
 }
-

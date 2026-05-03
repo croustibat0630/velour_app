@@ -3,11 +3,7 @@ import 'package:flutter/material.dart';
 import 'gem_glass_paint.dart';
 
 class NeonPyramid extends StatelessWidget {
-  const NeonPyramid({
-    super.key,
-    required this.neon,
-    this.size = 45,
-  });
+  const NeonPyramid({super.key, required this.neon, this.size = 45});
 
   final double size;
   final Color neon;
@@ -47,4 +43,3 @@ class _NeonPyramidPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _NeonPyramidPainter oldDelegate) => false;
 }
-

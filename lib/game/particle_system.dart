@@ -64,8 +64,7 @@ class LuxDustPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     if (t <= 0 || t >= 1 || seeds.isEmpty) return;
     final double eased = Curves.easeOutCubic.transform(t);
-    final double lifeAlpha =
-        math.pow(1.0 - t, 1.25).toDouble().clamp(0.0, 1.0);
+    final double lifeAlpha = math.pow(1.0 - t, 1.25).toDouble().clamp(0.0, 1.0);
 
     if (perfectBurst) {
       final double flash = (1.0 - t) * 0.45;
@@ -81,16 +80,14 @@ class LuxDustPainter extends CustomPainter {
 
     final Paint p = Paint()
       ..style = PaintingStyle.fill
-      ..maskFilter = MaskFilter.blur(
-        BlurStyle.normal,
-        kIsWeb ? 1.3 : 1.9,
-      );
+      ..maskFilter = MaskFilter.blur(BlurStyle.normal, kIsWeb ? 1.3 : 1.9);
 
     for (final LuxDustSeed seed in seeds) {
       final Offset pos = center + seed.direction * seed.speed * eased;
       final double a = (0.86 * lifeAlpha).clamp(0.0, 1.0);
-      final Color c =
-          (seed.useSecondary ? secondary : primary).withValues(alpha: 0.82 * a);
+      final Color c = (seed.useSecondary ? secondary : primary).withValues(
+        alpha: 0.82 * a,
+      );
       p.color = c;
       if (seed.hex) {
         canvas.drawPath(_hexPath(pos, seed.size), p);
@@ -135,4 +132,3 @@ class LuxDustPainter extends CustomPainter {
       oldDelegate.perfectBurst != perfectBurst ||
       oldDelegate.flashRadius != flashRadius;
 }
-

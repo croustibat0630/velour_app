@@ -149,8 +149,7 @@ class _GameOverOverlayState extends State<GameOverOverlay>
       SessionStakeFooterLine.highStakesWin150Lux =>
         l10n.gameOverFooterHighStakesWin150,
       SessionStakeFooterLine.royalFail => l10n.gameOverFooterRoyalFail,
-      SessionStakeFooterLine.royalWin1250Lux =>
-        l10n.gameOverFooterRoyalWin1250,
+      SessionStakeFooterLine.royalWin1250Lux => l10n.gameOverFooterRoyalWin1250,
     };
   }
 
@@ -317,22 +316,30 @@ class _GameOverOverlayState extends State<GameOverOverlay>
                                     Text(
                                       _zeroMatchLuxHint(l10n)!,
                                       textAlign: TextAlign.center,
-                                      style: Theme.of(context)
-                                              .textTheme
-                                              .bodySmall
-                                              ?.copyWith(
-                                                fontSize: (12 * sT).clamp(11.0, 14.0),
-                                                height: 1.35,
-                                                fontWeight: FontWeight.w500,
-                                                color: Colors.white.withValues(
-                                                  alpha: 0.58,
-                                                ),
-                                              ) ??
+                                      maxLines: 5,
+                                      overflow: TextOverflow.ellipsis,
+                                      style:
+                                          Theme.of(
+                                            context,
+                                          ).textTheme.bodySmall?.copyWith(
+                                            fontSize: (12 * sT).clamp(
+                                              11.0,
+                                              14.0,
+                                            ),
+                                            height: 1.35,
+                                            fontWeight: FontWeight.w500,
+                                            color: Colors.white.withValues(
+                                              alpha: 0.64,
+                                            ),
+                                          ) ??
                                           TextStyle(
-                                            fontSize: (12 * sT).clamp(11.0, 14.0),
+                                            fontSize: (12 * sT).clamp(
+                                              11.0,
+                                              14.0,
+                                            ),
                                             height: 1.35,
                                             color: Colors.white.withValues(
-                                              alpha: 0.58,
+                                              alpha: 0.64,
                                             ),
                                           ),
                                     ),
@@ -606,15 +613,20 @@ class _PrestigeBonusBadge extends StatelessWidget {
           ],
         ),
         child: Row(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisSize: MainAxisSize.max,
           children: [
-            Text(
-              label,
-              style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                fontSize: (11 * scaleT).clamp(10.0, 13.0),
-                fontWeight: FontWeight.w800,
-                letterSpacing: 3.0,
-                color: Colors.white.withValues(alpha: 0.78),
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.start,
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  fontSize: (11 * scaleT).clamp(10.0, 13.0),
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 2.0,
+                  color: Colors.white.withValues(alpha: 0.82),
+                ),
               ),
             ),
             SizedBox(width: (10 * scaleT).clamp(8.0, 12.0)),

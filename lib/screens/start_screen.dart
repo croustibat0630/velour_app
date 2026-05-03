@@ -82,13 +82,15 @@ class _StartScreenState extends State<StartScreen>
                             color: const Color(0xFF00FFFF),
                             shadows: [
                               Shadow(
-                                color: const Color(0xFF00FFFF)
-                                    .withValues(alpha: glow),
+                                color: const Color(
+                                  0xFF00FFFF,
+                                ).withValues(alpha: glow),
                                 blurRadius: 26,
                               ),
                               Shadow(
-                                color: const Color(0x6600FFFF)
-                                    .withValues(alpha: glow),
+                                color: const Color(
+                                  0x6600FFFF,
+                                ).withValues(alpha: glow),
                                 blurRadius: 52,
                               ),
                             ],
@@ -150,4 +152,3 @@ class _StartScreenState extends State<StartScreen>
     );
   }
 }
-

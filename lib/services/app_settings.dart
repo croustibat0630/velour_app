@@ -7,8 +7,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'audio_handler.dart';
 import 'haptics_handler.dart';
 
-/// In-app locale: follow OS, or pin English / French.
-enum AppLocalePreference { system, en, fr }
+/// In-app locale: follow OS, or pin English / French / German.
+enum AppLocalePreference { system, en, fr, de }
 
 class AppSettings {
   AppSettings._();
@@ -43,8 +43,11 @@ class AppSettings {
         localePreference.value = AppLocalePreference.system;
       } else if (langRaw == 'en') {
         localePreference.value = AppLocalePreference.en;
+      } else if (langRaw == 'fr') {
+        localePreference.value = AppLocalePreference.fr;
+      } else if (langRaw == 'de') {
+        localePreference.value = AppLocalePreference.de;
       } else {
-        // 'fr' or legacy unknown → French.
         localePreference.value = AppLocalePreference.fr;
       }
     } catch (_) {}
@@ -82,6 +85,7 @@ class AppSettings {
         AppLocalePreference.system => 'system',
         AppLocalePreference.en => 'en',
         AppLocalePreference.fr => 'fr',
+        AppLocalePreference.de => 'de',
       };
       await prefs.setString(_keyLanguage, code);
     } catch (_) {}
@@ -93,7 +97,7 @@ class AppSettings {
       AppLocalePreference.system => null,
       AppLocalePreference.en => const Locale('en'),
       AppLocalePreference.fr => const Locale('fr'),
+      AppLocalePreference.de => const Locale('de'),
     };
   }
 }
-

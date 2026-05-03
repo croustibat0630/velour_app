@@ -56,4 +56,3 @@ class SkinCatalog {
     return standard;
   }
 }
-

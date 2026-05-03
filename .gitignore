@@ -43,3 +43,11 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Captures d’écran accidentelles à la racine (`flutter run` / outils)
+/flutter_*.png
+
+# Secrets locaux (ne pas committer de clés API ici)
+.env
+.env.*
+!.env.example

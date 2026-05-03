@@ -304,7 +304,7 @@ class _GameOverOverlayState extends State<GameOverOverlay>
                                 style: titleStyle,
                               ),
                             ),
-                            SizedBox(height: 20 * sH),
+                            SizedBox(height: (28 * sH).clamp(22.0, 36.0)),
                             enter(
                               step++,
                               Column(
@@ -314,7 +314,7 @@ class _GameOverOverlayState extends State<GameOverOverlay>
                                     textAlign: TextAlign.center,
                                     style: labelSmall,
                                   ),
-                                  SizedBox(height: 6 * sH),
+                                  SizedBox(height: (10 * sH).clamp(8.0, 14.0)),
                                   Text(
                                     '${widget.rawMatchLuxTotal}',
                                     textAlign: TextAlign.center,
@@ -357,7 +357,7 @@ class _GameOverOverlayState extends State<GameOverOverlay>
                               ),
                             ),
                             if (_showPrestige) ...[
-                              SizedBox(height: 18 * sH),
+                              SizedBox(height: (24 * sH).clamp(18.0, 32.0)),
                               enter(
                                 step++,
                                 _PrestigeBonusBadge(
@@ -369,7 +369,7 @@ class _GameOverOverlayState extends State<GameOverOverlay>
                               ),
                             ],
                             if (_showScoreFinal) ...[
-                              SizedBox(height: 18 * sH),
+                              SizedBox(height: (24 * sH).clamp(18.0, 32.0)),
                               enter(
                                 step++,
                                 Column(
@@ -379,7 +379,7 @@ class _GameOverOverlayState extends State<GameOverOverlay>
                                       textAlign: TextAlign.center,
                                       style: labelSmall,
                                     ),
-                                    SizedBox(height: 6 * sH),
+                                    SizedBox(height: (10 * sH).clamp(8.0, 14.0)),
                                     Text(
                                       '${widget.finalLux}',
                                       textAlign: TextAlign.center,
@@ -401,7 +401,7 @@ class _GameOverOverlayState extends State<GameOverOverlay>
                             ],
                             if (widget.isPremiumWin &&
                                 widget.stakeRewardLuxCoins > 0) ...[
-                              SizedBox(height: 22 * sH),
+                              SizedBox(height: (28 * sH).clamp(22.0, 38.0)),
                               enter(
                                 step++,
                                 Column(
@@ -527,37 +527,45 @@ class _GameOverOverlayState extends State<GameOverOverlay>
                                 ),
                               ),
                             ],
-                            SizedBox(height: (22 * sH).clamp(16.0, 28.0)),
+                            SizedBox(height: (32 * sH).clamp(24.0, 40.0)),
                             _enterCta(
                               Material(
                                 color: Colors.transparent,
                                 child: Container(
                                   padding: EdgeInsets.symmetric(
-                                    horizontal: (10 * sH).clamp(8.0, 14.0),
-                                    vertical: (6 * sH).clamp(4.0, 8.0),
+                                    horizontal: (14 * sH).clamp(12.0, 20.0),
+                                    vertical: (9 * sH).clamp(7.0, 12.0),
                                   ),
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(22),
                                     color: Colors.white.withValues(alpha: 0.10),
                                     border: Border.all(
-                                      color: replayNeon.withValues(alpha: 0.55),
-                                      width: 1,
+                                      color: replayNeon.withValues(alpha: 0.58),
+                                      width: 1.1,
                                     ),
                                     boxShadow: [
                                       BoxShadow(
                                         color: replayNeon.withValues(
-                                          alpha: 0.22,
+                                          alpha: 0.38,
                                         ),
-                                        blurRadius: 14,
+                                        blurRadius: 18,
                                         spreadRadius: 0,
                                         offset: const Offset(0, 0),
                                       ),
                                       BoxShadow(
-                                        color: Colors.black.withValues(
-                                          alpha: 0.35,
+                                        color: replayNeon.withValues(
+                                          alpha: 0.14,
                                         ),
-                                        blurRadius: 10,
-                                        offset: const Offset(0, 4),
+                                        blurRadius: 28,
+                                        spreadRadius: 2,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                      BoxShadow(
+                                        color: Colors.black.withValues(
+                                          alpha: 0.38,
+                                        ),
+                                        blurRadius: 12,
+                                        offset: const Offset(0, 5),
                                       ),
                                     ],
                                   ),

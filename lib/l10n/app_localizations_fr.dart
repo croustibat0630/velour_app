@@ -44,6 +44,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get menuSettings => 'PARAMÈTRES';
 
   @override
+  String get menuGuidedTutorial => 'TUTORIEL';
+
+  @override
   String luxHudPrefix(int highScore) {
     return 'MEILLEUR SCORE  $highScore   •   LUX';
   }
@@ -205,11 +208,23 @@ class AppLocalizationsFr extends AppLocalizations {
   String get shopForgeBoostsSection => 'BOOSTS DE SESSION';
 
   @override
+  String get shopForgeSectionRunSalvage => 'SAUVETAGE DE RUN';
+
+  @override
+  String get shopForgeSectionStrategyStakes => 'STRATÉGIE & ENJEUX';
+
+  @override
   String get shopForgeInsuranceTitle => 'ASSURANCE ORACLE';
 
   @override
-  String get shopForgeInsuranceBody =>
-      'Si tu perds ta prochaine partie High Stakes ou Royal, tu récupères 60 % de la mise d’entrée. Jusqu’à 3 charges.';
+  String shopForgeInsuranceBody(
+    int highAnte,
+    int royalAnte,
+    int refundPct,
+    int maxCharges,
+  ) {
+    return 'Si tu perds ta prochaine partie High Stakes (mise $highAnte LUX) ou Royal (mise $royalAnte LUX), l’Oracle rembourse $refundPct % de cette entrée. Jusqu’à $maxCharges charges.';
+  }
 
   @override
   String shopForgeInsuranceCharges(int count, int max) {
@@ -220,8 +235,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get shopForgeRoyalBountyTitle => 'PRIME ROYALE';
 
   @override
-  String get shopForgeRoyalBountyBody =>
-      '+200 LUX bonus sur ta prochaine victoire Royal (en plus des 1 250). Une prime active à la fois.';
+  String shopForgeRoyalBountyBody(int bonusLux, int royalWinLux) {
+    return '+$bonusLux LUX bonus sur ta prochaine victoire Royal une fois l’objectif atteint (en plus du gain habituel de $royalWinLux LUX). Une prime active à la fois.';
+  }
 
   @override
   String get shopForgeRoyalBountyActive =>
@@ -242,6 +258,45 @@ class AppLocalizationsFr extends AppLocalizations {
       'Une prime royale est déjà active.';
 
   @override
+  String get shopForgeChronoPulseTitle => 'RÉSERVE CHRONO';
+
+  @override
+  String shopForgeChronoPulseBody(int maxCharges) {
+    return 'Quand le chrono de la session tombe à zéro, une charge remplit la barre à fond et tu restes en jeu. Jusqu’à $maxCharges charges. Inactif pendant les tutoriels.';
+  }
+
+  @override
+  String shopForgeChronoPulseCharges(int count, int max) {
+    return '$count / $max charges';
+  }
+
+  @override
+  String get shopForgeMercySalvageTitle => 'CLÉMENCE DE L\'ORACLE';
+
+  @override
+  String shopForgeMercySalvageBody(int maxCharges) {
+    return 'Rack plein sans match possible : une charge forge un triplet jouable en bout de rack pour continuer. Jusqu’à $maxCharges charges. Inactif pendant les tutoriels.';
+  }
+
+  @override
+  String shopForgeMercySalvageCharges(int count, int max) {
+    return '$count / $max charges';
+  }
+
+  @override
+  String get shopSnackForgeChronoPulsePurchased =>
+      'Charge réserve chrono ajoutée.';
+
+  @override
+  String get shopSnackForgeChronoPulseFull => 'Tu as déjà 2 charges chrono.';
+
+  @override
+  String get shopSnackForgeMercySalvagePurchased => 'Charge clémence ajoutée.';
+
+  @override
+  String get shopSnackForgeMercySalvageFull => 'Tu as déjà 2 charges clémence.';
+
+  @override
   String get statsTitle => 'MA CARRIÈRE';
 
   @override
@@ -249,8 +304,8 @@ class AppLocalizationsFr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'SÉRIE : $count JOURS AVEC PARTIE',
-      one: 'SÉRIE : 1 JOUR AVEC PARTIE',
+      other: 'SÉRIE · $count JOURS',
+      one: 'SÉRIE · 1 JOUR',
     );
     return '$_temp0';
   }
@@ -406,6 +461,22 @@ class AppLocalizationsFr extends AppLocalizations {
       '100 < 150 < 500 LUX\nVise le parfait en priorité.';
 
   @override
+  String get oracleDockStep1StrategyLine =>
+      'D’abord : une silhouette, trois teintes différentes.';
+
+  @override
+  String get oracleDockStep2StrategyLine =>
+      'Pas de triple facile si le parfait est à une gemme.';
+
+  @override
+  String get oracleDockStep3StrategyLine =>
+      'Trois gemmes identiques : le gros score de ce coup.';
+
+  @override
+  String get oracleDockCelebrationStrategyLine =>
+      'Ensuite : le chrono pèse sur chaque choix.';
+
+  @override
   String get tutorialTrinityShapeIntro =>
       'La forme est la structure. Regroupez-les.';
 
@@ -431,6 +502,24 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get prepTitle => 'PRÉPARATION DE SESSION';
+
+  @override
+  String get prepGuidedTutorialCasualOnly =>
+      'Seul le mode classique est proposé pour ce tutoriel.';
+
+  @override
+  String get prepGuidedTutorialGoalTitle => 'L’objectif';
+
+  @override
+  String get prepGuidedTutorialGoalBody =>
+      'Chaque match ajoute des LUX en partie et fait monter le niveau. Les matchs « plus riches » — surtout le parfait — valent beaucoup plus qu’une petite combinaison : le jeu, c’est surtout le timing et le bon choix de match.';
+
+  @override
+  String get prepGuidedTutorialStrategyTitle => 'Lire le rack avant d’agir';
+
+  @override
+  String get prepGuidedTutorialStrategyBody =>
+      'Avant de valider une 3ᵉ gemme, regarde la suite : si tu es à une gemme d’un triplet identique (même forme et même couleur), un match « couleur seule » peut casser ta mise en place et te faire perdre énormément de potentiel.\n\nIci le chrono est figé pour t’entraîner au calme ; en partie réelle, trop hésiter coûte aussi du temps.';
 
   @override
   String get prepModeCasualTitle => 'MODE CLASSIQUE';
@@ -553,6 +642,9 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get gameHudLuxThisRun => 'PARTIE';
+
+  @override
   String get gameHudLevelTag => 'NIV';
 
   @override
@@ -561,5 +653,15 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String gameHudLevelUpSubtitle(int level) {
     return 'NIVEAU $level';
+  }
+
+  @override
+  String gameHudForgeChronoA11y(int count) {
+    return 'Réserve chrono, $count charges';
+  }
+
+  @override
+  String gameHudForgeMercyA11y(int count) {
+    return 'Clémence de l\'Oracle, $count charges';
   }
 }

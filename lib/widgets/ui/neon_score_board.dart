@@ -155,6 +155,8 @@ class _NeonLuxCaptionState extends State<NeonLuxCaption>
 
   /// Pulse court quand le montant LUX change (inchangé).
   Widget _luxValuePulseLayer(BuildContext context) {
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
+    final bool idleZero = widget.lux == 0;
     final double glowA = 0.6 + 0.2 * math.cos(_glow.value * 2 * math.pi);
     final double comboT = Curves.easeInOutCubic.transform(_comboFlash.value);
     final double whiteMix = math.sin(math.pi * comboT);
@@ -162,6 +164,8 @@ class _NeonLuxCaptionState extends State<NeonLuxCaption>
     final Color luxColor = Color.lerp(_cyan, _comboWhite, whiteMix)!;
     final double effGlowA = glowA * (1 - whiteMix) + 0.8 * whiteMix;
     final double readabilityA = 0.22 + 0.10 * whiteMix;
+    final double zeroDim = idleZero ? 0.38 : 1.0;
+    final double fs = widget.fontSize * (idleZero ? 0.82 : 1.0);
 
     return TweenAnimationBuilder<double>(
       key: ValueKey(widget.lux),
@@ -170,7 +174,8 @@ class _NeonLuxCaptionState extends State<NeonLuxCaption>
       curve: Curves.easeOut,
       builder: (context, t, child) {
         final double bump = (t < 0.5) ? (t / 0.5) : ((1 - t) / 0.5);
-        final double scale = 1.0 + (0.06 * bump);
+        final double bumpScale = idleZero ? 0.02 : 0.06;
+        final double scale = 1.0 + (bumpScale * bump);
         return Transform.scale(
           scale: scale,
           alignment: Alignment.centerRight,
@@ -179,45 +184,76 @@ class _NeonLuxCaptionState extends State<NeonLuxCaption>
         );
       },
       child: Transform.scale(
-        scale: _punchScale,
+        scale: idleZero ? 1.0 : _punchScale,
         alignment: Alignment.centerRight,
         filterQuality: FilterQuality.high,
         child: Semantics(
-          label: AppLocalizations.of(context)!.gameHudLuxAmount(widget.lux),
+          label: idleZero
+              ? '${l10n.gameHudLuxThisRun}, ${l10n.gameHudLuxAmount(widget.lux)}'
+              : l10n.gameHudLuxAmount(widget.lux),
           child: FittedBox(
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerRight,
-            child: Text(
-              AppLocalizations.of(context)!.gameHudLuxAmount(widget.lux),
-              textAlign: TextAlign.right,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.montserrat(
-                fontSize: widget.fontSize,
-                height: 0.95,
-                letterSpacing: 0.9,
-                fontWeight: FontWeight.w600,
-                color: luxColor,
-                shadows: [
-                  Shadow(
-                    color: Colors.black.withValues(alpha: readabilityA),
-                    blurRadius: 6,
-                    offset: const Offset(0, 1),
-                  ),
-                  Shadow(
-                    color: luxColor.withValues(
-                      alpha: effGlowA * (1 - whiteMix) + 0.95 * whiteMix,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (idleZero)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 2),
+                    child: Text(
+                      l10n.gameHudLuxThisRun,
+                      textAlign: TextAlign.right,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.montserrat(
+                        fontSize: (fs * 0.38).clamp(8.0, 11.0),
+                        height: 1.0,
+                        letterSpacing: 1.4,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white.withValues(alpha: 0.38),
+                      ),
                     ),
-                    blurRadius: 6 + 8 * whiteMix,
                   ),
-                  Shadow(
-                    color: const Color(0xFF00FFFF).withValues(
-                      alpha: (effGlowA * 0.72) * (1 - 0.85 * whiteMix),
-                    ),
-                    blurRadius: 14,
+                Text(
+                  l10n.gameHudLuxAmount(widget.lux),
+                  textAlign: TextAlign.right,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.montserrat(
+                    fontSize: fs,
+                    height: 0.95,
+                    letterSpacing: idleZero ? 0.65 : 0.9,
+                    fontWeight: FontWeight.w600,
+                    color: luxColor.withValues(alpha: idleZero ? 0.44 : 1.0),
+                    shadows: [
+                      Shadow(
+                        color: Colors.black.withValues(
+                          alpha: readabilityA * (idleZero ? 0.75 : 1.0),
+                        ),
+                        blurRadius: 6,
+                        offset: const Offset(0, 1),
+                      ),
+                      Shadow(
+                        color: luxColor.withValues(
+                          alpha:
+                              (effGlowA * (1 - whiteMix) + 0.95 * whiteMix) *
+                              zeroDim,
+                        ),
+                        blurRadius: (6 + 8 * whiteMix) * (idleZero ? 0.55 : 1.0),
+                      ),
+                      Shadow(
+                        color: const Color(0xFF00FFFF).withValues(
+                          alpha: (effGlowA * 0.72) *
+                              (1 - 0.85 * whiteMix) *
+                              zeroDim,
+                        ),
+                        blurRadius: idleZero ? 8 : 14,
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
@@ -408,11 +444,13 @@ class NeonScoreBoard extends StatelessWidget {
                                     thickness: barThickness,
                                     fill: _cyan,
                                   ),
+                                  SizedBox(height: 3 * scaleH),
+                                  _ForgeSurvivalHud(gameState: gs),
                                 ],
                               ),
                             ),
                           ),
-                          const SizedBox(height: 6),
+                          SizedBox(height: 5 * scaleH),
                           Opacity(
                             opacity: timeColumnOpacity,
                             child: ValueListenableBuilder<double>(
@@ -452,6 +490,187 @@ class NeonScoreBoard extends StatelessWidget {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+/// Sablier + œil : charges Réserve chrono / Clémence (pulse si sauvetage imminent).
+class _ForgeSurvivalHud extends StatefulWidget {
+  const _ForgeSurvivalHud({required this.gameState});
+
+  final GameState gameState;
+
+  @override
+  State<_ForgeSurvivalHud> createState() => _ForgeSurvivalHudState();
+}
+
+class _ForgeSurvivalHudState extends State<_ForgeSurvivalHud>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _pulse;
+
+  static const Color _chronoAccent = Color(0xFF00FFFF);
+
+  static bool _anyPrewarn(GameState gs) =>
+      gs.isForgeChronoSalvagePrewarn || gs.isForgeMercySalvagePrewarn;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulse = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 560),
+    );
+    if (_anyPrewarn(widget.gameState)) {
+      _pulse.repeat(reverse: true);
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant _ForgeSurvivalHud oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final bool now = _anyPrewarn(widget.gameState);
+    final bool was = _anyPrewarn(oldWidget.gameState);
+    if (now && !was) {
+      _pulse.repeat(reverse: true);
+    } else if (!now && was) {
+      _pulse
+        ..stop()
+        ..value = 0;
+    }
+  }
+
+  @override
+  void dispose() {
+    _pulse.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final GameState gs = widget.gameState;
+    return AnimatedBuilder(
+      animation: Listenable.merge(<Listenable>[gs.timeBar, gs, _pulse]),
+      builder: (BuildContext context, Widget? _) {
+        final int chrono = gs.chronoPulseCharges;
+        final int mercy = gs.mercySalvageCharges;
+        if (chrono <= 0 && mercy <= 0) {
+          return const SizedBox.shrink();
+        }
+        final AppLocalizations l10n = AppLocalizations.of(context)!;
+        final bool dimmed = !gs.canForgeRunConsumablesApply;
+        final double t = _pulse.value;
+        final double chronoPulse = gs.isForgeChronoSalvagePrewarn
+            ? (1.0 + 0.14 * math.sin(t * 2 * math.pi))
+            : 1.0;
+        final double mercyPulse = gs.isForgeMercySalvagePrewarn
+            ? (1.0 + 0.14 * math.sin(t * 2 * math.pi + 1.1))
+            : 1.0;
+        final double chronoGlow =
+            gs.isForgeChronoSalvagePrewarn ? (0.35 + 0.45 * t) : 0.0;
+        final double mercyGlow =
+            gs.isForgeMercySalvagePrewarn ? (0.35 + 0.45 * t) : 0.0;
+
+        return Opacity(
+          opacity: dimmed ? 0.42 : 1.0,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: <Widget>[
+              if (chrono > 0) ...<Widget>[
+                _ForgeSurvivalChip(
+                  icon: Icons.hourglass_top_rounded,
+                  count: chrono,
+                  accent: _chronoAccent,
+                  scale: chronoPulse,
+                  glowT: chronoGlow,
+                  semanticsLabel: l10n.gameHudForgeChronoA11y(chrono),
+                ),
+                if (mercy > 0) const SizedBox(width: 8),
+              ],
+              if (mercy > 0)
+                _ForgeSurvivalChip(
+                  icon: Icons.visibility_rounded,
+                  count: mercy,
+                  accent: const Color(0xFFFF6B4A),
+                  scale: mercyPulse,
+                  glowT: mercyGlow,
+                  semanticsLabel: l10n.gameHudForgeMercyA11y(mercy),
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _ForgeSurvivalChip extends StatelessWidget {
+  const _ForgeSurvivalChip({
+    required this.icon,
+    required this.count,
+    required this.accent,
+    required this.scale,
+    required this.glowT,
+    required this.semanticsLabel,
+  });
+
+  final IconData icon;
+  final int count;
+  final Color accent;
+  final double scale;
+  final double glowT;
+  final String semanticsLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final double scaleT = Responsive.textScale(context);
+    final TextStyle countStyle = GoogleFonts.montserrat(
+      fontSize: (11 * scaleT).clamp(9.0, 13.0),
+      fontWeight: FontWeight.w700,
+      letterSpacing: 0.6,
+      color: Colors.white.withValues(alpha: 0.88),
+      height: 1.0,
+    );
+
+    return Semantics(
+      label: semanticsLabel,
+      child: Transform.scale(
+        scale: scale,
+        alignment: Alignment.center,
+        filterQuality: FilterQuality.high,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(999),
+            color: Colors.black.withValues(alpha: 0.38),
+            border: Border.all(
+              color: accent.withValues(alpha: 0.38 + 0.35 * glowT),
+              width: 1.1,
+            ),
+            boxShadow: <BoxShadow>[
+              if (glowT > 0.01)
+                BoxShadow(
+                  color: accent.withValues(alpha: 0.22 * glowT),
+                  blurRadius: 14 + 10 * glowT,
+                  spreadRadius: 1,
+                ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Icon(
+                  icon,
+                  size: (17 * scaleT).clamp(14.0, 20.0),
+                  color: accent.withValues(alpha: 0.92),
+                ),
+                const SizedBox(width: 5),
+                Text('×$count', style: countStyle),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

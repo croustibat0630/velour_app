@@ -9,7 +9,7 @@ enum RunBasis { shape, color, perfect }
 /// Tutoriel « La Trinité » (partie casual niveau 1 tant que non complété en prefs).
 enum TrinityTutorialPhase { none, shape, color, perfect }
 
-/// Tutoriel narratif « première partie » (remplace l’overlay + trinité si actif).
+/// Tutoriel narratif (menu Tutoriel, casual ; remplace la trinité le temps de la séquence).
 enum NarrativeTutorialPhase {
   none,
   step1Shape,
@@ -45,6 +45,10 @@ enum ForgePurchaseOutcome {
   purchasedRoyalBounty,
   insuranceStackFull,
   royalBountyAlreadyActive,
+  purchasedChronoPulse,
+  chronoPulseStackFull,
+  purchasedMercySalvage,
+  mercySalvageStackFull,
 }
 
 /// Message dock Oracle (tutoriel narratif) — texte résolu via [AppLocalizations].

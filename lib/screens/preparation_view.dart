@@ -26,10 +26,17 @@ Route<void> fadeRoute(Widget child) {
 }
 
 class PreparationView extends StatefulWidget {
-  const PreparationView({super.key, this.initialStake});
+  const PreparationView({
+    super.key,
+    this.initialStake,
+    this.casualStakeOnly = false,
+  });
 
   /// Pré-sélectionne une mise (ex. « Rejouer » depuis l’écran de fin).
   final SessionStakeKind? initialStake;
+
+  /// Tutoriel (menu) : uniquement le mode casual — pas d’autres mises sur cet écran.
+  final bool casualStakeOnly;
 
   @override
   State<PreparationView> createState() => _PreparationViewState();
@@ -51,7 +58,9 @@ class _PreparationViewState extends State<PreparationView> with RouteAware {
   @override
   void initState() {
     super.initState();
-    if (widget.initialStake != null) {
+    if (widget.casualStakeOnly) {
+      _selectedStake = SessionStakeKind.casual;
+    } else if (widget.initialStake != null) {
       _selectedStake = widget.initialStake;
     }
     // RouteAware callbacks can be missed if subscription happens after the push;
@@ -140,6 +149,9 @@ class _PreparationViewState extends State<PreparationView> with RouteAware {
   }
 
   void _selectStake(SessionStakeKind stake) {
+    if (widget.casualStakeOnly && stake != SessionStakeKind.casual) {
+      return;
+    }
     HapticFeedback.selectionClick();
     setState(() {
       _selectedStake = stake;
@@ -189,7 +201,9 @@ class _PreparationViewState extends State<PreparationView> with RouteAware {
                       fit: BoxFit.scaleDown,
                       alignment: Alignment.center,
                       child: Text(
-                        l10n.prepTitle,
+                        widget.casualStakeOnly
+                            ? l10n.menuGuidedTutorial
+                            : l10n.prepTitle,
                         textAlign: TextAlign.center,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
@@ -201,6 +215,20 @@ class _PreparationViewState extends State<PreparationView> with RouteAware {
                             ),
                       ),
                     ),
+                    if (widget.casualStakeOnly) ...[
+                      SizedBox(height: 8 * scaleH),
+                      Text(
+                        l10n.prepGuidedTutorialCasualOnly,
+                        textAlign: TextAlign.center,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          height: 1.35,
+                          letterSpacing: 0.6,
+                          color: Colors.white.withValues(alpha: 0.48),
+                        ),
+                      ),
+                    ],
                     SizedBox(height: 18 * scaleH),
                     Expanded(
                       child: LayoutBuilder(
@@ -209,18 +237,26 @@ class _PreparationViewState extends State<PreparationView> with RouteAware {
                           // ~87,5 % de la largeur (cible 85–90 %).
                           final double cardW = cons.maxWidth * 0.875;
                           final double availH = cons.maxHeight;
-                          double cardH = (availH - gap * 2) / 3;
+                          final int cardCount = widget.casualStakeOnly ? 1 : 3;
+                          final int gapCount = math.max(0, cardCount - 1);
+                          double cardH =
+                              (availH - gap * gapCount) / cardCount;
                           final double minCardH = 148.0;
                           final double maxCardH = 280.0;
-                          if (cardH >= minCardH) {
+                          if (widget.casualStakeOnly) {
+                            cardH = cardH.clamp(minCardH, maxCardH * 1.15);
+                          } else if (cardH >= minCardH) {
                             cardH = cardH.clamp(minCardH, maxCardH);
                           } else {
                             cardH = minCardH;
                           }
                           const double outerCardPadV = 6;
                           final double contentH =
-                              cardH * 3 + gap * 2 + outerCardPadV * 2 * 3;
-                          final bool scroll = contentH > availH + 0.5;
+                              cardH * cardCount +
+                              gap * gapCount +
+                              outerCardPadV * 2 * cardCount;
+                          final bool scroll =
+                              widget.casualStakeOnly || contentH > availH + 0.5;
 
                           Widget stakeCard(_LuxuryModeCard child) => Center(
                             child: Padding(
@@ -236,23 +272,40 @@ class _PreparationViewState extends State<PreparationView> with RouteAware {
                             ),
                           );
 
-                          final List<Widget> stack = <Widget>[
-                            stakeCard(
-                              _LuxuryModeCard(
-                                title: l10n.prepModeCasualTitle,
-                                titleColor: te.colorForId(1),
-                                body: l10n.prepModeCasualBody(0),
-                                selectedChipLabel: l10n.prepSelectedChip,
-                                mode: SessionStakeKind.casual,
-                                hasSelection: _selectedStake != null,
-                                selected:
-                                    _selectedStake == SessionStakeKind.casual,
-                                enabled: true,
-                                errorText: null,
-                                onSelect: () =>
-                                    _selectStake(SessionStakeKind.casual),
-                              ),
+                          final Widget casualModeCard = stakeCard(
+                            _LuxuryModeCard(
+                              title: l10n.prepModeCasualTitle,
+                              titleColor: te.colorForId(1),
+                              body: l10n.prepModeCasualBody(0),
+                              selectedChipLabel: l10n.prepSelectedChip,
+                              mode: SessionStakeKind.casual,
+                              hasSelection: _selectedStake != null,
+                              selected:
+                                  _selectedStake == SessionStakeKind.casual,
+                              enabled: true,
+                              errorText: null,
+                              onSelect: () =>
+                                  _selectStake(SessionStakeKind.casual),
                             ),
+                          );
+
+                          if (widget.casualStakeOnly) {
+                            return ListView(
+                              physics: const BouncingScrollPhysics(),
+                              padding: const EdgeInsets.only(bottom: 12),
+                              children: <Widget>[
+                                _GuidedTutorialStrategySection(
+                                  scaleH: scaleH,
+                                  maxWidth: cons.maxWidth,
+                                ),
+                                SizedBox(height: gap * 0.75),
+                                casualModeCard,
+                              ],
+                            );
+                          }
+
+                          final List<Widget> stack = <Widget>[
+                            casualModeCard,
                             SizedBox(height: gap),
                             stakeCard(
                               _LuxuryModeCard(
@@ -298,7 +351,8 @@ class _PreparationViewState extends State<PreparationView> with RouteAware {
                                 enabled: true,
                                 errorText:
                                     _stakeBeginError &&
-                                        _selectedStake == SessionStakeKind.royal
+                                        _selectedStake ==
+                                            SessionStakeKind.royal
                                     ? l10n.prepInsufficientLux
                                     : null,
                                 onSelect: () =>
@@ -483,6 +537,90 @@ class _BuyLuxButton extends StatelessWidget {
             fontSize: 11.5 * scale,
             fontWeight: FontWeight.w700,
             letterSpacing: 2.2,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Texte pédagogique avant la carte mode classique (tutoriel depuis le menu).
+class _GuidedTutorialStrategySection extends StatelessWidget {
+  const _GuidedTutorialStrategySection({
+    required this.scaleH,
+    required this.maxWidth,
+  });
+
+  final double scaleH;
+  final double maxWidth;
+
+  @override
+  Widget build(BuildContext context) {
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
+    final double hPad = (10 * scaleH).clamp(8.0, 14.0);
+    const Color gold = Color(0xFFFFD700);
+
+    Widget section(String title, String body) {
+      return Align(
+        alignment: Alignment.centerLeft,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: maxWidth * 0.94),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  letterSpacing: 1.8,
+                  fontWeight: FontWeight.w700,
+                  color: gold.withValues(alpha: 0.88),
+                  fontSize: (11 * scaleH).clamp(10.0, 13.0),
+                ),
+              ),
+              SizedBox(height: (6 * scaleH).clamp(5.0, 9.0)),
+              Text(
+                body,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  height: 1.42,
+                  letterSpacing: 0.35,
+                  color: Colors.white.withValues(alpha: 0.58),
+                  fontSize: (12 * scaleH).clamp(11.0, 14.0),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: hPad),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: const Color(0xFF0A0C12).withValues(alpha: 0.78),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        ),
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(
+            (12 * scaleH).clamp(10.0, 16.0),
+            (14 * scaleH).clamp(12.0, 18.0),
+            (12 * scaleH).clamp(10.0, 16.0),
+            (14 * scaleH).clamp(12.0, 18.0),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              section(
+                l10n.prepGuidedTutorialGoalTitle,
+                l10n.prepGuidedTutorialGoalBody,
+              ),
+              SizedBox(height: (16 * scaleH).clamp(14.0, 22.0)),
+              section(
+                l10n.prepGuidedTutorialStrategyTitle,
+                l10n.prepGuidedTutorialStrategyBody,
+              ),
+            ],
           ),
         ),
       ),

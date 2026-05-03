@@ -5,43 +5,6 @@ import 'package:velour_app/services/trinity_tutorial_service.dart';
 void main() {
   TrinityTutorialService fresh() => TrinityTutorialService();
 
-  test('shouldOfferAtInit casual niveau 1 non complété', () {
-    final TrinityTutorialService t = fresh();
-    expect(
-      t.shouldOfferAtInit(
-        isFirstTimeGame: false,
-        stake: SessionStakeKind.casual,
-        gameLevel: 1,
-      ),
-      isTrue,
-    );
-  });
-
-  test('shouldOfferAtInit false si première partie', () {
-    final TrinityTutorialService t = fresh();
-    expect(
-      t.shouldOfferAtInit(
-        isFirstTimeGame: true,
-        stake: SessionStakeKind.casual,
-        gameLevel: 1,
-      ),
-      isFalse,
-    );
-  });
-
-  test('shouldOfferAtInit false si tutoriel déjà complété', () {
-    final TrinityTutorialService t = fresh();
-    t.hydrateCompleteFromDisk(true);
-    expect(
-      t.shouldOfferAtInit(
-        isFirstTimeGame: false,
-        stake: SessionStakeKind.casual,
-        gameLevel: 1,
-      ),
-      isFalse,
-    );
-  });
-
   test('chaîne shape → color → perfect + persist', () async {
     int persistCalls = 0;
     int clears = 0;

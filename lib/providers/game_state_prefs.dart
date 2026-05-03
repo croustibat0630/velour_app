@@ -15,4 +15,12 @@ abstract final class GameStatePrefs {
   /// Prime royale : +bonus LUX sur la prochaine victoire Royal (consommé au gain).
   static const String royalVictoryBountyPending =
       'velour_forge_royal_bounty_pending';
+
+  /// Recharge chrono automatique quand le temps tombe à zéro (0…2).
+  static const String forgeChronoPulseCharges =
+      'velour_forge_chrono_pulse_charges';
+
+  /// Sauvetage impasse : rack plein sans triple (0…2).
+  static const String forgeMercySalvageCharges =
+      'velour_forge_mercy_salvage_charges';
 }

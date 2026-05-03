@@ -8,6 +8,7 @@ import 'package:firebase_core/firebase_core.dart';
 
 import '../models/skin_config.dart';
 import 'firestore_dense_world_rank_snapshot.dart';
+import 'lux_credit_limits.dart';
 import 'velour_observability.dart';
 
 /// Rang dense mondial + égalité de score (footer « Votre rang »).
@@ -139,26 +140,31 @@ class FirestoreService {
         },
       );
 
-      clockSub = Stream<int>.periodic(
-        const Duration(seconds: 45),
-        (int count) => count,
-      ).listen((_) {
-        unawaited(() async {
-          try {
-            final DocumentSnapshot<Map<String, dynamic>> snap = await ref.get();
-            await publishForSnapshot(snap);
-          } catch (e, st) {
-            VelourObservability.logFirestoreFailure(
-              'getMyRankStream.periodicRefresh',
-              error: e,
-              stackTrace: st,
-            );
-            if (!controller.isClosed) {
-              controller.add((denseRank: 0, tiedWithOthersSameScore: false));
-            }
-          }
-        }());
-      });
+      clockSub =
+          Stream<int>.periodic(
+            const Duration(seconds: 45),
+            (int count) => count,
+          ).listen((_) {
+            unawaited(() async {
+              try {
+                final DocumentSnapshot<Map<String, dynamic>> snap = await ref
+                    .get();
+                await publishForSnapshot(snap);
+              } catch (e, st) {
+                VelourObservability.logFirestoreFailure(
+                  'getMyRankStream.periodicRefresh',
+                  error: e,
+                  stackTrace: st,
+                );
+                if (!controller.isClosed) {
+                  controller.add((
+                    denseRank: 0,
+                    tiedWithOthersSameScore: false,
+                  ));
+                }
+              }
+            }());
+          });
 
       controller.onCancel = () {
         docSub?.cancel();
@@ -365,10 +371,13 @@ class FirestoreService {
     _pendingCloudLuxCoins = math.max(prev, absoluteLuxCoinsHint);
   }
 
-  /// Morceau de delta autorisé par appel [velourApplyLuxDelta] (aligné sur la CF).
+  /// Morceau de delta autorisé par appel [velourApplyLuxDelta] (aligné CF +
+  /// [LuxCreditLimits.maxPositiveCreditPerApply]).
   static int chunkLuxDeltaForCallable(int delta) {
     if (delta == 0) return 0;
-    if (delta > 0) return math.min(delta, 2500);
+    if (delta > 0) {
+      return math.min(delta, LuxCreditLimits.maxPositiveCreditPerApply);
+    }
     return math.max(delta, -500000);
   }
 

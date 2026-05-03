@@ -41,6 +41,10 @@
   "@menuSettings": {
     "description": "Main menu: settings."
   },
+  "menuGuidedTutorial": "TUTORIAL",
+  "@menuGuidedTutorial": {
+    "description": "Hauptmenü: Narrativ-Tutorial (Casual)."
+  },
   "luxHudPrefix": "REKORD-HIGHSCORE  {highScore}   •   LUX-MÜNZEN-GUTHABEN",
   "@luxHudPrefix": {
     "description": "Prefix line above animated LUX balance (high score + label).",
@@ -132,8 +136,18 @@
   "shopSnackSkinEquipped": "Skin ausgerüstet.",
   "shopSnackSkinUnlocked": "Skin freigeschaltet und ausgerüstet.",
   "shopForgeBoostsSection": "SESSION-BOOSTS",
+  "shopForgeSectionRunSalvage": "RUN-RETTUNG",
+  "shopForgeSectionStrategyStakes": "TAKTIK & EINSATZ",
   "shopForgeInsuranceTitle": "ORAKEL-VERSICHERUNG",
-  "shopForgeInsuranceBody": "Verlierst du dein nächstes High-Stakes- oder Royal-Match, erhältst du 60 % des Einsatzes zurück. Bis zu 3 Ladungen.",
+  "shopForgeInsuranceBody": "Verlierst du dein nächstes High-Stakes-Match (Einsatz {highAnte} LUX) oder Royal-Match (Einsatz {royalAnte} LUX), erstattet das Orakel {refundPct} % dieses Einsatzes. Bis zu {maxCharges} Ladungen.",
+  "@shopForgeInsuranceBody": {
+    "placeholders": {
+      "highAnte": {"type": "int"},
+      "royalAnte": {"type": "int"},
+      "refundPct": {"type": "int"},
+      "maxCharges": {"type": "int"}
+    }
+  },
   "shopForgeInsuranceCharges": "{count} / {max} Ladungen",
   "@shopForgeInsuranceCharges": {
     "placeholders": {
@@ -142,14 +156,52 @@
     }
   },
   "shopForgeRoyalBountyTitle": "KÖNIGLICHE PRÄMIE",
-  "shopForgeRoyalBountyBody": "+200 Bonus-LUX beim nächsten Royal-Sieg (zusätzlich zu 1 250). Nur eine aktive Prämie.",
+  "shopForgeRoyalBountyBody": "+{bonusLux} Bonus-LUX beim nächsten Royal-Sieg nach erreichtem Royal-Ziel (zusätzlich zu den üblichen {royalWinLux} LUX Gewinn). Nur eine aktive Prämie.",
+  "@shopForgeRoyalBountyBody": {
+    "placeholders": {
+      "bonusLux": {"type": "int"},
+      "royalWinLux": {"type": "int"}
+    }
+  },
   "shopForgeRoyalBountyActive": "Aktiv — nächster Royal-Sieg zahlt extra",
   "shopSnackForgeInsurancePurchased": "Versicherungsladung hinzugefügt.",
   "shopSnackForgeRoyalBountyPurchased": "Königliche Prämie aktiv für deinen nächsten Royal-Sieg.",
   "shopSnackForgeInsuranceFull": "Du hast bereits 3 Versicherungsladungen.",
   "shopSnackForgeRoyalBountyActive": "Eine königliche Prämie ist bereits aktiv.",
+  "shopForgeChronoPulseTitle": "CHRONO-RESERVE",
+  "shopForgeChronoPulseBody": "Wenn der Session-Timer null erreicht, füllt eine Ladung den Balken komplett und der Run geht weiter. Bis zu {maxCharges} Ladungen. In Tutorials inaktiv.",
+  "@shopForgeChronoPulseBody": {
+    "placeholders": {
+      "maxCharges": {"type": "int"}
+    }
+  },
+  "shopForgeChronoPulseCharges": "{count} / {max} Ladungen",
+  "@shopForgeChronoPulseCharges": {
+    "placeholders": {
+      "count": {"type": "int"},
+      "max": {"type": "int"}
+    }
+  },
+  "shopForgeMercySalvageTitle": "GNADE DES ORAKELS",
+  "shopForgeMercySalvageBody": "Rack voll ohne gültigen Match: eine Ladung formt am Ende des Racks ein spielbares Triple, damit es weitergeht. Bis zu {maxCharges} Ladungen. In Tutorials inaktiv.",
+  "@shopForgeMercySalvageBody": {
+    "placeholders": {
+      "maxCharges": {"type": "int"}
+    }
+  },
+  "shopForgeMercySalvageCharges": "{count} / {max} Ladungen",
+  "@shopForgeMercySalvageCharges": {
+    "placeholders": {
+      "count": {"type": "int"},
+      "max": {"type": "int"}
+    }
+  },
+  "shopSnackForgeChronoPulsePurchased": "Chrono-Reserve-Ladung hinzugefügt.",
+  "shopSnackForgeChronoPulseFull": "Du hast bereits 2 Chrono-Ladungen.",
+  "shopSnackForgeMercySalvagePurchased": "Gnaden-Ladung hinzugefügt.",
+  "shopSnackForgeMercySalvageFull": "Du hast bereits 2 Gnaden-Ladungen.",
   "statsTitle": "MEINE KARRIERE",
-  "statsStreakSession": "{count, plural, one{SERIE: 1 TAG MIT RUN} other{SERIE: {count} TAGE MIT RUN}}",
+  "statsStreakSession": "{count, plural, one{SERIE · 1 TAG} other{SERIE · {count} TAGE}}",
   "@statsStreakSession": {
     "placeholders": {
       "count": {
@@ -215,6 +267,10 @@
   "oracleDockStep2Color": "Farbe = +150 LUX\nGleicher Farbton • 3 Formen → Ablage",
   "oracleDockStep3Perfect": "Perfect = +500 LUX\n3 identische Edelsteine → Ablage",
   "oracleDockCelebration": "100 < 150 < 500 LUX\nZiele zuerst auf Perfect.",
+  "oracleDockStep1StrategyLine": "Zuerst: eine Silhouette, drei verschiedene Farben.",
+  "oracleDockStep2StrategyLine": "Kein leichter Farben-Drilling, wenn Perfect nah ist.",
+  "oracleDockStep3StrategyLine": "Drei identische Steine = höchster Gewinn hier.",
+  "oracleDockCelebrationStrategyLine": "Später: der Timer macht jede Sekunde zur Wahl.",
   "tutorialTrinityShapeIntro": "Form ist Struktur. Gruppiere sie.",
   "tutorialTrinityColorIntro": "Farbe ist Harmonie. Sie schafft Chancen.",
   "tutorialTrinityPerfectIntro": "Das perfekte Match: absolute Vereinigung. Löst den LUX-Burst aus.",
@@ -223,6 +279,14 @@
   "narrativeFloatPerfectBonus": "+500 LUX : TOTALE BRILLANZ",
   "gameNarrativePerfectMatchBanner": "PERFEKTES MATCH",
   "prepTitle": "SITZUNGS-SETUP",
+  "prepGuidedTutorialCasualOnly": "Für dieses Tutorial steht nur der klassische Modus zur Verfügung.",
+  "@prepGuidedTutorialCasualOnly": {
+    "description": "Preparation subtitle: menu tutorial is casual-only."
+  },
+  "prepGuidedTutorialGoalTitle": "Worum es geht",
+  "prepGuidedTutorialGoalBody": "Jeder Match bringt LUX in der Runde und treibt dein Level. Reichere Match-Typen — vor allem ein Perfect — zahlen viel mehr als schwächere Drillinge. Die Kunst ist, welchen Clear du nimmst und wann.",
+  "prepGuidedTutorialStrategyTitle": "Erst lesen, dann die 3. ziehen",
+  "prepGuidedTutorialStrategyBody": "Bevor du die dritte Edelsteinwahl finalisierst, sieh aufs Rack: fehlt dir nur noch **ein** Stein zu drei **identischen** (gleiche Form und gleiche Farbe), kann ein leichter Nur-Farben-Drilling dein Setup zerstören und viel LUX kosten.\n\nHier bleibt der Timer angehalten, damit du ruhig üben kannst. In einer echten Runde kostet Warten ebenfalls Zeit — Druck und Belohnung stehen im Wechselspiel.",
   "prepModeCasualTitle": "KLASSISCHER MODUS",
   "prepModeCasualBody": "Einsatz: {ante} LUX. Kostenloses Üben.",
   "@prepModeCasualBody": {
@@ -357,6 +421,7 @@
       }
     }
   },
+  "gameHudLuxThisRun": "RUN",
   "gameHudLevelTag": "LEVEL",
   "gameHudLevelUpTitle": "LEVEL AUF!",
   "gameHudLevelUpSubtitle": "LEVEL {level}",
@@ -365,6 +430,18 @@
       "level": {
         "type": "int"
       }
+    }
+  },
+  "gameHudForgeChronoA11y": "Chrono-Reserve, {count} Ladungen",
+  "@gameHudForgeChronoA11y": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "gameHudForgeMercyA11y": "Orakelgnade, {count} Ladungen",
+  "@gameHudForgeMercyA11y": {
+    "placeholders": {
+      "count": {"type": "int"}
     }
   }
 }

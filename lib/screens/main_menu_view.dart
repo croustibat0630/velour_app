@@ -252,7 +252,29 @@ class _MainMenuViewState extends State<MainMenuView>
                                     color: Colors.white.withValues(alpha: 0.52),
                                   ),
                             ),
-                            SizedBox(height: 44 * scaleH),
+                            SizedBox(height: 14 * scaleH),
+                            Padding(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 28 * scaleH,
+                              ),
+                              child: DecoratedBox(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(999),
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      Colors.transparent,
+                                      gold.withValues(alpha: 0.22),
+                                      gold.withValues(alpha: 0.38),
+                                      gold.withValues(alpha: 0.22),
+                                      Colors.transparent,
+                                    ],
+                                    stops: const [0.0, 0.22, 0.5, 0.78, 1.0],
+                                  ),
+                                ),
+                                child: const SizedBox(height: 1, width: double.infinity),
+                              ),
+                            ),
+                            SizedBox(height: 30 * scaleH),
                             if (_streakDays > 0) ...[
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -290,11 +312,33 @@ class _MainMenuViewState extends State<MainMenuView>
                             MenuTextButton(
                               label: l10n.menuPlay,
                               neon: te.colorForId(1),
-                              scale: scaleH,
+                              scale: scaleH * 1.04,
+                              baseAlpha: 0.96,
+                              neonShadowBlur: 22,
+                              fontSize: 17,
+                              letterSpacing: 5.2,
                               onPressed: () => _primeMenuInteraction(() {
                                 Navigator.of(
                                   context,
                                 ).push(fadeRoute(const PreparationView()));
+                              }),
+                            ),
+                            SizedBox(height: 12 * scaleH),
+                            MenuTextButton(
+                              label: l10n.menuGuidedTutorial,
+                              neon: te.colorForId(3),
+                              scale: scaleH,
+                              baseAlpha: 0.72,
+                              onPressed: () => _primeMenuInteraction(() {
+                                gs.requestGuidedTutorialReplay();
+                                Navigator.of(context).push(
+                                  fadeRoute(
+                                    const PreparationView(
+                                      initialStake: SessionStakeKind.casual,
+                                      casualStakeOnly: true,
+                                    ),
+                                  ),
+                                );
                               }),
                             ),
                             SizedBox(height: 14 * scaleH),
@@ -302,6 +346,7 @@ class _MainMenuViewState extends State<MainMenuView>
                               label: l10n.menuLeaderboard,
                               neon: te.colorForId(5),
                               scale: scaleH,
+                              baseAlpha: 0.72,
                               onPressed: () => _primeMenuInteraction(
                                 () => Navigator.of(
                                   context,
@@ -313,6 +358,7 @@ class _MainMenuViewState extends State<MainMenuView>
                               label: l10n.menuShop,
                               neon: te.colorForId(2),
                               scale: scaleH,
+                              baseAlpha: 0.72,
                               onPressed: () => _primeMenuInteraction(
                                 () => Navigator.of(context).pushNamed('/shop'),
                               ),
@@ -322,6 +368,7 @@ class _MainMenuViewState extends State<MainMenuView>
                               label: l10n.menuCareer,
                               neon: const Color(0xFFFFD700),
                               scale: scaleH,
+                              baseAlpha: 0.72,
                               onPressed: () => _primeMenuInteraction(
                                 () => Navigator.of(context).pushNamed('/stats'),
                               ),
@@ -331,6 +378,7 @@ class _MainMenuViewState extends State<MainMenuView>
                               label: l10n.menuSettings,
                               neon: te.colorForId(4),
                               scale: scaleH,
+                              baseAlpha: 0.72,
                               onPressed: () => _primeMenuInteraction(
                                 () => Navigator.of(
                                   context,

@@ -41,6 +41,10 @@
   "@menuSettings": {
     "description": "Main menu: settings."
   },
+  "menuGuidedTutorial": "TUTORIAL",
+  "@menuGuidedTutorial": {
+    "description": "Main menu: narrative tutorial replay (casual)."
+  },
   "luxHudPrefix": "HIGH SCORE  {highScore}   •   LUX COINS",
   "@luxHudPrefix": {
     "description": "Prefix line above animated LUX balance (high score + label).",
@@ -126,8 +130,18 @@
   "shopSnackSkinEquipped": "Skin equipped.",
   "shopSnackSkinUnlocked": "Skin unlocked and equipped.",
   "shopForgeBoostsSection": "SESSION BOOSTS",
+  "shopForgeSectionRunSalvage": "RUN SALVAGE",
+  "shopForgeSectionStrategyStakes": "STRATEGY & STAKES",
   "shopForgeInsuranceTitle": "ORACLE INSURANCE",
-  "shopForgeInsuranceBody": "If you lose your next High Stakes or Royal run, you recover 60% of the entry fee. Hold up to 3 charges.",
+  "shopForgeInsuranceBody": "If you lose your next High Stakes ({highAnte} LUX ante) or Royal ({royalAnte} LUX ante) run, the Oracle refunds {refundPct}% of that entry stake. Stack up to {maxCharges} charges.",
+  "@shopForgeInsuranceBody": {
+    "placeholders": {
+      "highAnte": {"type": "int"},
+      "royalAnte": {"type": "int"},
+      "refundPct": {"type": "int"},
+      "maxCharges": {"type": "int"}
+    }
+  },
   "shopForgeInsuranceCharges": "{count} / {max} charges",
   "@shopForgeInsuranceCharges": {
     "placeholders": {
@@ -136,14 +150,52 @@
     }
   },
   "shopForgeRoyalBountyTitle": "ROYAL BOUNTY",
-  "shopForgeRoyalBountyBody": "+200 bonus LUX on your next Royal win (stacked with the 1 250 payout). One active bounty at a time.",
+  "shopForgeRoyalBountyBody": "+{bonusLux} bonus LUX on your next Royal win once you clear the Royal objective (in addition to the usual {royalWinLux} LUX win payout). One active bounty at a time.",
+  "@shopForgeRoyalBountyBody": {
+    "placeholders": {
+      "bonusLux": {"type": "int"},
+      "royalWinLux": {"type": "int"}
+    }
+  },
   "shopForgeRoyalBountyActive": "Active — next Royal win pays extra",
   "shopSnackForgeInsurancePurchased": "Insurance charge added.",
   "shopSnackForgeRoyalBountyPurchased": "Royal bounty active for your next Royal win.",
   "shopSnackForgeInsuranceFull": "You already hold 3 insurance charges.",
   "shopSnackForgeRoyalBountyActive": "Royal bounty is already active.",
+  "shopForgeChronoPulseTitle": "CHRONO RESERVE",
+  "shopForgeChronoPulseBody": "When the session timer hits zero, one charge refills the bar to full so the run continues. Stack up to {maxCharges} charges. Inactive during tutorials.",
+  "@shopForgeChronoPulseBody": {
+    "placeholders": {
+      "maxCharges": {"type": "int"}
+    }
+  },
+  "shopForgeChronoPulseCharges": "{count} / {max} charges",
+  "@shopForgeChronoPulseCharges": {
+    "placeholders": {
+      "count": {"type": "int"},
+      "max": {"type": "int"}
+    }
+  },
+  "shopForgeMercySalvageTitle": "ORACLE'S MERCY",
+  "shopForgeMercySalvageBody": "Rack full with no valid match: one charge reshapes the end of your rack into a playable triple so you keep going. Stack up to {maxCharges} charges. Inactive during tutorials.",
+  "@shopForgeMercySalvageBody": {
+    "placeholders": {
+      "maxCharges": {"type": "int"}
+    }
+  },
+  "shopForgeMercySalvageCharges": "{count} / {max} charges",
+  "@shopForgeMercySalvageCharges": {
+    "placeholders": {
+      "count": {"type": "int"},
+      "max": {"type": "int"}
+    }
+  },
+  "shopSnackForgeChronoPulsePurchased": "Chrono reserve charge added.",
+  "shopSnackForgeChronoPulseFull": "You already hold 2 chrono charges.",
+  "shopSnackForgeMercySalvagePurchased": "Mercy salvage charge added.",
+  "shopSnackForgeMercySalvageFull": "You already hold 2 mercy charges.",
   "statsTitle": "MY CAREER",
-  "statsStreakSession": "{count, plural, one{STREAK: 1 DAY WITH A RUN} other{STREAK: {count} DAYS WITH A RUN}}",
+  "statsStreakSession": "{count, plural, one{STREAK · 1 DAY} other{STREAK · {count} DAYS}}",
   "@statsStreakSession": {
     "placeholders": {
       "count": {"type": "int"}
@@ -205,6 +257,10 @@
   "oracleDockStep2Color": "Color = +150 LUX\nSame hue • 3 shapes → rack",
   "oracleDockStep3Perfect": "Perfect = +500 LUX\n3 identical gems → rack",
   "oracleDockCelebration": "100 < 150 < 500 LUX\nAim for perfect first.",
+  "oracleDockStep1StrategyLine": "First: one silhouette, three different colors.",
+  "oracleDockStep2StrategyLine": "Don't take a weak triple if a perfect is one gem away.",
+  "oracleDockStep3StrategyLine": "Three identical gems = the biggest payout here.",
+  "oracleDockCelebrationStrategyLine": "Later: the timer turns every second into a choice.",
   "tutorialTrinityShapeIntro": "Shape is structure. Group them.",
   "tutorialTrinityColorIntro": "Color is harmony. It creates opportunities.",
   "tutorialTrinityPerfectIntro": "The Perfect Match: absolute union. Triggers the LUX burst.",
@@ -213,6 +269,14 @@
   "narrativeFloatPerfectBonus": "+500 LUX : TOTAL BRILLIANCE",
   "gameNarrativePerfectMatchBanner": "PERFECT MATCH",
   "prepTitle": "SESSION SETUP",
+  "prepGuidedTutorialCasualOnly": "Only Classic mode is available for this tutorial.",
+  "@prepGuidedTutorialCasualOnly": {
+    "description": "Preparation screen subtitle when opened from menu tutorial (casual only)."
+  },
+  "prepGuidedTutorialGoalTitle": "What you're building toward",
+  "prepGuidedTutorialGoalBody": "Each match adds in-run LUX and pushes your level. Richer match types—especially a perfect—pay far more than weaker triples. The real skill is choosing which clear you take and when.",
+  "prepGuidedTutorialStrategyTitle": "Think before the third gem",
+  "prepGuidedTutorialStrategyBody": "Before you commit a third gem, read your rack: if you are one gem away from three identical gems (same shape and same color), grabbing an easier color-only triple can break the setup and leave a lot of LUX on the table.\n\nIn this walkthrough the timer stays paused so you can practice calmly. In a real run, waiting has a cost—pressure and reward trade off.",
   "prepModeCasualTitle": "CLASSIC MODE",
   "prepModeCasualBody": "Stake: {ante} LUX. Free practice.",
   "@prepModeCasualBody": {
@@ -311,12 +375,25 @@
       "lux": {"type": "int"}
     }
   },
+  "gameHudLuxThisRun": "THIS RUN",
   "gameHudLevelTag": "LEVEL",
   "gameHudLevelUpTitle": "LEVEL UP!",
   "gameHudLevelUpSubtitle": "LEVEL {level}",
   "@gameHudLevelUpSubtitle": {
     "placeholders": {
       "level": {"type": "int"}
+    }
+  },
+  "gameHudForgeChronoA11y": "Chrono reserve, {count} charges",
+  "@gameHudForgeChronoA11y": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "gameHudForgeMercyA11y": "Oracle mercy, {count} charges",
+  "@gameHudForgeMercyA11y": {
+    "placeholders": {
+      "count": {"type": "int"}
     }
   }
 }

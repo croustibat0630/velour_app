@@ -128,6 +128,7 @@ class NarrativeOracleMessageBar extends StatelessWidget {
     final AppLocalizations l10n = AppLocalizations.of(context)!;
     final String message = resolveOracleDockMessage(l10n, messageId);
     if (message.isEmpty) return const SizedBox.shrink();
+    final String strategyLine = resolveOracleDockStrategyLine(l10n, messageId);
 
     final TextStyle oracleStyle = GoogleFonts.montserrat(
       fontSize: 14,
@@ -208,7 +209,7 @@ class NarrativeOracleMessageBar extends StatelessWidget {
                     },
                     child: Material(
                       key: ValueKey<String>(
-                        '${tutorialStepIndex ?? -1}|$messageId',
+                        '${tutorialStepIndex ?? -1}|$messageId|$strategyLine',
                       ),
                       color: Colors.transparent,
                       child: Container(
@@ -286,6 +287,22 @@ class NarrativeOracleMessageBar extends StatelessWidget {
                               message: message,
                               fillStyle: oracleStyle,
                             ),
+                            if (strategyLine.isNotEmpty) ...<Widget>[
+                              const SizedBox(height: 8),
+                              Text(
+                                strategyLine,
+                                textAlign: TextAlign.center,
+                                maxLines: 4,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 12,
+                                  height: 1.32,
+                                  fontWeight: FontWeight.w500,
+                                  letterSpacing: 0.45,
+                                  color: Colors.white.withValues(alpha: 0.64),
+                                ),
+                              ),
+                            ],
                           ],
                         ),
                       ),

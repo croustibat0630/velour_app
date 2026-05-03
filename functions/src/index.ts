@@ -12,8 +12,8 @@ initializeApp();
 
 const REGION = "europe-west3";
 
-/** Plafond crédit LUX positif par appel (aligné [EconomyService.maxLuxPerPositiveCredit]). */
-const MAX_POSITIVE_LUX_DELTA = 2500;
+/** Plafond crédit LUX positif par appel (aligné `lib/services/lux_credit_limits.dart`). */
+const MAX_POSITIVE_LUX_DELTA = 10000;
 
 /** Plafond débit par appel (mises, shop, rafales) — borne l’abus si le client est compromis. */
 const MAX_NEGATIVE_LUX_MAGNITUDE = 500_000;

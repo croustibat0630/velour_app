@@ -44,6 +44,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get menuSettings => 'EINSTELLUNGEN';
 
   @override
+  String get menuGuidedTutorial => 'TUTORIAL';
+
+  @override
   String luxHudPrefix(int highScore) {
     return 'REKORD-HIGHSCORE  $highScore   •   LUX-MÜNZEN-GUTHABEN';
   }
@@ -205,11 +208,23 @@ class AppLocalizationsDe extends AppLocalizations {
   String get shopForgeBoostsSection => 'SESSION-BOOSTS';
 
   @override
+  String get shopForgeSectionRunSalvage => 'RUN-RETTUNG';
+
+  @override
+  String get shopForgeSectionStrategyStakes => 'TAKTIK & EINSATZ';
+
+  @override
   String get shopForgeInsuranceTitle => 'ORAKEL-VERSICHERUNG';
 
   @override
-  String get shopForgeInsuranceBody =>
-      'Verlierst du dein nächstes High-Stakes- oder Royal-Match, erhältst du 60 % des Einsatzes zurück. Bis zu 3 Ladungen.';
+  String shopForgeInsuranceBody(
+    int highAnte,
+    int royalAnte,
+    int refundPct,
+    int maxCharges,
+  ) {
+    return 'Verlierst du dein nächstes High-Stakes-Match (Einsatz $highAnte LUX) oder Royal-Match (Einsatz $royalAnte LUX), erstattet das Orakel $refundPct % dieses Einsatzes. Bis zu $maxCharges Ladungen.';
+  }
 
   @override
   String shopForgeInsuranceCharges(int count, int max) {
@@ -220,8 +235,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get shopForgeRoyalBountyTitle => 'KÖNIGLICHE PRÄMIE';
 
   @override
-  String get shopForgeRoyalBountyBody =>
-      '+200 Bonus-LUX beim nächsten Royal-Sieg (zusätzlich zu 1 250). Nur eine aktive Prämie.';
+  String shopForgeRoyalBountyBody(int bonusLux, int royalWinLux) {
+    return '+$bonusLux Bonus-LUX beim nächsten Royal-Sieg nach erreichtem Royal-Ziel (zusätzlich zu den üblichen $royalWinLux LUX Gewinn). Nur eine aktive Prämie.';
+  }
 
   @override
   String get shopForgeRoyalBountyActive =>
@@ -244,6 +260,48 @@ class AppLocalizationsDe extends AppLocalizations {
       'Eine königliche Prämie ist bereits aktiv.';
 
   @override
+  String get shopForgeChronoPulseTitle => 'CHRONO-RESERVE';
+
+  @override
+  String shopForgeChronoPulseBody(int maxCharges) {
+    return 'Wenn der Session-Timer null erreicht, füllt eine Ladung den Balken komplett und der Run geht weiter. Bis zu $maxCharges Ladungen. In Tutorials inaktiv.';
+  }
+
+  @override
+  String shopForgeChronoPulseCharges(int count, int max) {
+    return '$count / $max Ladungen';
+  }
+
+  @override
+  String get shopForgeMercySalvageTitle => 'GNADE DES ORAKELS';
+
+  @override
+  String shopForgeMercySalvageBody(int maxCharges) {
+    return 'Rack voll ohne gültigen Match: eine Ladung formt am Ende des Racks ein spielbares Triple, damit es weitergeht. Bis zu $maxCharges Ladungen. In Tutorials inaktiv.';
+  }
+
+  @override
+  String shopForgeMercySalvageCharges(int count, int max) {
+    return '$count / $max Ladungen';
+  }
+
+  @override
+  String get shopSnackForgeChronoPulsePurchased =>
+      'Chrono-Reserve-Ladung hinzugefügt.';
+
+  @override
+  String get shopSnackForgeChronoPulseFull =>
+      'Du hast bereits 2 Chrono-Ladungen.';
+
+  @override
+  String get shopSnackForgeMercySalvagePurchased =>
+      'Gnaden-Ladung hinzugefügt.';
+
+  @override
+  String get shopSnackForgeMercySalvageFull =>
+      'Du hast bereits 2 Gnaden-Ladungen.';
+
+  @override
   String get statsTitle => 'MEINE KARRIERE';
 
   @override
@@ -251,8 +309,8 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'SERIE: $count TAGE MIT RUN',
-      one: 'SERIE: 1 TAG MIT RUN',
+      other: 'SERIE · $count TAGE',
+      one: 'SERIE · 1 TAG',
     );
     return '$_temp0';
   }
@@ -410,6 +468,22 @@ class AppLocalizationsDe extends AppLocalizations {
       '100 < 150 < 500 LUX\nZiele zuerst auf Perfect.';
 
   @override
+  String get oracleDockStep1StrategyLine =>
+      'Zuerst: eine Silhouette, drei verschiedene Farben.';
+
+  @override
+  String get oracleDockStep2StrategyLine =>
+      'Kein leichter Farben-Drilling, wenn Perfect nah ist.';
+
+  @override
+  String get oracleDockStep3StrategyLine =>
+      'Drei identische Steine = höchster Gewinn hier.';
+
+  @override
+  String get oracleDockCelebrationStrategyLine =>
+      'Später: der Timer macht jede Sekunde zur Wahl.';
+
+  @override
   String get tutorialTrinityShapeIntro => 'Form ist Struktur. Gruppiere sie.';
 
   @override
@@ -434,6 +508,25 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get prepTitle => 'SITZUNGS-SETUP';
+
+  @override
+  String get prepGuidedTutorialCasualOnly =>
+      'Für dieses Tutorial steht nur der klassische Modus zur Verfügung.';
+
+  @override
+  String get prepGuidedTutorialGoalTitle => 'Worum es geht';
+
+  @override
+  String get prepGuidedTutorialGoalBody =>
+      'Jeder Match bringt LUX in der Runde und treibt dein Level. Reichere Match-Typen — vor allem ein Perfect — zahlen viel mehr als schwächere Drillinge. Die Kunst ist, welchen Clear du nimmst und wann.';
+
+  @override
+  String get prepGuidedTutorialStrategyTitle =>
+      'Erst lesen, dann die 3. ziehen';
+
+  @override
+  String get prepGuidedTutorialStrategyBody =>
+      'Bevor du die dritte Edelsteinwahl finalisierst, sieh aufs Rack: fehlt dir nur noch **ein** Stein zu drei **identischen** (gleiche Form und gleiche Farbe), kann ein leichter Nur-Farben-Drilling dein Setup zerstören und viel LUX kosten.\n\nHier bleibt der Timer angehalten, damit du ruhig üben kannst. In einer echten Runde kostet Warten ebenfalls Zeit — Druck und Belohnung stehen im Wechselspiel.';
 
   @override
   String get prepModeCasualTitle => 'KLASSISCHER MODUS';
@@ -556,6 +649,9 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get gameHudLuxThisRun => 'RUN';
+
+  @override
   String get gameHudLevelTag => 'LEVEL';
 
   @override
@@ -564,5 +660,15 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String gameHudLevelUpSubtitle(int level) {
     return 'LEVEL $level';
+  }
+
+  @override
+  String gameHudForgeChronoA11y(int count) {
+    return 'Chrono-Reserve, $count Ladungen';
+  }
+
+  @override
+  String gameHudForgeMercyA11y(int count) {
+    return 'Orakelgnade, $count Ladungen';
   }
 }

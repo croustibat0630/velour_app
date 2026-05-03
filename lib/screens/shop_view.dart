@@ -7,7 +7,6 @@ import 'package:provider/provider.dart';
 import 'package:velour_app/l10n/app_localizations.dart';
 
 import '../providers/game_state.dart';
-import '../models/skin_config.dart';
 import '../services/audio_handler.dart';
 import '../utils/responsive.dart';
 import '../widgets/ui/dark_matte_overlay.dart';
@@ -376,7 +375,7 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
                             ),
                           ),
                           SizedBox(height: (22 * s).clamp(18.0, 28.0)),
-                          // Personnalisation (Forge de l'Oracle) — sous le Coffre-Fort.
+                          // Forge de l'Oracle — boosts de session (sous le Coffre-Fort).
                           Builder(
                             builder: (context) {
                               final GameState gs = context.watch<GameState>();
@@ -415,17 +414,167 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
                                         ),
                                   ),
                                   SizedBox(height: (10 * s).clamp(8.0, 14.0)),
+                                  _ShopForgeSubsectionHeader(
+                                    label: l10n.shopForgeSectionRunSalvage,
+                                    scale: s,
+                                  ),
+                                  SizedBox(height: (4 * s).clamp(2.0, 8.0)),
+                                  _ForgeBoostCard(
+                                    title: l10n.shopForgeChronoPulseTitle,
+                                    body: l10n.shopForgeChronoPulseBody(
+                                      GameState.forgeChronoPulseMaxCharges,
+                                    ),
+                                    priceLux:
+                                        GameState.forgeChronoPulsePriceLux,
+                                    accent: cyan,
+                                    metaLine: l10n.shopForgeChronoPulseCharges(
+                                      gs.chronoPulseCharges,
+                                      GameState.forgeChronoPulseMaxCharges,
+                                    ),
+                                    enabled:
+                                        gs.chronoPulseCharges <
+                                        GameState.forgeChronoPulseMaxCharges,
+                                    showStockedBadge: gs.chronoPulseCharges > 0,
+                                    onTap: () async {
+                                      AudioHandler.instance.playMenuClick();
+                                      final ForgePurchaseOutcome r = await gs
+                                          .purchaseForgeChronoPulse();
+                                      if (!context.mounted) return;
+                                      final AppLocalizations sl10n =
+                                          AppLocalizations.of(context)!;
+                                      switch (r) {
+                                        case ForgePurchaseOutcome
+                                            .insufficientLux:
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                sl10n.shopSnackInsufficientLux,
+                                              ),
+                                            ),
+                                          );
+                                        case ForgePurchaseOutcome
+                                            .purchasedChronoPulse:
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                sl10n
+                                                    .shopSnackForgeChronoPulsePurchased,
+                                              ),
+                                            ),
+                                          );
+                                        case ForgePurchaseOutcome
+                                            .chronoPulseStackFull:
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                sl10n
+                                                    .shopSnackForgeChronoPulseFull,
+                                              ),
+                                            ),
+                                          );
+                                        default:
+                                          break;
+                                      }
+                                    },
+                                  ),
+                                  SizedBox(height: (8 * s).clamp(6.0, 12.0)),
+                                  _ForgeBoostCard(
+                                    title: l10n.shopForgeMercySalvageTitle,
+                                    body: l10n.shopForgeMercySalvageBody(
+                                      GameState.forgeMercySalvageMaxCharges,
+                                    ),
+                                    priceLux:
+                                        GameState.forgeMercySalvagePriceLux,
+                                    accent: const Color(0xFFFF6B4A),
+                                    metaLine: l10n.shopForgeMercySalvageCharges(
+                                      gs.mercySalvageCharges,
+                                      GameState.forgeMercySalvageMaxCharges,
+                                    ),
+                                    enabled:
+                                        gs.mercySalvageCharges <
+                                        GameState.forgeMercySalvageMaxCharges,
+                                    showStockedBadge:
+                                        gs.mercySalvageCharges > 0,
+                                    onTap: () async {
+                                      AudioHandler.instance.playMenuClick();
+                                      final ForgePurchaseOutcome r = await gs
+                                          .purchaseForgeMercySalvage();
+                                      if (!context.mounted) return;
+                                      final AppLocalizations sl10n =
+                                          AppLocalizations.of(context)!;
+                                      switch (r) {
+                                        case ForgePurchaseOutcome
+                                            .insufficientLux:
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                sl10n.shopSnackInsufficientLux,
+                                              ),
+                                            ),
+                                          );
+                                        case ForgePurchaseOutcome
+                                            .purchasedMercySalvage:
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                sl10n
+                                                    .shopSnackForgeMercySalvagePurchased,
+                                              ),
+                                            ),
+                                          );
+                                        case ForgePurchaseOutcome
+                                            .mercySalvageStackFull:
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                sl10n
+                                                    .shopSnackForgeMercySalvageFull,
+                                              ),
+                                            ),
+                                          );
+                                        default:
+                                          break;
+                                      }
+                                    },
+                                  ),
+                                  SizedBox(height: (8 * s).clamp(6.0, 12.0)),
+                                  _ShopForgeSubsectionHeader(
+                                    label: l10n.shopForgeSectionStrategyStakes,
+                                    scale: s,
+                                  ),
+                                  SizedBox(height: (4 * s).clamp(2.0, 8.0)),
                                   _ForgeBoostCard(
                                     title: l10n.shopForgeInsuranceTitle,
-                                    body: l10n.shopForgeInsuranceBody,
-                                    priceLux: GameState.forgeOracleInsurancePriceLux,
+                                    body: l10n.shopForgeInsuranceBody(
+                                      GameState.highStakesAnteLux,
+                                      GameState.royalAnteLux,
+                                      GameState
+                                          .forgeOracleInsuranceRefundPercent,
+                                      GameState.forgeOracleInsuranceMaxCharges,
+                                    ),
+                                    priceLux:
+                                        GameState.forgeOracleInsurancePriceLux,
                                     accent: const Color(0xFFFFD700),
                                     metaLine: l10n.shopForgeInsuranceCharges(
                                       gs.oracleInsuranceCharges,
                                       GameState.forgeOracleInsuranceMaxCharges,
                                     ),
-                                    enabled: gs.oracleInsuranceCharges <
-                                        GameState.forgeOracleInsuranceMaxCharges,
+                                    enabled:
+                                        gs.oracleInsuranceCharges <
+                                        GameState
+                                            .forgeOracleInsuranceMaxCharges,
                                     showStockedBadge:
                                         gs.oracleInsuranceCharges > 0,
                                     onTap: () async {
@@ -466,7 +615,8 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
                                           ).showSnackBar(
                                             SnackBar(
                                               content: Text(
-                                                sl10n.shopSnackForgeInsuranceFull,
+                                                sl10n
+                                                    .shopSnackForgeInsuranceFull,
                                               ),
                                             ),
                                           );
@@ -478,8 +628,12 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
                                   SizedBox(height: (8 * s).clamp(6.0, 12.0)),
                                   _ForgeBoostCard(
                                     title: l10n.shopForgeRoyalBountyTitle,
-                                    body: l10n.shopForgeRoyalBountyBody,
-                                    priceLux: GameState.forgeRoyalBountyPriceLux,
+                                    body: l10n.shopForgeRoyalBountyBody(
+                                      GameState.forgeRoyalBountyBonusLux,
+                                      GameState.royalWinLux,
+                                    ),
+                                    priceLux:
+                                        GameState.forgeRoyalBountyPriceLux,
                                     accent: const Color(0xFFE49BFF),
                                     metaLine: gs.royalVictoryBountyPending
                                         ? l10n.shopForgeRoyalBountyActive
@@ -536,66 +690,6 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
                                     },
                                   ),
                                   SizedBox(height: (16 * s).clamp(12.0, 20.0)),
-                                  for (final SkinConfig skin in SkinCatalog.all)
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 4,
-                                        vertical: 6,
-                                      ),
-                                      child: _SkinCard(
-                                        skin: skin,
-                                        equipped: gs.activeSkinId == skin.id,
-                                        owned: gs.unlockedSkins.contains(
-                                          skin.id,
-                                        ),
-                                        onTap: () async {
-                                          final SkinPurchaseOutcome r = await gs
-                                              .purchaseAndEquipSkin(skin);
-                                          if (!context.mounted) return;
-                                          final AppLocalizations sl10n =
-                                              AppLocalizations.of(context)!;
-                                          switch (r) {
-                                            case SkinPurchaseOutcome
-                                                .insufficientLux:
-                                              ScaffoldMessenger.of(
-                                                context,
-                                              ).showSnackBar(
-                                                SnackBar(
-                                                  content: Text(
-                                                    sl10n
-                                                        .shopSnackInsufficientLux,
-                                                  ),
-                                                ),
-                                              );
-                                            case SkinPurchaseOutcome
-                                                .purchasedAndEquipped:
-                                              ScaffoldMessenger.of(
-                                                context,
-                                              ).showSnackBar(
-                                                SnackBar(
-                                                  content: Text(
-                                                    sl10n.shopSnackSkinUnlocked,
-                                                  ),
-                                                ),
-                                              );
-                                            case SkinPurchaseOutcome
-                                                .equippedFromOwned:
-                                              ScaffoldMessenger.of(
-                                                context,
-                                              ).showSnackBar(
-                                                SnackBar(
-                                                  content: Text(
-                                                    sl10n.shopSnackSkinEquipped,
-                                                  ),
-                                                ),
-                                              );
-                                            case SkinPurchaseOutcome
-                                                .alreadyEquipped:
-                                              break;
-                                          }
-                                        },
-                                      ),
-                                    ),
                                 ],
                               );
                             },
@@ -853,6 +947,27 @@ class _Badge extends StatelessWidget {
   }
 }
 
+class _ShopForgeSubsectionHeader extends StatelessWidget {
+  const _ShopForgeSubsectionHeader({required this.label, required this.scale});
+
+  final String label;
+  final double scale;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      label,
+      textAlign: TextAlign.center,
+      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+        letterSpacing: 2.8,
+        fontWeight: FontWeight.w600,
+        color: Colors.white.withValues(alpha: 0.40),
+        fontSize: (9.5 * scale).clamp(8.5, 11.0),
+      ),
+    );
+  }
+}
+
 class _ForgeBoostCard extends StatelessWidget {
   const _ForgeBoostCard({
     required this.title,
@@ -911,9 +1026,9 @@ class _ForgeBoostCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF0A0C12).withValues(
-                    alpha: enabled ? 0.88 : 0.52,
-                  ),
+                  color: const Color(
+                    0xFF0A0C12,
+                  ).withValues(alpha: enabled ? 0.88 : 0.52),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
                     color: accent.withValues(
@@ -921,8 +1036,9 @@ class _ForgeBoostCard extends StatelessWidget {
                           ? 0.58
                           : (enabled ? 0.42 : 0.18),
                     ),
-                    width:
-                        (showStockedBadge || showPrimeActiveBadge) ? 1.35 : 1,
+                    width: (showStockedBadge || showPrimeActiveBadge)
+                        ? 1.35
+                        : 1,
                   ),
                   boxShadow: glow,
                 ),
@@ -937,9 +1053,7 @@ class _ForgeBoostCard extends StatelessWidget {
                             title,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleSmall
+                            style: Theme.of(context).textTheme.titleSmall
                                 ?.copyWith(
                                   letterSpacing: 2.4,
                                   fontWeight: FontWeight.w800,
@@ -951,9 +1065,7 @@ class _ForgeBoostCard extends StatelessWidget {
                         Text(
                           l10n.shopPriceLux(priceLux),
                           textAlign: TextAlign.right,
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleSmall
+                          style: Theme.of(context).textTheme.titleSmall
                               ?.copyWith(
                                 fontWeight: FontWeight.w800,
                                 letterSpacing: 1.0,
@@ -982,13 +1094,14 @@ class _ForgeBoostCard extends StatelessWidget {
                         metaLine!,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                          letterSpacing: 1.6,
-                          fontWeight: FontWeight.w700,
-                          color: accent.withValues(
-                            alpha: enabled ? 0.72 : 0.40,
-                          ),
-                        ),
+                        style: Theme.of(context).textTheme.labelMedium
+                            ?.copyWith(
+                              letterSpacing: 1.6,
+                              fontWeight: FontWeight.w700,
+                              color: accent.withValues(
+                                alpha: enabled ? 0.72 : 0.40,
+                              ),
+                            ),
                       ),
                     ],
                   ],
@@ -1010,136 +1123,6 @@ class _ForgeBoostCard extends StatelessWidget {
                     ],
                   ),
                 ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _SkinCard extends StatelessWidget {
-  const _SkinCard({
-    required this.skin,
-    required this.equipped,
-    required this.owned,
-    required this.onTap,
-  });
-
-  final SkinConfig skin;
-  final bool equipped;
-  final bool owned;
-  final VoidCallback onTap;
-
-  static const Color _matteTop = Color(0xFF0E1014);
-  static const Color _matteBottom = Color(0xFF1A1D26);
-
-  @override
-  Widget build(BuildContext context) {
-    final Color accent = skin.primaryColor;
-    final Color border = equipped
-        ? accent.withValues(alpha: 0.85)
-        : accent.withValues(alpha: 0.45);
-    return Material(
-      color: Colors.transparent,
-      borderRadius: BorderRadius.circular(28),
-      clipBehavior: Clip.none,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(28),
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(28),
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [_matteTop, _matteBottom],
-            ),
-            border: Border.all(color: border, width: equipped ? 1.8 : 1.2),
-            boxShadow: [
-              BoxShadow(
-                color: accent.withValues(alpha: equipped ? 0.20 : 0.12),
-                blurRadius: equipped ? 44 : 30,
-                spreadRadius: equipped ? 10 : 6,
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 34,
-                height: 34,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  color: Colors.black.withValues(alpha: 0.35),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.06),
-                  ),
-                ),
-                child: Icon(
-                  equipped ? Icons.check_rounded : Icons.auto_awesome_rounded,
-                  size: 18,
-                  color: accent.withValues(alpha: 0.90),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      skin.name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 2.2,
-                        color: Colors.white.withValues(alpha: 0.88),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      owned
-                          ? (equipped
-                                ? AppLocalizations.of(context)!.shopSkinEquipped
-                                : AppLocalizations.of(context)!.shopSkinOwned)
-                          : AppLocalizations.of(
-                              context,
-                            )!.shopPriceLux(skin.price),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        letterSpacing: 1.2,
-                        color: Colors.white.withValues(alpha: 0.52),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 10),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 10,
-                    height: 10,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: skin.primaryColor.withValues(alpha: 0.95),
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Container(
-                    width: 10,
-                    height: 10,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: skin.secondaryColor.withValues(alpha: 0.95),
-                    ),
-                  ),
-                ],
-              ),
             ],
           ),
         ),

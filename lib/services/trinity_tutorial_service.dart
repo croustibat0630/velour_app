@@ -4,9 +4,10 @@ import 'package:flutter/material.dart';
 
 import '../providers/game_state_types.dart';
 
-/// État du tutoriel « Trinité » (hors première partie narrative).
+/// État du tutoriel « Trinité » (bannières shape / couleur / perfect).
 ///
-/// Le plateau et la persistance disque sont pilotés par [GameState] via callbacks.
+/// Ne se lance plus au démarrage d’une partie : l’apprentissage passe par le menu
+/// Tutoriel (narratif). [GameState] pilote plateau et prefs via callbacks.
 class TrinityTutorialService extends ChangeNotifier {
   bool _complete = false;
   TrinityTutorialPhase _phase = TrinityTutorialPhase.none;
@@ -65,16 +66,6 @@ class TrinityTutorialService extends ChangeNotifier {
     _bannerId = TrinityBannerId.none;
     notifyListeners();
   }
-
-  bool shouldOfferAtInit({
-    required bool isFirstTimeGame,
-    required SessionStakeKind stake,
-    required int gameLevel,
-  }) =>
-      !isFirstTimeGame &&
-      stake == SessionStakeKind.casual &&
-      !_complete &&
-      gameLevel == 1;
 
   void advanceAfterMatch(
     RunBasis basis, {

@@ -228,11 +228,29 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
   /// `true` une fois le tutoriel trinité terminé (prefs).
   bool get isTrinityTutorialComplete => _trinityTutorial.isComplete;
 
-  /// Première partie : séquence narrative guidée (prefs).
-  /// `true` tant que l’overlay « première partie » n’a pas été validé (prefs).
+  /// Prefs « première partie » : reste `true` tant que le tutoriel narratif
+  /// n’a pas été terminé depuis le menu [requestGuidedTutorialReplay] (persisté).
+  /// Ne déclenche plus automatiquement le narratif sur « Commencer ».
   /// Défaut `false` jusqu’à [loadEconomyWelcome] (évite les tests sans prefs).
   bool _isFirstTimeGame = false;
   bool get isFirstTimeGame => _isFirstTimeGame;
+
+  /// Relance volontaire du tutoriel narratif (menu) — consommé au lancement d’une partie casual.
+  bool _guidedTutorialReplayPending = false;
+
+  /// `true` le temps d’une run casual lancée depuis le menu « Tutoriel ».
+  bool _narrativeReplayThisRun = false;
+
+  /// Incrémenté à la fin du tutoriel narratif : [GameScreen] renvoie au menu principal.
+  int _narrativeTutorialReturnToMainMenuTick = 0;
+
+  int get narrativeTutorialReturnToMainMenuTick =>
+      _narrativeTutorialReturnToMainMenuTick;
+
+  /// Narrative active : uniquement une run casual lancée depuis le menu Tutoriel.
+  bool get _narrativeRunEngaged =>
+      _narrativeReplayThisRun &&
+      _sessionStake == SessionStakeKind.casual;
 
   NarrativeTutorialPhase get narrativePhase => _narrativeTutorial.phase;
 
@@ -245,7 +263,8 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
   int get postNarrativeSpawnFadeTick => _narrativeTutorial.postSpawnFadeTick;
 
   bool get isNarrativeTutorialActive =>
-      _isFirstTimeGame && _narrativeTutorial.phase != NarrativeTutorialPhase.none;
+      _narrativeRunEngaged &&
+      _narrativeTutorial.phase != NarrativeTutorialPhase.none;
 
   bool get _isNarrativeTutorialCoreSteps => _narrativeTutorial.isCoreSteps;
 
@@ -272,7 +291,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
 
   ({double level, double lux, double score, double time})
   get narrativeHudOpacities =>
-      _narrativeTutorial.hudOpacities(_isFirstTimeGame);
+      _narrativeTutorial.hudOpacities(_narrativeRunEngaged);
 
   ComboFloaterFx? _comboFloater;
   int _comboFloaterTick = 0;
@@ -282,9 +301,13 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
 
   bool get isTrinityTutorialActive => isTrinityTutorialChronoFrozen;
 
-  /// Chrono figé pendant la séquence narrative (première partie).
+  /// Chrono figé pendant la séquence narrative (lancement depuis le menu Tutoriel).
   bool get isNarrativeTutorialChronoFrozen =>
-      _narrativeTutorial.isChronoFrozen(_isFirstTimeGame);
+      _narrativeTutorial.isChronoFrozen(_narrativeRunEngaged);
+
+  /// Consommables Forge « en run » : désactivés pendant tutoriels scriptés.
+  bool get _canUseForgeRunConsumables =>
+      !isNarrativeTutorialActive && !isTrinityTutorialChronoFrozen;
 
   TrinityTutorialPhase get trinityTutorialPhase => _trinityTutorial.phase;
 
@@ -502,6 +525,32 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
   int get oracleInsuranceCharges => _oracleInsuranceCharges;
   bool get royalVictoryBountyPending => _royalVictoryBountyPending;
 
+  int _chronoPulseCharges = 0;
+  int _mercySalvageCharges = 0;
+
+  int get chronoPulseCharges => _chronoPulseCharges;
+  int get mercySalvageCharges => _mercySalvageCharges;
+
+  /// Tutoriels terminés : consommables chrono / clémence actifs en run.
+  bool get canForgeRunConsumablesApply => _canUseForgeRunConsumables;
+
+  /// Le rack contient au moins un triple jouable (forme ou couleur).
+  bool get slotsHavePlayableTriple => _slotsHaveAnyTripleRun();
+
+  /// Chrono bas et au moins une charge : pulse HUD avant sauvetage auto.
+  bool get isForgeChronoSalvagePrewarn =>
+      _canUseForgeRunConsumables &&
+      _chronoPulseCharges > 0 &&
+      timeBar.value > 0.0 &&
+      timeBar.value <= 0.22;
+
+  /// Rack presque ou plein sans triple jouable : pulse avant clémence auto.
+  bool get isForgeMercySalvagePrewarn =>
+      _canUseForgeRunConsumables &&
+      _mercySalvageCharges > 0 &&
+      _slotItems.length >= slotCount - 1 &&
+      !_slotsHaveAnyTripleRun();
+
   /// Dernier remboursement assurance sur l’overlay fin de partie (0 si aucun).
   int _lastOracleInsuranceRefundLux = 0;
   int get lastOracleInsuranceRefundLux => _lastOracleInsuranceRefundLux;
@@ -547,6 +596,14 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
   static const int royalAnteLux = 250;
   static const int royalWinLux = 1250;
   static const int royalTargetLevel = 5;
+
+  /// Recharge chrono pleine une fois quand le temps atteint zéro (hors tutoriels).
+  static const int forgeChronoPulsePriceLux = 175;
+  static const int forgeChronoPulseMaxCharges = 2;
+
+  /// Sauvetage impasse : rack plein sans triple — refait apparaître un triplet jouable.
+  static const int forgeMercySalvagePriceLux = 220;
+  static const int forgeMercySalvageMaxCharges = 2;
 
   void addLuxCoins(int delta) {
     _economy.addLuxCoins(delta);
@@ -605,7 +662,12 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
       if (disk == null) return false;
       _economy.hydrateLuxAndWelcomeFromDisk(disk);
       _trinityTutorial.hydrateCompleteFromDisk(disk.trinityTutorialComplete);
-      _isFirstTimeGame = disk.isFirstTimeGame;
+      // Cohérence : la trinité marquée « faite » implique que la première partie narrative est passée.
+      bool firstTime = disk.isFirstTimeGame;
+      if (disk.trinityTutorialComplete) {
+        firstTime = false;
+      }
+      _isFirstTimeGame = firstTime;
       _activeSkinId = disk.activeSkinIdRaw ?? SkinCatalog.standard.id;
       _unlockedSkins =
           disk.unlockedSkinsRaw ?? <String>[SkinCatalog.standard.id];
@@ -625,9 +687,25 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
 
   Future<void> _hydrateForgeShopFromDisk() async {
     try {
-      final ({int charges, bool royalBounty}) r = await _localDisk.loadForgeShop();
-      _oracleInsuranceCharges = r.charges.clamp(0, forgeOracleInsuranceMaxCharges);
+      final ({
+        int insuranceCharges,
+        bool royalBounty,
+        int chronoPulseCharges,
+        int mercySalvageCharges,
+      }) r = await _localDisk.loadForgeShop();
+      _oracleInsuranceCharges = r.insuranceCharges.clamp(
+        0,
+        forgeOracleInsuranceMaxCharges,
+      );
       _royalVictoryBountyPending = r.royalBounty;
+      _chronoPulseCharges = r.chronoPulseCharges.clamp(
+        0,
+        forgeChronoPulseMaxCharges,
+      );
+      _mercySalvageCharges = r.mercySalvageCharges.clamp(
+        0,
+        forgeMercySalvageMaxCharges,
+      );
     } catch (_) {}
   }
 
@@ -638,6 +716,14 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
         forgeOracleInsuranceMaxCharges,
       ),
       royalVictoryBountyPending: _royalVictoryBountyPending,
+      chronoPulseCharges: _chronoPulseCharges.clamp(
+        0,
+        forgeChronoPulseMaxCharges,
+      ),
+      mercySalvageCharges: _mercySalvageCharges.clamp(
+        0,
+        forgeMercySalvageMaxCharges,
+      ),
     );
   }
 
@@ -662,12 +748,16 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     _activeSkinId = SkinCatalog.standard.id;
     _oracleInsuranceCharges = 0;
     _royalVictoryBountyPending = false;
+    _chronoPulseCharges = 0;
+    _mercySalvageCharges = 0;
     _sessionStakeResolveConsumed = false;
     _lastOracleInsuranceRefundLux = 0;
 
     _trinityTutorial.hardReset();
     _narrativeTutorial.hardReset();
     _isFirstTimeGame = true;
+    _guidedTutorialReplayPending = false;
+    _narrativeReplayThisRun = false;
 
     resetGame();
     notifyListeners();
@@ -733,6 +823,38 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     return ForgePurchaseOutcome.purchasedRoyalBounty;
   }
 
+  Future<ForgePurchaseOutcome> purchaseForgeChronoPulse() async {
+    await loadEconomyWelcome();
+    if (_chronoPulseCharges >= forgeChronoPulseMaxCharges) {
+      return ForgePurchaseOutcome.chronoPulseStackFull;
+    }
+    if (_economy.luxCoins < forgeChronoPulsePriceLux) {
+      return ForgePurchaseOutcome.insufficientLux;
+    }
+    addLuxCoins(-forgeChronoPulsePriceLux);
+    _chronoPulseCharges++;
+    notifyListeners();
+    unawaited(_persistForgeShopPrefs());
+    unawaited(_economy.flushLuxCoinsPersistenceOnly());
+    return ForgePurchaseOutcome.purchasedChronoPulse;
+  }
+
+  Future<ForgePurchaseOutcome> purchaseForgeMercySalvage() async {
+    await loadEconomyWelcome();
+    if (_mercySalvageCharges >= forgeMercySalvageMaxCharges) {
+      return ForgePurchaseOutcome.mercySalvageStackFull;
+    }
+    if (_economy.luxCoins < forgeMercySalvagePriceLux) {
+      return ForgePurchaseOutcome.insufficientLux;
+    }
+    addLuxCoins(-forgeMercySalvagePriceLux);
+    _mercySalvageCharges++;
+    notifyListeners();
+    unawaited(_persistForgeShopPrefs());
+    unawaited(_economy.flushLuxCoinsPersistenceOnly());
+    return ForgePurchaseOutcome.purchasedMercySalvage;
+  }
+
   /// Choix de mise depuis l’écran préparation. Retourne `false` si solde insuffisant (High Stakes).
   bool beginSession(SessionStakeKind kind) {
     if (kind == SessionStakeKind.casual) {
@@ -740,6 +862,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
       notifyListeners();
       return true;
     }
+    _guidedTutorialReplayPending = false;
     if (kind == SessionStakeKind.highStakes) {
       if (_economy.luxCoins < highStakesAnteLux) {
         return false;
@@ -759,6 +882,12 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
       return true;
     }
     return false;
+  }
+
+  /// Prochaine partie **casual** : rejouer le tutoriel narratif (depuis le menu).
+  void requestGuidedTutorialReplay() {
+    _guidedTutorialReplayPending = true;
+    notifyListeners();
   }
 
   /// Consomme la mise **dès la validation** pré-partie : débit LUX + écriture disque immédiate.
@@ -945,7 +1074,9 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   void resetGame() {
-    _narrativeTutorial.onParentResetGame();
+    _narrativeReplayThisRun = false;
+    _narrativeTutorialReturnToMainMenuTick = 0;
+    _narrativeTutorial.hardReset();
     _sessionStakeFooterLine = SessionStakeFooterLine.none;
     _cancelMatchScheduling();
     _stopTimeLoop();
@@ -1073,20 +1204,20 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     _levelTransitionTimer?.cancel();
     _levelTransitionTimer = null;
 
-    if (_isFirstTimeGame && _sessionStake == SessionStakeKind.casual) {
+    final bool narrativeFromMenuThisInit =
+        _guidedTutorialReplayPending &&
+        _sessionStake == SessionStakeKind.casual;
+    if (narrativeFromMenuThisInit) {
+      _guidedTutorialReplayPending = false;
+      _narrativeReplayThisRun = true;
       _trinityTutorial.clearForNarrativeFirstRun();
       _narrativeTutorial.beginCasualFirstRunBoardInit();
       timeBar.value = 0.0;
       _lux = 0;
       _seedNarrativeStep1Board();
-    } else if (_trinityTutorial.shouldOfferAtInit(
-      isFirstTimeGame: _isFirstTimeGame,
-      stake: _sessionStake,
-      gameLevel: _gameLevel,
-    )) {
-      _trinityTutorial.beginShapeIntro();
-      _seedTrinityBoardForCurrentPhase();
     } else {
+      _guidedTutorialReplayPending = false;
+      _narrativeReplayThisRun = false;
       _trinityTutorial.clearForInactiveBoardInit();
       _fillBoardToCap();
     }
@@ -1145,12 +1276,14 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
 
   Future<void> _persistNarrativeTutorialComplete() async {
     _isFirstTimeGame = false;
+    _narrativeReplayThisRun = false;
+    _guidedTutorialReplayPending = false;
     _trinityTutorial.markCompleteFromNarrative();
     await _localDisk.persistNarrativeTutorialComplete();
-    // Respiration après la bannière avant le vrai plateau.
+    // Respiration après la bannière, puis retour menu (le tutoriel n’est pas une run « à poursuivre »).
     await Future<void>.delayed(const Duration(milliseconds: 700));
     _narrativeTutorial.bumpPostSpawnFade();
-    _fillBoardToCap();
+    _narrativeTutorialReturnToMainMenuTick++;
     notifyListeners();
   }
 
@@ -1182,6 +1315,47 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     _boardItems.clear();
   }
 
+  bool _tryConsumeChronoPulseRefill() {
+    if (!_canUseForgeRunConsumables) return false;
+    if (_chronoPulseCharges <= 0) return false;
+    _chronoPulseCharges--;
+    timeBar.value = 1.0;
+    unawaited(_persistForgeShopPrefs());
+    AudioHandler.instance.playCredit();
+    HapticsHandler.instance.mediumImpact();
+    notifyListeners();
+    return true;
+  }
+
+  bool _tryOracleMercySalvageFromDeadlock() {
+    if (!_canUseForgeRunConsumables) return false;
+    if (_mercySalvageCharges <= 0) return false;
+    if (_slotItems.length != slotCount) return false;
+
+    _mercySalvageCharges--;
+    _applyMercySalvageReplaceLastTriple();
+    unawaited(_persistForgeShopPrefs());
+    return true;
+  }
+
+  void _applyMercySalvageReplaceLastTriple() {
+    final GameItem anchor = _slotItems.first;
+    final int n = _slotItems.length;
+    for (int i = n - 3; i < n; i++) {
+      final GameItem old = _slotItems[i];
+      _slotItems[i] = GameItem(
+        id: _nextId(),
+        typeId: anchor.typeId,
+        colorId: anchor.colorId,
+        position: old.position,
+        isSelected: false,
+        floatPeriodMs: old.floatPeriodMs,
+        floatPhase: old.floatPhase,
+      );
+    }
+    _assignSlotPositions(selectedId: '');
+  }
+
   void _startTimeLoop() {
     _timeTimer?.cancel();
     _lastTimeTickAt = DateTime.now();
@@ -1211,6 +1385,9 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
           return;
         }
         timeBar.value = next;
+        if (_tryConsumeChronoPulseRefill()) {
+          return;
+        }
         gameOver();
         return;
       }
@@ -1696,6 +1873,9 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
       );
       return;
     }
+    if (_tryConsumeChronoPulseRefill()) {
+      return;
+    }
     debugPrint('[Velour][Timer] exécution gameOver après fin pipeline match');
     gameOver();
   }
@@ -1912,7 +2092,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     // Haptique : forme / couleur = léger ; parfait hors bannière tutoriel = medium
     // (le parfait narratif déclenche medium à l’apparition de la bannière PERFECT).
     final bool narrativePerfectForBanner =
-        _isFirstTimeGame &&
+        _narrativeRunEngaged &&
         _narrativeTutorial.isStep3Perfect &&
         basis == RunBasis.perfect;
     if (basis == RunBasis.shape || basis == RunBasis.color) {
@@ -1982,7 +2162,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     }
 
     final bool narrativePerfectFloat =
-        _isFirstTimeGame &&
+        _narrativeRunEngaged &&
         _narrativeTutorial.isStep3Perfect &&
         basis == RunBasis.perfect;
     // Parfait narratif : la bannière centrale porte le message — pas de floater
@@ -2060,7 +2240,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
           _trinityTutorial.phase == TrinityTutorialPhase.none;
     } else if (_narrativeTutorial.isCoreSteps) {
       _narrativeTutorial.applyAfterMatch(
-        _isFirstTimeGame,
+        _narrativeRunEngaged,
         basis,
         _baseMatchTimeRefund,
       );
@@ -2153,22 +2333,37 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     }
 
     final bool hasMatch = _slotsHaveAnyTripleRun();
-    _isGameOver = !hasMatch;
-    if (!hasMatch) {
-      final bool wasCritical = _criticalFailure;
-      _criticalFailure = true;
-      _cancelMatchScheduling();
-      if (!wasCritical) {
-        _lastGameWasPersonalBest = _lux > _economy.highScore;
-        _resolveSessionStakeOnGameOver();
-        _playGameOverSound();
-        AudioHandler.instance.cutAllAudio();
-        _persistHighScoreIfNeeded();
-        _stopTimeLoop();
-        _gameOverFlashTick++;
-      }
-    } else {
+    if (hasMatch) {
+      _isGameOver = false;
       _criticalFailure = false;
+      return;
+    }
+
+    if (_tryOracleMercySalvageFromDeadlock()) {
+      _isGameOver = false;
+      _criticalFailure = false;
+      _cancelMatchScheduling();
+      _recomputeAlerts();
+      _recomputeImminentPairs();
+      AudioHandler.instance.playMatchCombo();
+      HapticsHandler.instance.mediumImpact();
+      _scheduleMatchCheck();
+      notifyListeners();
+      return;
+    }
+
+    _isGameOver = true;
+    final bool wasCritical = _criticalFailure;
+    _criticalFailure = true;
+    _cancelMatchScheduling();
+    if (!wasCritical) {
+      _lastGameWasPersonalBest = _lux > _economy.highScore;
+      _resolveSessionStakeOnGameOver();
+      _playGameOverSound();
+      AudioHandler.instance.cutAllAudio();
+      _persistHighScoreIfNeeded();
+      _stopTimeLoop();
+      _gameOverFlashTick++;
     }
   }
 

@@ -114,7 +114,13 @@ class GameStateLocalStore {
     } catch (_) {}
   }
 
-  Future<({int charges, bool royalBounty})> loadForgeShop() async {
+  Future<
+      ({
+        int insuranceCharges,
+        bool royalBounty,
+        int chronoPulseCharges,
+        int mercySalvageCharges,
+      })> loadForgeShop() async {
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       final int charges =
@@ -124,15 +130,37 @@ class GameStateLocalStore {
           );
       final bool royal =
           prefs.getBool(GameStatePrefs.royalVictoryBountyPending) ?? false;
-      return (charges: charges, royalBounty: royal);
+      final int chrono =
+          (prefs.getInt(GameStatePrefs.forgeChronoPulseCharges) ?? 0).clamp(
+            0,
+            99,
+          );
+      final int mercy =
+          (prefs.getInt(GameStatePrefs.forgeMercySalvageCharges) ?? 0).clamp(
+            0,
+            99,
+          );
+      return (
+        insuranceCharges: charges,
+        royalBounty: royal,
+        chronoPulseCharges: chrono,
+        mercySalvageCharges: mercy,
+      );
     } catch (_) {
-      return (charges: 0, royalBounty: false);
+      return (
+        insuranceCharges: 0,
+        royalBounty: false,
+        chronoPulseCharges: 0,
+        mercySalvageCharges: 0,
+      );
     }
   }
 
   Future<void> persistForgeShop({
     required int insuranceCharges,
     required bool royalVictoryBountyPending,
+    required int chronoPulseCharges,
+    required int mercySalvageCharges,
   }) async {
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -143,6 +171,14 @@ class GameStateLocalStore {
       await prefs.setBool(
         GameStatePrefs.royalVictoryBountyPending,
         royalVictoryBountyPending,
+      );
+      await prefs.setInt(
+        GameStatePrefs.forgeChronoPulseCharges,
+        chronoPulseCharges.clamp(0, 99),
+      );
+      await prefs.setInt(
+        GameStatePrefs.forgeMercySalvageCharges,
+        mercySalvageCharges.clamp(0, 99),
       );
     } catch (_) {}
   }

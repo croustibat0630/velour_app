@@ -44,6 +44,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get menuSettings => 'SETTINGS';
 
   @override
+  String get menuGuidedTutorial => 'TUTORIAL';
+
+  @override
   String luxHudPrefix(int highScore) {
     return 'HIGH SCORE  $highScore   •   LUX COINS';
   }
@@ -205,11 +208,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shopForgeBoostsSection => 'SESSION BOOSTS';
 
   @override
+  String get shopForgeSectionRunSalvage => 'RUN SALVAGE';
+
+  @override
+  String get shopForgeSectionStrategyStakes => 'STRATEGY & STAKES';
+
+  @override
   String get shopForgeInsuranceTitle => 'ORACLE INSURANCE';
 
   @override
-  String get shopForgeInsuranceBody =>
-      'If you lose your next High Stakes or Royal run, you recover 60% of the entry fee. Hold up to 3 charges.';
+  String shopForgeInsuranceBody(
+    int highAnte,
+    int royalAnte,
+    int refundPct,
+    int maxCharges,
+  ) {
+    return 'If you lose your next High Stakes ($highAnte LUX ante) or Royal ($royalAnte LUX ante) run, the Oracle refunds $refundPct% of that entry stake. Stack up to $maxCharges charges.';
+  }
 
   @override
   String shopForgeInsuranceCharges(int count, int max) {
@@ -220,8 +235,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shopForgeRoyalBountyTitle => 'ROYAL BOUNTY';
 
   @override
-  String get shopForgeRoyalBountyBody =>
-      '+200 bonus LUX on your next Royal win (stacked with the 1 250 payout). One active bounty at a time.';
+  String shopForgeRoyalBountyBody(int bonusLux, int royalWinLux) {
+    return '+$bonusLux bonus LUX on your next Royal win once you clear the Royal objective (in addition to the usual $royalWinLux LUX win payout). One active bounty at a time.';
+  }
 
   @override
   String get shopForgeRoyalBountyActive => 'Active — next Royal win pays extra';
@@ -242,6 +258,48 @@ class AppLocalizationsEn extends AppLocalizations {
       'Royal bounty is already active.';
 
   @override
+  String get shopForgeChronoPulseTitle => 'CHRONO RESERVE';
+
+  @override
+  String shopForgeChronoPulseBody(int maxCharges) {
+    return 'When the session timer hits zero, one charge refills the bar to full so the run continues. Stack up to $maxCharges charges. Inactive during tutorials.';
+  }
+
+  @override
+  String shopForgeChronoPulseCharges(int count, int max) {
+    return '$count / $max charges';
+  }
+
+  @override
+  String get shopForgeMercySalvageTitle => 'ORACLE\'S MERCY';
+
+  @override
+  String shopForgeMercySalvageBody(int maxCharges) {
+    return 'Rack full with no valid match: one charge reshapes the end of your rack into a playable triple so you keep going. Stack up to $maxCharges charges. Inactive during tutorials.';
+  }
+
+  @override
+  String shopForgeMercySalvageCharges(int count, int max) {
+    return '$count / $max charges';
+  }
+
+  @override
+  String get shopSnackForgeChronoPulsePurchased =>
+      'Chrono reserve charge added.';
+
+  @override
+  String get shopSnackForgeChronoPulseFull =>
+      'You already hold 2 chrono charges.';
+
+  @override
+  String get shopSnackForgeMercySalvagePurchased =>
+      'Mercy salvage charge added.';
+
+  @override
+  String get shopSnackForgeMercySalvageFull =>
+      'You already hold 2 mercy charges.';
+
+  @override
   String get statsTitle => 'MY CAREER';
 
   @override
@@ -249,8 +307,8 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'STREAK: $count DAYS WITH A RUN',
-      one: 'STREAK: 1 DAY WITH A RUN',
+      other: 'STREAK · $count DAYS',
+      one: 'STREAK · 1 DAY',
     );
     return '$_temp0';
   }
@@ -406,6 +464,22 @@ class AppLocalizationsEn extends AppLocalizations {
       '100 < 150 < 500 LUX\nAim for perfect first.';
 
   @override
+  String get oracleDockStep1StrategyLine =>
+      'First: one silhouette, three different colors.';
+
+  @override
+  String get oracleDockStep2StrategyLine =>
+      'Don\'t take a weak triple if a perfect is one gem away.';
+
+  @override
+  String get oracleDockStep3StrategyLine =>
+      'Three identical gems = the biggest payout here.';
+
+  @override
+  String get oracleDockCelebrationStrategyLine =>
+      'Later: the timer turns every second into a choice.';
+
+  @override
   String get tutorialTrinityShapeIntro => 'Shape is structure. Group them.';
 
   @override
@@ -430,6 +504,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get prepTitle => 'SESSION SETUP';
+
+  @override
+  String get prepGuidedTutorialCasualOnly =>
+      'Only Classic mode is available for this tutorial.';
+
+  @override
+  String get prepGuidedTutorialGoalTitle => 'What you\'re building toward';
+
+  @override
+  String get prepGuidedTutorialGoalBody =>
+      'Each match adds in-run LUX and pushes your level. Richer match types—especially a perfect—pay far more than weaker triples. The real skill is choosing which clear you take and when.';
+
+  @override
+  String get prepGuidedTutorialStrategyTitle => 'Think before the third gem';
+
+  @override
+  String get prepGuidedTutorialStrategyBody =>
+      'Before you commit a third gem, read your rack: if you are one gem away from three identical gems (same shape and same color), grabbing an easier color-only triple can break the setup and leave a lot of LUX on the table.\n\nIn this walkthrough the timer stays paused so you can practice calmly. In a real run, waiting has a cost—pressure and reward trade off.';
 
   @override
   String get prepModeCasualTitle => 'CLASSIC MODE';
@@ -552,6 +644,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get gameHudLuxThisRun => 'THIS RUN';
+
+  @override
   String get gameHudLevelTag => 'LEVEL';
 
   @override
@@ -560,5 +655,15 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String gameHudLevelUpSubtitle(int level) {
     return 'LEVEL $level';
+  }
+
+  @override
+  String gameHudForgeChronoA11y(int count) {
+    return 'Chrono reserve, $count charges';
+  }
+
+  @override
+  String gameHudForgeMercyA11y(int count) {
+    return 'Oracle mercy, $count charges';
   }
 }

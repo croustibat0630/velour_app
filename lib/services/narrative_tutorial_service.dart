@@ -286,19 +286,8 @@ class NarrativeTutorialService extends ChangeNotifier {
     _tapProgress++;
   }
 
-  /// Fragment de [GameState.resetGame] (ripple / gem / LUX intro tick).
-  void onParentResetGame() {
-    _postSpawnFadeTick = 0;
-    _rippleTick = 0;
-    _rippleCenter = null;
-    _gemGainClearTimer?.cancel();
-    _gemGainClearTimer = null;
-    if (_gemGainFx != null) {
-      _gemGainFx = null;
-      _gemGainTick++;
-    }
-    _luxIntroTick = 0;
-  }
+  /// Conservé pour compat ; préférer [hardReset] depuis [GameState.resetGame].
+  void onParentResetGame() => hardReset();
 
   void hardReset() {
     cancelFinalizeTimer();

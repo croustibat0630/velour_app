@@ -56,6 +56,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   bool _pulseUp = true;
   late final List<Offset> _dust;
   int _lastLevelUpTick = 0;
+  int _lastHandledNarrativeReturnToMenuTick = 0;
 
   @override
   void initState() {
@@ -168,6 +169,20 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
           if (_lastLevelUpTick > 0) {
             AudioHandler.instance.playLevelUp();
           }
+        }
+
+        final int narrativeReturnTick =
+            gameState.narrativeTutorialReturnToMainMenuTick;
+        if (narrativeReturnTick > 0 &&
+            narrativeReturnTick != _lastHandledNarrativeReturnToMenuTick) {
+          _lastHandledNarrativeReturnToMenuTick = narrativeReturnTick;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!context.mounted) return;
+            final GameState gs = context.read<GameState>();
+            gs.clearSessionStakeForMenu();
+            gs.resetGame();
+            Navigator.of(context).pushReplacementNamed('/main');
+          });
         }
 
         return AnimatedBuilder(

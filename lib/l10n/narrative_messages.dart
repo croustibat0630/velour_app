@@ -12,6 +12,20 @@ String resolveOracleDockMessage(AppLocalizations l10n, OracleDockMessageId id) {
   };
 }
 
+/// Ligne courte sous le dock (conseil stratégie, même espace visuel).
+String resolveOracleDockStrategyLine(
+  AppLocalizations l10n,
+  OracleDockMessageId id,
+) {
+  return switch (id) {
+    OracleDockMessageId.none => '',
+    OracleDockMessageId.step1Shape => l10n.oracleDockStep1StrategyLine,
+    OracleDockMessageId.step2Color => l10n.oracleDockStep2StrategyLine,
+    OracleDockMessageId.step3Perfect => l10n.oracleDockStep3StrategyLine,
+    OracleDockMessageId.celebration => l10n.oracleDockCelebrationStrategyLine,
+  };
+}
+
 String resolveTrinityBanner(AppLocalizations l10n, TrinityBannerId id) {
   return switch (id) {
     TrinityBannerId.none => '',

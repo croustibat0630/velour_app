@@ -154,6 +154,12 @@ abstract class AppLocalizations {
   /// **'SETTINGS'**
   String get menuSettings;
 
+  /// Main menu: narrative tutorial replay (casual).
+  ///
+  /// In en, this message translates to:
+  /// **'TUTORIAL'**
+  String get menuGuidedTutorial;
+
   /// Prefix line above animated LUX balance (high score + label).
   ///
   /// In en, this message translates to:
@@ -454,6 +460,18 @@ abstract class AppLocalizations {
   /// **'SESSION BOOSTS'**
   String get shopForgeBoostsSection;
 
+  /// No description provided for @shopForgeSectionRunSalvage.
+  ///
+  /// In en, this message translates to:
+  /// **'RUN SALVAGE'**
+  String get shopForgeSectionRunSalvage;
+
+  /// No description provided for @shopForgeSectionStrategyStakes.
+  ///
+  /// In en, this message translates to:
+  /// **'STRATEGY & STAKES'**
+  String get shopForgeSectionStrategyStakes;
+
   /// No description provided for @shopForgeInsuranceTitle.
   ///
   /// In en, this message translates to:
@@ -463,8 +481,13 @@ abstract class AppLocalizations {
   /// No description provided for @shopForgeInsuranceBody.
   ///
   /// In en, this message translates to:
-  /// **'If you lose your next High Stakes or Royal run, you recover 60% of the entry fee. Hold up to 3 charges.'**
-  String get shopForgeInsuranceBody;
+  /// **'If you lose your next High Stakes ({highAnte} LUX ante) or Royal ({royalAnte} LUX ante) run, the Oracle refunds {refundPct}% of that entry stake. Stack up to {maxCharges} charges.'**
+  String shopForgeInsuranceBody(
+    int highAnte,
+    int royalAnte,
+    int refundPct,
+    int maxCharges,
+  );
 
   /// No description provided for @shopForgeInsuranceCharges.
   ///
@@ -481,8 +504,8 @@ abstract class AppLocalizations {
   /// No description provided for @shopForgeRoyalBountyBody.
   ///
   /// In en, this message translates to:
-  /// **'+200 bonus LUX on your next Royal win (stacked with the 1 250 payout). One active bounty at a time.'**
-  String get shopForgeRoyalBountyBody;
+  /// **'+{bonusLux} bonus LUX on your next Royal win once you clear the Royal objective (in addition to the usual {royalWinLux} LUX win payout). One active bounty at a time.'**
+  String shopForgeRoyalBountyBody(int bonusLux, int royalWinLux);
 
   /// No description provided for @shopForgeRoyalBountyActive.
   ///
@@ -514,6 +537,66 @@ abstract class AppLocalizations {
   /// **'Royal bounty is already active.'**
   String get shopSnackForgeRoyalBountyActive;
 
+  /// No description provided for @shopForgeChronoPulseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'CHRONO RESERVE'**
+  String get shopForgeChronoPulseTitle;
+
+  /// No description provided for @shopForgeChronoPulseBody.
+  ///
+  /// In en, this message translates to:
+  /// **'When the session timer hits zero, one charge refills the bar to full so the run continues. Stack up to {maxCharges} charges. Inactive during tutorials.'**
+  String shopForgeChronoPulseBody(int maxCharges);
+
+  /// No description provided for @shopForgeChronoPulseCharges.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} / {max} charges'**
+  String shopForgeChronoPulseCharges(int count, int max);
+
+  /// No description provided for @shopForgeMercySalvageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'ORACLE\'S MERCY'**
+  String get shopForgeMercySalvageTitle;
+
+  /// No description provided for @shopForgeMercySalvageBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Rack full with no valid match: one charge reshapes the end of your rack into a playable triple so you keep going. Stack up to {maxCharges} charges. Inactive during tutorials.'**
+  String shopForgeMercySalvageBody(int maxCharges);
+
+  /// No description provided for @shopForgeMercySalvageCharges.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} / {max} charges'**
+  String shopForgeMercySalvageCharges(int count, int max);
+
+  /// No description provided for @shopSnackForgeChronoPulsePurchased.
+  ///
+  /// In en, this message translates to:
+  /// **'Chrono reserve charge added.'**
+  String get shopSnackForgeChronoPulsePurchased;
+
+  /// No description provided for @shopSnackForgeChronoPulseFull.
+  ///
+  /// In en, this message translates to:
+  /// **'You already hold 2 chrono charges.'**
+  String get shopSnackForgeChronoPulseFull;
+
+  /// No description provided for @shopSnackForgeMercySalvagePurchased.
+  ///
+  /// In en, this message translates to:
+  /// **'Mercy salvage charge added.'**
+  String get shopSnackForgeMercySalvagePurchased;
+
+  /// No description provided for @shopSnackForgeMercySalvageFull.
+  ///
+  /// In en, this message translates to:
+  /// **'You already hold 2 mercy charges.'**
+  String get shopSnackForgeMercySalvageFull;
+
   /// No description provided for @statsTitle.
   ///
   /// In en, this message translates to:
@@ -523,7 +606,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsStreakSession.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, one{STREAK: 1 DAY WITH A RUN} other{STREAK: {count} DAYS WITH A RUN}}'**
+  /// **'{count, plural, one{STREAK · 1 DAY} other{STREAK · {count} DAYS}}'**
   String statsStreakSession(int count);
 
   /// No description provided for @statsLuxEarned.
@@ -802,6 +885,30 @@ abstract class AppLocalizations {
   /// **'100 < 150 < 500 LUX\nAim for perfect first.'**
   String get oracleDockCelebration;
 
+  /// No description provided for @oracleDockStep1StrategyLine.
+  ///
+  /// In en, this message translates to:
+  /// **'First: one silhouette, three different colors.'**
+  String get oracleDockStep1StrategyLine;
+
+  /// No description provided for @oracleDockStep2StrategyLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t take a weak triple if a perfect is one gem away.'**
+  String get oracleDockStep2StrategyLine;
+
+  /// No description provided for @oracleDockStep3StrategyLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Three identical gems = the biggest payout here.'**
+  String get oracleDockStep3StrategyLine;
+
+  /// No description provided for @oracleDockCelebrationStrategyLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Later: the timer turns every second into a choice.'**
+  String get oracleDockCelebrationStrategyLine;
+
   /// No description provided for @tutorialTrinityShapeIntro.
   ///
   /// In en, this message translates to:
@@ -849,6 +956,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'SESSION SETUP'**
   String get prepTitle;
+
+  /// Preparation screen subtitle when opened from menu tutorial (casual only).
+  ///
+  /// In en, this message translates to:
+  /// **'Only Classic mode is available for this tutorial.'**
+  String get prepGuidedTutorialCasualOnly;
+
+  /// No description provided for @prepGuidedTutorialGoalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What you\'re building toward'**
+  String get prepGuidedTutorialGoalTitle;
+
+  /// No description provided for @prepGuidedTutorialGoalBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Each match adds in-run LUX and pushes your level. Richer match types—especially a perfect—pay far more than weaker triples. The real skill is choosing which clear you take and when.'**
+  String get prepGuidedTutorialGoalBody;
+
+  /// No description provided for @prepGuidedTutorialStrategyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Think before the third gem'**
+  String get prepGuidedTutorialStrategyTitle;
+
+  /// No description provided for @prepGuidedTutorialStrategyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Before you commit a third gem, read your rack: if you are one gem away from three identical gems (same shape and same color), grabbing an easier color-only triple can break the setup and leave a lot of LUX on the table.\n\nIn this walkthrough the timer stays paused so you can practice calmly. In a real run, waiting has a cost—pressure and reward trade off.'**
+  String get prepGuidedTutorialStrategyBody;
 
   /// No description provided for @prepModeCasualTitle.
   ///
@@ -1042,6 +1179,12 @@ abstract class AppLocalizations {
   /// **'{lux} LUX'**
   String gameHudLuxAmount(int lux);
 
+  /// No description provided for @gameHudLuxThisRun.
+  ///
+  /// In en, this message translates to:
+  /// **'THIS RUN'**
+  String get gameHudLuxThisRun;
+
   /// No description provided for @gameHudLevelTag.
   ///
   /// In en, this message translates to:
@@ -1059,6 +1202,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'LEVEL {level}'**
   String gameHudLevelUpSubtitle(int level);
+
+  /// No description provided for @gameHudForgeChronoA11y.
+  ///
+  /// In en, this message translates to:
+  /// **'Chrono reserve, {count} charges'**
+  String gameHudForgeChronoA11y(int count);
+
+  /// No description provided for @gameHudForgeMercyA11y.
+  ///
+  /// In en, this message translates to:
+  /// **'Oracle mercy, {count} charges'**
+  String gameHudForgeMercyA11y(int count);
 }
 
 class _AppLocalizationsDelegate

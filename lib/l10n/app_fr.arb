@@ -9,6 +9,7 @@
   "menuShop": "BOUTIQUE",
   "menuCareer": "CARRIÈRE",
   "menuSettings": "PARAMÈTRES",
+  "menuGuidedTutorial": "TUTORIEL",
   "luxHudPrefix": "MEILLEUR SCORE  {highScore}   •   LUX",
   "settingsSectionLanguage": "LANGUE",
   "settingsLanguageRowTitle": "Langue d’affichage",
@@ -59,8 +60,18 @@
   "shopSnackSkinEquipped": "Skin équipé.",
   "shopSnackSkinUnlocked": "Skin déverrouillé et équipé.",
   "shopForgeBoostsSection": "BOOSTS DE SESSION",
+  "shopForgeSectionRunSalvage": "SAUVETAGE DE RUN",
+  "shopForgeSectionStrategyStakes": "STRATÉGIE & ENJEUX",
   "shopForgeInsuranceTitle": "ASSURANCE ORACLE",
-  "shopForgeInsuranceBody": "Si tu perds ta prochaine partie High Stakes ou Royal, tu récupères 60 % de la mise d’entrée. Jusqu’à 3 charges.",
+  "shopForgeInsuranceBody": "Si tu perds ta prochaine partie High Stakes (mise {highAnte} LUX) ou Royal (mise {royalAnte} LUX), l’Oracle rembourse {refundPct} % de cette entrée. Jusqu’à {maxCharges} charges.",
+  "@shopForgeInsuranceBody": {
+    "placeholders": {
+      "highAnte": {"type": "int"},
+      "royalAnte": {"type": "int"},
+      "refundPct": {"type": "int"},
+      "maxCharges": {"type": "int"}
+    }
+  },
   "shopForgeInsuranceCharges": "{count} / {max} charges",
   "@shopForgeInsuranceCharges": {
     "placeholders": {
@@ -69,14 +80,52 @@
     }
   },
   "shopForgeRoyalBountyTitle": "PRIME ROYALE",
-  "shopForgeRoyalBountyBody": "+200 LUX bonus sur ta prochaine victoire Royal (en plus des 1 250). Une prime active à la fois.",
+  "shopForgeRoyalBountyBody": "+{bonusLux} LUX bonus sur ta prochaine victoire Royal une fois l’objectif atteint (en plus du gain habituel de {royalWinLux} LUX). Une prime active à la fois.",
+  "@shopForgeRoyalBountyBody": {
+    "placeholders": {
+      "bonusLux": {"type": "int"},
+      "royalWinLux": {"type": "int"}
+    }
+  },
   "shopForgeRoyalBountyActive": "Active — prochaine victoire Royal paie un bonus",
   "shopSnackForgeInsurancePurchased": "Charge d’assurance ajoutée.",
   "shopSnackForgeRoyalBountyPurchased": "Prime royale active pour ta prochaine victoire Royal.",
   "shopSnackForgeInsuranceFull": "Tu as déjà 3 charges d’assurance.",
   "shopSnackForgeRoyalBountyActive": "Une prime royale est déjà active.",
+  "shopForgeChronoPulseTitle": "RÉSERVE CHRONO",
+  "shopForgeChronoPulseBody": "Quand le chrono de la session tombe à zéro, une charge remplit la barre à fond et tu restes en jeu. Jusqu’à {maxCharges} charges. Inactif pendant les tutoriels.",
+  "@shopForgeChronoPulseBody": {
+    "placeholders": {
+      "maxCharges": {"type": "int"}
+    }
+  },
+  "shopForgeChronoPulseCharges": "{count} / {max} charges",
+  "@shopForgeChronoPulseCharges": {
+    "placeholders": {
+      "count": {"type": "int"},
+      "max": {"type": "int"}
+    }
+  },
+  "shopForgeMercySalvageTitle": "CLÉMENCE DE L'ORACLE",
+  "shopForgeMercySalvageBody": "Rack plein sans match possible : une charge forge un triplet jouable en bout de rack pour continuer. Jusqu’à {maxCharges} charges. Inactif pendant les tutoriels.",
+  "@shopForgeMercySalvageBody": {
+    "placeholders": {
+      "maxCharges": {"type": "int"}
+    }
+  },
+  "shopForgeMercySalvageCharges": "{count} / {max} charges",
+  "@shopForgeMercySalvageCharges": {
+    "placeholders": {
+      "count": {"type": "int"},
+      "max": {"type": "int"}
+    }
+  },
+  "shopSnackForgeChronoPulsePurchased": "Charge réserve chrono ajoutée.",
+  "shopSnackForgeChronoPulseFull": "Tu as déjà 2 charges chrono.",
+  "shopSnackForgeMercySalvagePurchased": "Charge clémence ajoutée.",
+  "shopSnackForgeMercySalvageFull": "Tu as déjà 2 charges clémence.",
   "statsTitle": "MA CARRIÈRE",
-  "statsStreakSession": "{count, plural, one{SÉRIE : 1 JOUR AVEC PARTIE} other{SÉRIE : {count} JOURS AVEC PARTIE}}",
+  "statsStreakSession": "{count, plural, one{SÉRIE · 1 JOUR} other{SÉRIE · {count} JOURS}}",
   "statsLuxEarned": "LUX GAGNÉS",
   "statsBestGain": "MEILLEUR GAIN",
   "statsMaxLevel": "NIVEAU MAX",
@@ -128,6 +177,10 @@
   "oracleDockStep2Color": "Couleur = +150 LUX\nMême teinte • 3 formes → rack",
   "oracleDockStep3Perfect": "Parfait = +500 LUX\n3 gemmes identiques → rack",
   "oracleDockCelebration": "100 < 150 < 500 LUX\nVise le parfait en priorité.",
+  "oracleDockStep1StrategyLine": "D’abord : une silhouette, trois teintes différentes.",
+  "oracleDockStep2StrategyLine": "Pas de triple facile si le parfait est à une gemme.",
+  "oracleDockStep3StrategyLine": "Trois gemmes identiques : le gros score de ce coup.",
+  "oracleDockCelebrationStrategyLine": "Ensuite : le chrono pèse sur chaque choix.",
   "tutorialTrinityShapeIntro": "La forme est la structure. Regroupez-les.",
   "tutorialTrinityColorIntro": "La couleur est l'harmonie. Elle crée des opportunités.",
   "tutorialTrinityPerfectIntro": "Le Perfect Match : L'union absolue. Déclenche l'éclat LUX.",
@@ -136,6 +189,11 @@
   "narrativeFloatPerfectBonus": "+500 LUX : ÉCLAT TOTAL",
   "gameNarrativePerfectMatchBanner": "MATCH PARFAIT",
   "prepTitle": "PRÉPARATION DE SESSION",
+  "prepGuidedTutorialCasualOnly": "Seul le mode classique est proposé pour ce tutoriel.",
+  "prepGuidedTutorialGoalTitle": "L’objectif",
+  "prepGuidedTutorialGoalBody": "Chaque match ajoute des LUX en partie et fait monter le niveau. Les matchs « plus riches » — surtout le parfait — valent beaucoup plus qu’une petite combinaison : le jeu, c’est surtout le timing et le bon choix de match.",
+  "prepGuidedTutorialStrategyTitle": "Lire le rack avant d’agir",
+  "prepGuidedTutorialStrategyBody": "Avant de valider une 3ᵉ gemme, regarde la suite : si tu es à une gemme d’un triplet identique (même forme et même couleur), un match « couleur seule » peut casser ta mise en place et te faire perdre énormément de potentiel.\n\nIci le chrono est figé pour t’entraîner au calme ; en partie réelle, trop hésiter coûte aussi du temps.",
   "prepModeCasualTitle": "MODE CLASSIQUE",
   "prepModeCasualBody": "Mise : {ante} LUX. Entraînement libre.",
   "@prepModeCasualBody": {
@@ -234,12 +292,25 @@
       "lux": {"type": "int"}
     }
   },
+  "gameHudLuxThisRun": "PARTIE",
   "gameHudLevelTag": "NIV",
   "gameHudLevelUpTitle": "NIVEAU ATTEINT !",
   "gameHudLevelUpSubtitle": "NIVEAU {level}",
   "@gameHudLevelUpSubtitle": {
     "placeholders": {
       "level": {"type": "int"}
+    }
+  },
+  "gameHudForgeChronoA11y": "Réserve chrono, {count} charges",
+  "@gameHudForgeChronoA11y": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "gameHudForgeMercyA11y": "Clémence de l'Oracle, {count} charges",
+  "@gameHudForgeMercyA11y": {
+    "placeholders": {
+      "count": {"type": "int"}
     }
   }
 }

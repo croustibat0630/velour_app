@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 
 import '../providers/game_state_local_store.dart';
 import 'firestore_service.dart';
+import 'lux_credit_limits.dart';
 import 'velour_observability.dart';
 
 void _economyLog(String event, {Map<String, Object?> data = const {}}) {
@@ -31,8 +32,9 @@ class EconomyService extends ChangeNotifier {
   final GameStateLocalStore _local;
 
   /// Plafond par **crédit** LUX positif (anti-injection côté client).
-  /// Doit rester ≥ gains premium (ex. royal 1250).
-  static const int maxLuxPerPositiveCredit = 2500;
+  /// Aligné sur [LuxCreditLimits.maxPositiveCreditPerApply].
+  static const int maxLuxPerPositiveCredit =
+      LuxCreditLimits.maxPositiveCreditPerApply;
 
   static const int welcomeLuxGrant = 250;
 

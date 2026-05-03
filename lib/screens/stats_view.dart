@@ -79,7 +79,7 @@ class _StatsViewState extends State<StatsView> {
                             overflow: TextOverflow.ellipsis,
                             style: Theme.of(context).textTheme.titleMedium
                                 ?.copyWith(
-                                  letterSpacing: 4,
+                                  letterSpacing: 3,
                                   fontWeight: FontWeight.w600,
                                   color: _gold.withValues(alpha: 0.96),
                                   fontSize: (16 * sT).clamp(14.0, 19.0),
@@ -90,11 +90,11 @@ class _StatsViewState extends State<StatsView> {
                             Text(
                               l10n.statsStreakSession(_stats.streakDays),
                               textAlign: TextAlign.center,
-                              maxLines: 2,
+                              maxLines: 3,
                               overflow: TextOverflow.ellipsis,
                               style: Theme.of(context).textTheme.labelLarge
                                   ?.copyWith(
-                                    letterSpacing: 2.2,
+                                    letterSpacing: 1.65,
                                     fontWeight: FontWeight.w700,
                                     color: _gold.withValues(alpha: 0.84),
                                     fontSize: (11 * sT).clamp(10.0, 13.0),
@@ -104,52 +104,97 @@ class _StatsViewState extends State<StatsView> {
                           ],
                           LayoutBuilder(
                             builder: (context, c) {
-                              final int cols = c.maxWidth >= 620 ? 3 : 2;
-                              return GridView.count(
-                                crossAxisCount: cols,
-                                mainAxisSpacing: 12,
-                                crossAxisSpacing: 12,
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                childAspectRatio: cols >= 3 ? 1.32 : 1.02,
+                              final bool wide = c.maxWidth >= 520;
+                              final double heroRowH = wide
+                                  ? (((c.maxWidth - 12) / 2) / 1.22)
+                                        .clamp(102.0, 136.0)
+                                  : 0;
+                              final double heroStackH = !wide
+                                  ? (c.maxWidth / 1.12).clamp(92.0, 118.0)
+                                  : 0;
+                              final Widget luxHero = _StatCard(
+                                title: l10n.statsLuxEarned,
+                                value: '${_stats.totalLuxEarned}',
+                                accent: _gold,
+                                icon: Icons.brightness_1,
+                                hero: true,
+                              );
+                              final Widget bestHero = _StatCard(
+                                title: l10n.statsBestGain,
+                                value: '${_stats.highStakeWin}',
+                                accent: _gold,
+                                icon: Icons.auto_awesome_rounded,
+                                hero: true,
+                              );
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
-                                  _StatCard(
-                                    title: l10n.statsLuxEarned,
-                                    value: '${_stats.totalLuxEarned}',
-                                    accent: _gold,
-                                    icon: Icons.brightness_1,
-                                  ),
-                                  _StatCard(
-                                    title: l10n.statsBestGain,
-                                    value: '${_stats.highStakeWin}',
-                                    accent: _gold,
-                                    icon: Icons.auto_awesome_rounded,
-                                  ),
-                                  _StatCard(
-                                    title: l10n.statsMaxLevel,
-                                    value: '${_stats.bestLevelReached}',
-                                    accent: _gold,
-                                    icon: Icons.trending_up_rounded,
-                                  ),
-                                  _StatCard(
-                                    title: l10n.statsShapesPlaced,
-                                    value: '${_stats.shapesPlaced}',
-                                    accent: _gold,
-                                    icon: Icons.category_rounded,
-                                  ),
-                                  _StatCard(
-                                    title: l10n.statsMatches,
-                                    value: '${_stats.totalMatchesPlayed}',
-                                    accent: _gold,
-                                    icon: Icons.done_all_rounded,
-                                  ),
-                                  _StatCard(
-                                    title: l10n.statsTotalTime,
-                                    value: _formatDuration(
-                                      _stats.totalPlayTime,
+                                  if (wide)
+                                    SizedBox(
+                                      height: heroRowH,
+                                      child: Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.stretch,
+                                        children: [
+                                          Expanded(child: luxHero),
+                                          const SizedBox(width: 12),
+                                          Expanded(child: bestHero),
+                                        ],
+                                      ),
+                                    )
+                                  else ...[
+                                    SizedBox(
+                                      height: heroStackH,
+                                      child: luxHero,
                                     ),
-                                    accent: _gold,
-                                    icon: Icons.schedule_rounded,
+                                    const SizedBox(height: 12),
+                                    SizedBox(
+                                      height: heroStackH,
+                                      child: bestHero,
+                                    ),
+                                  ],
+                                  SizedBox(height: (14 * sH).clamp(12.0, 18.0)),
+                                  GridView.count(
+                                    crossAxisCount: 2,
+                                    mainAxisSpacing: 12,
+                                    crossAxisSpacing: 12,
+                                    shrinkWrap: true,
+                                    physics:
+                                        const NeverScrollableScrollPhysics(),
+                                    childAspectRatio: wide ? 1.22 : 1.05,
+                                    children: [
+                                      _StatCard(
+                                        title: l10n.statsMaxLevel,
+                                        value: '${_stats.bestLevelReached}',
+                                        accent: _gold,
+                                        icon: Icons.trending_up_rounded,
+                                        subdued: true,
+                                      ),
+                                      _StatCard(
+                                        title: l10n.statsShapesPlaced,
+                                        value: '${_stats.shapesPlaced}',
+                                        accent: _gold,
+                                        icon: Icons.category_rounded,
+                                        subdued: true,
+                                      ),
+                                      _StatCard(
+                                        title: l10n.statsMatches,
+                                        value:
+                                            '${_stats.totalMatchesPlayed}',
+                                        accent: _gold,
+                                        icon: Icons.done_all_rounded,
+                                        subdued: true,
+                                      ),
+                                      _StatCard(
+                                        title: l10n.statsTotalTime,
+                                        value: _formatDuration(
+                                          _stats.totalPlayTime,
+                                        ),
+                                        accent: _gold,
+                                        icon: Icons.schedule_rounded,
+                                        subdued: true,
+                                      ),
+                                    ],
                                   ),
                                 ],
                               );
@@ -162,14 +207,14 @@ class _StatsViewState extends State<StatsView> {
                             child: Row(
                               children: [
                                 SizedBox(
-                                  width: 62,
-                                  height: 62,
+                                  width: 70,
+                                  height: 70,
                                   child: Stack(
                                     fit: StackFit.expand,
                                     children: [
                                       CircularProgressIndicator(
                                         value: accuracy,
-                                        strokeWidth: 6,
+                                        strokeWidth: 4,
                                         color: _gold.withValues(alpha: 0.92),
                                         backgroundColor: Colors.white
                                             .withValues(alpha: 0.08),
@@ -389,25 +434,46 @@ class _StatCard extends StatelessWidget {
     required this.value,
     required this.accent,
     required this.icon,
+    this.hero = false,
+    this.subdued = false,
   });
 
   final String title;
   final String value;
   final Color accent;
   final IconData icon;
+  final bool hero;
+  final bool subdued;
 
   @override
   Widget build(BuildContext context) {
     final double sH = Responsive.heightScale(context);
     final double sT = Responsive.textScale(context);
+    final double pad = ((hero ? 16 : 14) * sH).clamp(12.0, hero ? 20.0 : 18.0);
+    final double borderA = subdued ? 0.06 : 0.08;
+    final double valueShadowA = subdued ? 0.08 : 0.18;
+    final double valueBlur = subdued ? 6 : 10;
+    final double iconSize = hero ? 19.0 : 16.0;
+    final double valueSize =
+        ((hero ? 24 : 22) * sT).clamp(hero ? 20.0 : 18.0, hero ? 30.0 : 28.0);
+
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF0A0C12).withValues(alpha: 0.86),
+        color: const Color(0xFF0A0C12).withValues(alpha: subdued ? 0.78 : 0.86),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        border: Border.all(color: Colors.white.withValues(alpha: borderA)),
+        boxShadow: subdued
+            ? const <BoxShadow>[]
+            : <BoxShadow>[
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.35),
+                  blurRadius: hero ? 14 : 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
       ),
       child: Padding(
-        padding: EdgeInsets.all((14 * sH).clamp(12.0, 18.0)),
+        padding: EdgeInsets.all(pad),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -418,8 +484,8 @@ class _StatCard extends StatelessWidget {
                   padding: const EdgeInsets.only(top: 2),
                   child: Icon(
                     icon,
-                    size: 16,
-                    color: accent.withValues(alpha: 0.80),
+                    size: iconSize,
+                    color: accent.withValues(alpha: subdued ? 0.68 : 0.80),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -429,11 +495,13 @@ class _StatCard extends StatelessWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      letterSpacing: 2.0,
+                      letterSpacing: hero ? 1.85 : 1.65,
                       fontWeight: FontWeight.w700,
                       height: 1.2,
                       fontSize: (10.5 * sT).clamp(10.0, 13.0),
-                      color: Colors.white.withValues(alpha: 0.60),
+                      color: Colors.white.withValues(
+                        alpha: subdued ? 0.52 : 0.60,
+                      ),
                     ),
                   ),
                 ),
@@ -445,12 +513,15 @@ class _StatCard extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                letterSpacing: 1.0,
+                letterSpacing: hero ? 0.85 : 0.75,
                 fontWeight: FontWeight.w800,
-                fontSize: (22 * sT).clamp(18.0, 28.0),
-                color: Colors.white.withValues(alpha: 0.88),
+                fontSize: valueSize,
+                color: Colors.white.withValues(alpha: subdued ? 0.78 : 0.88),
                 shadows: [
-                  Shadow(color: accent.withValues(alpha: 0.18), blurRadius: 10),
+                  Shadow(
+                    color: accent.withValues(alpha: valueShadowA),
+                    blurRadius: valueBlur,
+                  ),
                 ],
               ),
             ),

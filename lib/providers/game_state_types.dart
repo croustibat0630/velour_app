@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Résolution d’un groupe de gemmes identiques (forme / couleur / perfect).
-enum MatchKind { normal, boosted, overcharge, perfect }
-
-/// Base de run pour tutoriels et libellés (interne au moteur de match).
-enum RunBasis { shape, color, perfect }
+export '../game/match_types.dart';
 
 /// Tutoriel « La Trinité » (partie casual niveau 1 tant que non complété en prefs).
 enum TrinityTutorialPhase { none, shape, color, perfect }

@@ -8,7 +8,11 @@ import 'game_state_local_store.dart';
 import 'game_state_types.dart';
 export 'game_state_types.dart';
 
+import '../game/board_config.dart';
 import '../game/forge_shop_logic.dart';
+import '../game/match_scoring.dart';
+import '../game/match_feedback.dart';
+import '../game/rack_logic.dart';
 import '../game/session_stake_resolution.dart';
 import '../game/tutorial_board_placer.dart';
 import '../models/game_item.dart';
@@ -21,6 +25,7 @@ import '../services/narrative_tutorial_service.dart';
 import '../services/oracle_naming_service.dart';
 import '../services/trinity_tutorial_service.dart';
 import '../services/stats_service.dart';
+import '../utils/velour_debug_log.dart';
 import '../widgets/ui/premium_alert_view.dart';
 
 class GameState extends ChangeNotifier with WidgetsBindingObserver {
@@ -190,7 +195,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
 
   double get itemSize => _itemSize;
   double get slotSize => _slotSize;
-  // Let board caps actually tighten (was 9, which nullified `_boardCapForLevel`).
+  // Let board caps actually tighten (was 9, which nullified [BoardConfig.boardCapForLevel]).
   static const int _minBoardGems = 7;
 
   final math.Random _rng = math.Random();
@@ -535,7 +540,8 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
   bool get canForgeRunConsumablesApply => _canUseForgeRunConsumables;
 
   /// Le rack contient au moins un triple jouable (forme ou couleur).
-  bool get slotsHavePlayableTriple => _slotsHaveAnyTripleRun();
+  bool get slotsHavePlayableTriple =>
+      RackLogic.slotsHaveAnyTripleRun(_slotItems);
 
   /// Chrono bas et au moins une charge : pulse HUD avant sauvetage auto.
   bool get isForgeChronoSalvagePrewarn =>
@@ -549,7 +555,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
       _canUseForgeRunConsumables &&
       _mercySalvageCharges > 0 &&
       _slotItems.length >= slotCount - 1 &&
-      !_slotsHaveAnyTripleRun();
+      !RackLogic.slotsHaveAnyTripleRun(_slotItems);
 
   /// Dernier remboursement assurance sur l’overlay fin de partie (0 si aucun).
   int _lastOracleInsuranceRefundLux = 0;
@@ -909,7 +915,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     final int amount = activeSessionAnteLux;
     if (amount <= 0) return true;
     if (stakeAmount != amount) {
-      debugPrint(
+      velourDebug(
         'showPremiumForfeitAlert: stakeAmount=$stakeAmount ignoré, état=$amount',
       );
     }
@@ -1379,7 +1385,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
         if (_isProcessingMatch || _awaitingScheduledMatch) {
           timeBar.value = 0.0;
           _deferredTimerGameOver = true;
-          debugPrint(
+          velourDebug(
             '[Velour][Timer] chrono à zéro pendant pipeline match — gameOver différé',
           );
           return;
@@ -1405,7 +1411,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     if (_criticalFailure) return;
     if (_isProcessingMatch || _awaitingScheduledMatch) {
       _deferredTimerGameOver = true;
-      debugPrint(
+      velourDebug(
         '[Velour][GameOver] appel ignoré (match en cours / check armé) — différé',
       );
       return;
@@ -1439,16 +1445,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     notifyListeners();
   }
 
-  int _boardCapForLevel(int level) {
-    // Tighter faster: forces higher density of decisions.
-    if (level <= 1) return 7;
-    if (level <= 2) return 6;
-    if (level <= 3) return 5;
-    if (level <= 4) return 4;
-    return 3;
-  }
-
-  int get _targetBoardCap => _boardCapForLevel(_gameLevel);
+  int get _targetBoardCap => BoardConfig.boardCapForLevel(_gameLevel);
 
   void _fillBoardToCap() {
     if (isTrinityTutorialChronoFrozen || isNarrativeTutorialChronoFrozen) {
@@ -1488,7 +1485,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
         if (pair != null) {
           typeId = pair.typeId;
           colorId = pair.colorId;
-          debugPrint(
+          velourDebug(
             '[Velour][Spawn] biais complétion 30% → type=$typeId color=$colorId',
           );
         }
@@ -1663,15 +1660,6 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     return free[_rng.nextInt(free.length)];
   }
 
-  /// Mult score pour la chaîne : 1er match = ×1, puis cascades ×1.2 / ×1.5 / ×2 / ×3.
-  static double _chainScoreMultiplier(int chainStep) {
-    if (chainStep <= 1) return 1.0;
-    if (chainStep == 2) return 1.2;
-    if (chainStep == 3) return 1.5;
-    if (chainStep == 4) return 2.0;
-    return 3.0;
-  }
-
   /// Deux pièces « identiques » = même [typeId] + [colorId] (les [id] sont uniques).
   ({int typeId, int colorId})? _slotPairNeedingThirdCopy() {
     final Map<String, int> counts = <String, int>{};
@@ -1688,65 +1676,8 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     return null;
   }
 
-  /// V2 : seul l’entrant se place ; l’ordre relatif des autres est inchangé.
-  int _computeStrategicSlotInsertIndex(GameItem item, List<GameItem> others) {
-    final int n = others.length;
-    if (n == 0) return 0;
-
-    // P1 — duo perfect (même type+couleur que l’entrant) : coller à droite du duo (scan gauche→droite).
-    for (int i = 0; i < n - 1; i++) {
-      final GameItem a = others[i];
-      final GameItem b = others[i + 1];
-      if (a.typeId == b.typeId &&
-          a.colorId == b.colorId &&
-          item.typeId == a.typeId &&
-          item.colorId == a.colorId) {
-        return i + 2;
-      }
-    }
-
-    // P2 — groupe forme (run contigu ≥2 même typeId).
-    int start = 0;
-    while (start < n) {
-      int end = start + 1;
-      while (end < n && others[end].typeId == others[start].typeId) {
-        end++;
-      }
-      if (others[start].typeId == item.typeId && end - start >= 2) {
-        return end;
-      }
-      start = end;
-    }
-    for (int i = 0; i < n; i++) {
-      if (others[i].typeId == item.typeId) {
-        return i + 1;
-      }
-    }
-
-    // P3 — groupe couleur (run contigu ≥2 même colorId).
-    start = 0;
-    while (start < n) {
-      int end = start + 1;
-      while (end < n && others[end].colorId == others[start].colorId) {
-        end++;
-      }
-      if (others[start].colorId == item.colorId && end - start >= 2) {
-        return end;
-      }
-      start = end;
-    }
-    for (int i = 0; i < n; i++) {
-      if (others[i].colorId == item.colorId) {
-        return i + 1;
-      }
-    }
-
-    // P4 — fin (droite).
-    return n;
-  }
-
   void _insertIncomingSlotItem(GameItem incoming) {
-    final int insertIndex = _computeStrategicSlotInsertIndex(
+    final int insertIndex = RackLogic.computeStrategicSlotInsertIndex(
       incoming,
       _slotItems,
     );
@@ -1778,7 +1709,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     if (_criticalFailure) return;
     if (_isGameOver) return;
     if (_isProcessingMatch || _awaitingScheduledMatch) {
-      debugPrint(
+      velourDebug(
         '[Velour][selectItem] ignoré pendant résolution / attente match (id=$id)',
       );
       return;
@@ -1807,7 +1738,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     _shapesPlacedThisRun++;
     final Offset from = item.position;
     _slotSeqById[item.id] ??= _slotInsertSeq++;
-    debugPrint(
+    velourDebug(
       '[Velour][selectItem] nouvelle sélection manuelle — chaîne cascade repart à zéro (id=${item.id})',
     );
 
@@ -1868,7 +1799,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
 
     _deferredTimerGameOver = false;
     if (timeBar.value > 0.0) {
-      debugPrint(
+      velourDebug(
         '[Velour][Timer] gameOver différé annulé (temps > 0 après résolution)',
       );
       return;
@@ -1876,7 +1807,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     if (_tryConsumeChronoPulseRefill()) {
       return;
     }
-    debugPrint('[Velour][Timer] exécution gameOver après fin pipeline match');
+    velourDebug('[Velour][Timer] exécution gameOver après fin pipeline match');
     gameOver();
   }
 
@@ -1887,7 +1818,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
 
     _matchTimer = Timer(_effectiveMatchDelay, () async {
       try {
-        final _Run? initial = _findBestRun();
+        final RackRun? initial = RackLogic.findBestRun(_slotItems);
         if (initial == null) {
           _recomputeAlerts();
           _reevaluateDeadlock();
@@ -1896,20 +1827,19 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
         }
 
         int chainStep = 0;
-        _Run? run = initial;
+        RackRun? run = initial;
         while (run != null && chainStep < 40) {
           chainStep++;
           final bool isCascade = chainStep > 1;
-          final double chainMult = _chainScoreMultiplier(chainStep);
+          final double chainMult = RackLogic.chainScoreMultiplier(chainStep);
           if (isCascade) {
             _luxComboFlashTick++;
-            debugPrint(
+            velourDebug(
               '[Velour][Cascade] étape $chainStep — mult score ×$chainMult',
             );
           }
           _triggerShake(run.count);
-          _playMatchSound(run.kind);
-          debugPrint(
+          velourDebug(
             '[Velour][Match] résolution démarrée step=$chainStep '
             'kind=${run.kind} count=${run.count} cascade=$isCascade',
           );
@@ -1917,11 +1847,8 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
           final bool closedTrinityTutorial;
           try {
             closedTrinityTutorial = await _removeMatchedGroupOnce(
-              _Group(
-                start: run.start,
-                endExclusive: run.endExclusive,
-                typeId: 0,
-              ),
+              run.start,
+              run.endExclusive,
               run.kind,
               run.basis,
               run.count,
@@ -1932,15 +1859,15 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
             // Relâche le verrou dès la mutation d'état terminée (input "snappy").
             _isProcessingMatch = false;
           }
-          debugPrint('[Velour][Match] résolution terminée step=$chainStep');
+          velourDebug('[Velour][Match] résolution terminée step=$chainStep');
           // Petit espacement (réduit ~30%) : laisse lire le feedback sans bloquer l'input.
           await Future<void>.delayed(const Duration(milliseconds: 280));
           run = (isTrinityTutorialActive || closedTrinityTutorial)
               ? null
-              : _findBestRun();
+              : RackLogic.findBestRun(_slotItems);
         }
         if (run != null) {
-          debugPrint(
+          velourDebug(
             '[Velour][Cascade] garde-fou 40 résolutions — match encore détecté, arrêt',
           );
         }
@@ -1951,97 +1878,19 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     });
   }
 
-  _Run? _findBestRun() {
-    if (_slotItems.length < 3) return null;
-
-    _Run? best;
-    void consider(_Run r) {
-      if (r.count < 3) return;
-      if (best == null) {
-        best = r;
-        return;
-      }
-      // Priority: perfect > others, then longer runs, then earlier.
-      final int bp = best!.kind == MatchKind.perfect ? 2 : 1;
-      final int rp = r.kind == MatchKind.perfect ? 2 : 1;
-      if (rp != bp) {
-        if (rp > bp) best = r;
-        return;
-      }
-      if (r.count != best!.count) {
-        if (r.count > best!.count) best = r;
-        return;
-      }
-      if (r.start < best!.start) best = r;
-    }
-
-    // PERFECT: same shape + same color contiguous
-    int i = 0;
-    while (i < _slotItems.length) {
-      int j = i + 1;
-      while (j < _slotItems.length &&
-          _slotItems[j].typeId == _slotItems[i].typeId &&
-          _slotItems[j].colorId == _slotItems[i].colorId) {
-        j++;
-      }
-      if (j - i >= 3) {
-        consider(_Run(i, j, MatchKind.perfect, RunBasis.perfect));
-      }
-      i = j;
-    }
-
-    // MATCH FORME
-    i = 0;
-    while (i < _slotItems.length) {
-      int j = i + 1;
-      while (j < _slotItems.length &&
-          _slotItems[j].typeId == _slotItems[i].typeId) {
-        j++;
-      }
-      final int n = j - i;
-      if (n >= 3) {
-        consider(_Run(i, j, _kindForCount(n), RunBasis.shape));
-      }
-      i = j;
-    }
-
-    // MATCH COULEUR
-    i = 0;
-    while (i < _slotItems.length) {
-      int j = i + 1;
-      while (j < _slotItems.length &&
-          _slotItems[j].colorId == _slotItems[i].colorId) {
-        j++;
-      }
-      final int n = j - i;
-      if (n >= 3) {
-        consider(_Run(i, j, _kindForCount(n), RunBasis.color));
-      }
-      i = j;
-    }
-
-    return best;
-  }
-
-  MatchKind _kindForCount(int count) {
-    return switch (count) {
-      3 => MatchKind.normal,
-      4 => MatchKind.boosted,
-      _ => MatchKind.overcharge,
-    };
-  }
-
   /// Retourne `true` si le tutoriel trinité vient de se terminer (évite une cascade
   /// immédiate sur le plateau aléatoire tout juste rempli).
   Future<bool> _removeMatchedGroupOnce(
-    _Group g,
+    int runStart,
+    int runEndExclusive,
     MatchKind kind,
     RunBasis basis,
     int runCount, {
     required double chainScoreMult,
     required bool isCascade,
   }) async {
-    final List<GameItem> matched = _slotItems.sublist(g.start, g.endExclusive);
+    final List<GameItem> matched =
+        _slotItems.sublist(runStart, runEndExclusive);
     final int typeId = matched.first.typeId;
     final Offset center =
         matched
@@ -2067,39 +1916,31 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     };
     await Future<void>.delayed(anim);
     _matchesResolvedThisRun++;
-
-    // Score rules (V1):
-    // - 3 shapes = 100
-    // - 3 colors = 150
-    // - perfect = 500
-    // Longer runs scale linearly (4 => x2, 5 => x3...).
-    final int base = switch (basis) {
-      RunBasis.shape => 100,
-      RunBasis.color => 150,
-      RunBasis.perfect => 500,
-    };
-    final int rawGain = base * (runCount - 2);
-    _runMatchLuxRawTotal += rawGain;
-    final int levelBeforeGain = _gameLevel;
-    final double scoreMult = switch (_sessionStake) {
-      SessionStakeKind.highStakes =>
-        levelBeforeGain >= highStakesTargetLevel ? 1.5 : 1.0,
-      SessionStakeKind.royal => levelBeforeGain >= royalTargetLevel ? 3.0 : 1.0,
-      _ => 1.0,
-    };
-    final int gain = (rawGain * scoreMult * chainScoreMult).round();
-    _lux += gain;
-    // Haptique : forme / couleur = léger ; parfait hors bannière tutoriel = medium
-    // (le parfait narratif déclenche medium à l’apparition de la bannière PERFECT).
     final bool narrativePerfectForBanner =
         _narrativeRunEngaged &&
         _narrativeTutorial.isStep3Perfect &&
         basis == RunBasis.perfect;
-    if (basis == RunBasis.shape || basis == RunBasis.color) {
-      HapticsHandler.instance.lightImpact();
-    } else if (basis == RunBasis.perfect && !narrativePerfectForBanner) {
-      HapticsHandler.instance.mediumImpact();
-    }
+    MatchFeedback.emit(
+      kind: kind,
+      basis: basis,
+      narrativePerfectForBanner: narrativePerfectForBanner,
+    );
+
+    final int rawGain = MatchScoring.rawLuxGain(basis, runCount);
+    _runMatchLuxRawTotal += rawGain;
+    final int levelBeforeGain = _gameLevel;
+    final double scoreMult = MatchScoring.sessionScoreMultiplier(
+      _sessionStake,
+      levelBeforeGain,
+      highStakesTargetLevel: highStakesTargetLevel,
+      royalTargetLevel: royalTargetLevel,
+    );
+    final int gain = MatchScoring.roundChainedLux(
+      rawGain,
+      scoreMult,
+      chainScoreMult,
+    );
+    _lux += gain;
 
     // Nouveau record en direct (une seule fois par run).
     if (!_recordVibrateFired &&
@@ -2301,30 +2142,6 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     };
   }
 
-  bool _slotsHaveAnyTripleRun() {
-    int i = 0;
-    while (i < _slotItems.length) {
-      int j = i + 1;
-      while (j < _slotItems.length &&
-          (_slotItems[j].typeId == _slotItems[i].typeId)) {
-        j++;
-      }
-      if (j - i >= 3) return true;
-      i = j;
-    }
-    i = 0;
-    while (i < _slotItems.length) {
-      int j = i + 1;
-      while (j < _slotItems.length &&
-          (_slotItems[j].colorId == _slotItems[i].colorId)) {
-        j++;
-      }
-      if (j - i >= 3) return true;
-      i = j;
-    }
-    return false;
-  }
-
   void _reevaluateDeadlock() {
     if (_slotItems.length < slotCount) {
       _isGameOver = false;
@@ -2332,7 +2149,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
       return;
     }
 
-    final bool hasMatch = _slotsHaveAnyTripleRun();
+    final bool hasMatch = RackLogic.slotsHaveAnyTripleRun(_slotItems);
     if (hasMatch) {
       _isGameOver = false;
       _criticalFailure = false;
@@ -2369,18 +2186,6 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
 
   // --- Audio ---
 
-  void _playMatchSound(MatchKind kind) {
-    // Audio is driven by the structural nature of the match.
-    // - Perfect match (shape + color) => perfect SFX
-    // - Otherwise => match SFX
-    if (kind == MatchKind.perfect) {
-      AudioHandler.instance.playPerfectCombo();
-    } else {
-      AudioHandler.instance.playMatchCombo();
-    }
-    HapticsHandler.instance.mediumImpact();
-  }
-
   void _playGameOverSound() {
     HapticsHandler.instance.errorVibrate();
   }
@@ -2405,29 +2210,4 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     timeBar.dispose();
     super.dispose();
   }
-}
-
-class _Group {
-  _Group({
-    required this.start,
-    required this.endExclusive,
-    required this.typeId,
-  });
-
-  final int start;
-  final int endExclusive;
-  final int typeId;
-
-  int get count => endExclusive - start;
-}
-
-class _Run {
-  _Run(this.start, this.endExclusive, this.kind, this.basis);
-
-  final int start;
-  final int endExclusive;
-  final MatchKind kind;
-  final RunBasis basis;
-
-  int get count => endExclusive - start;
 }

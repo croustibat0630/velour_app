@@ -6,8 +6,9 @@ import '../providers/game_state_types.dart';
 
 /// État du tutoriel « Trinité » (bannières shape / couleur / perfect).
 ///
-/// Ne se lance plus au démarrage d’une partie : l’apprentissage passe par le menu
-/// Tutoriel (narratif). [GameState] pilote plateau et prefs via callbacks.
+/// Ne s’arme plus au démarrage d’une partie standard : l’apprentissage passe par le
+/// menu Tutoriel (narratif). [GameState] peut encore appeler [beginShapeIntro] en
+/// interne (tests / futur) ; le plateau initial ne l’utilise plus.
 class TrinityTutorialService extends ChangeNotifier {
   bool _complete = false;
   TrinityTutorialPhase _phase = TrinityTutorialPhase.none;

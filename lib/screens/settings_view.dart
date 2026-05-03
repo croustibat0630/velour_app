@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:velour_app/l10n/app_localizations.dart';
 
@@ -163,10 +164,9 @@ class SettingsView extends StatelessWidget {
                             title: l10n.settingsSectionInfos,
                             accent: accent,
                             children: [
-                              _InfoTile(
+                              _AsyncVersionInfoTile(
                                 icon: Icons.info_outline_rounded,
                                 title: l10n.settingsVersionLabel,
-                                value: '1.0.0',
                                 accent: accent,
                               ),
                               const _TileDivider(),
@@ -457,6 +457,52 @@ class _LanguageTile extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+Future<PackageInfo>? _cachedPackageInfoFuture;
+
+Future<PackageInfo> _packageInfoFuture() =>
+    _cachedPackageInfoFuture ??= PackageInfo.fromPlatform();
+
+String _formatAppVersion(PackageInfo info) {
+  final String build = info.buildNumber.trim();
+  if (build.isEmpty || build == '0') {
+    return info.version;
+  }
+  return '${info.version}+$build';
+}
+
+/// One-shot [PackageInfo.fromPlatform] for the settings row (cached).
+class _AsyncVersionInfoTile extends StatelessWidget {
+  const _AsyncVersionInfoTile({
+    required this.icon,
+    required this.title,
+    required this.accent,
+  });
+
+  final IconData icon;
+  final String title;
+  final Color accent;
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<PackageInfo>(
+      future: _packageInfoFuture(),
+      builder: (BuildContext context, AsyncSnapshot<PackageInfo> snapshot) {
+        final String value = snapshot.hasData
+            ? _formatAppVersion(snapshot.data!)
+            : snapshot.hasError
+                ? '—'
+                : '…';
+        return _InfoTile(
+          icon: icon,
+          title: title,
+          value: value,
+          accent: accent,
+        );
+      },
     );
   }
 }

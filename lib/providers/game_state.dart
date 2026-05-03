@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'game_state_prefs.dart';
 import 'game_state_types.dart';
 export 'game_state_types.dart';
 
@@ -165,17 +166,12 @@ class GameState extends ChangeNotifier {
   int _shapesPlacedThisRun = 0;
   int _matchesResolvedThisRun = 0;
 
-  static const String _trinityTutorialDoneKey =
-      'velour_trinity_tutorial_complete';
-
-  /// `true` tant que l’overlay « première partie » n’a pas été validé (prefs).
-  static const String _isFirstTimeGameKey = 'velour_is_first_time_game';
-
   /// `true` une fois le tutoriel trinité terminé (prefs).
   bool _trinityTutorialComplete = false;
   bool get isTrinityTutorialComplete => _trinityTutorialComplete;
 
   /// Première partie : séquence narrative guidée (prefs).
+  /// `true` tant que l’overlay « première partie » n’a pas été validé (prefs).
   /// Défaut `false` jusqu’à [loadEconomyWelcome] (évite les tests sans prefs).
   bool _isFirstTimeGame = false;
   bool get isFirstTimeGame => _isFirstTimeGame;
@@ -582,10 +578,6 @@ class GameState extends ChangeNotifier {
   }
 
   /// Capital de départ (premier lancement) + persistance des LUX coins.
-  static const String _firstLaunchKey = 'velour_is_first_launch';
-  static const String _luxCoinsKey = 'velour_lux_coins';
-  static const String _activeSkinKey = 'velour_active_skin_id';
-  static const String _unlockedSkinsKey = 'velour_unlocked_skins';
   static const int welcomeLuxGrant = 250;
 
   bool _economyLoaded = false;
@@ -620,15 +612,15 @@ class GameState extends ChangeNotifier {
   Future<void> _persistLuxCoins() async {
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setInt(_luxCoinsKey, _luxCoins);
+      await prefs.setInt(GameStatePrefs.luxCoins, _luxCoins);
     } catch (_) {}
   }
 
   Future<void> _persistSkinsLocal() async {
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_activeSkinKey, _activeSkinId);
-      await prefs.setStringList(_unlockedSkinsKey, _unlockedSkins);
+      await prefs.setString(GameStatePrefs.activeSkinId, _activeSkinId);
+      await prefs.setStringList(GameStatePrefs.unlockedSkins, _unlockedSkins);
     } catch (_) {}
   }
 
@@ -646,16 +638,16 @@ class GameState extends ChangeNotifier {
     _economyLoaded = true;
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
-      final bool isFirstLaunch = prefs.getBool(_firstLaunchKey) ?? true;
-      _luxCoins = math.max(0, prefs.getInt(_luxCoinsKey) ?? 0);
+      final bool isFirstLaunch = prefs.getBool(GameStatePrefs.firstLaunch) ?? true;
+      _luxCoins = math.max(0, prefs.getInt(GameStatePrefs.luxCoins) ?? 0);
       _firstLaunchPendingWelcome = isFirstLaunch;
       _trinityTutorialComplete =
-          prefs.getBool(_trinityTutorialDoneKey) ?? false;
-      _isFirstTimeGame = prefs.getBool(_isFirstTimeGameKey) ?? true;
+          prefs.getBool(GameStatePrefs.trinityTutorialComplete) ?? false;
+      _isFirstTimeGame = prefs.getBool(GameStatePrefs.isFirstTimeGame) ?? true;
       _activeSkinId =
-          prefs.getString(_activeSkinKey) ?? SkinCatalog.standard.id;
+          prefs.getString(GameStatePrefs.activeSkinId) ?? SkinCatalog.standard.id;
       _unlockedSkins =
-          prefs.getStringList(_unlockedSkinsKey) ??
+          prefs.getStringList(GameStatePrefs.unlockedSkins) ??
           <String>[SkinCatalog.standard.id];
       if (!_unlockedSkins.contains(SkinCatalog.standard.id)) {
         _unlockedSkins = <String>[SkinCatalog.standard.id, ..._unlockedSkins];
@@ -686,16 +678,16 @@ class GameState extends ChangeNotifier {
     notifyListeners();
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setInt(_luxCoinsKey, _luxCoins);
-      await prefs.setBool(_firstLaunchKey, false);
+      await prefs.setInt(GameStatePrefs.luxCoins, _luxCoins);
+      await prefs.setBool(GameStatePrefs.firstLaunch, false);
     } catch (_) {}
   }
 
   /// Debug : remet l’état « premier lancement » et le solde LUX à 0 (prefs).
   Future<void> debugResetFirstLaunchWelcome() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_firstLaunchKey, true);
-    await prefs.setInt(_luxCoinsKey, 0);
+    await prefs.setBool(GameStatePrefs.firstLaunch, true);
+    await prefs.setInt(GameStatePrefs.luxCoins, 0);
     _luxCoins = 0;
     _firstLaunchPendingWelcome = true;
     notifyListeners();
@@ -882,13 +874,12 @@ class GameState extends ChangeNotifier {
   bool _recordVibrateFired = false;
 
   bool _highScoreLoaded = false;
-  static const String _highScoreKey = 'velour_high_score';
 
   Future<void> loadHighScore() async {
     if (_highScoreLoaded) return;
     _highScoreLoaded = true;
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    _highScore = prefs.getInt(_highScoreKey) ?? 0;
+    _highScore = prefs.getInt(GameStatePrefs.highScore) ?? 0;
     if (_runStartedAt == null) {
       _runHighScoreBaseline = _highScore;
     }
@@ -900,7 +891,7 @@ class GameState extends ChangeNotifier {
     _highScore = _lux;
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setInt(_highScoreKey, _highScore);
+      await prefs.setInt(GameStatePrefs.highScore, _highScore);
     } catch (_) {}
     unawaited(_syncHighScoreToCloud(_highScore));
     unawaited(_maybeTriggerOracleNamingCeremony(_highScore));
@@ -1146,7 +1137,7 @@ class GameState extends ChangeNotifier {
   Future<void> _persistTrinityTutorialDone() async {
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setBool(_trinityTutorialDoneKey, true);
+      await prefs.setBool(GameStatePrefs.trinityTutorialComplete, true);
     } catch (_) {}
   }
 
@@ -1321,8 +1312,8 @@ class GameState extends ChangeNotifier {
     _trinityTutorialComplete = true;
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setBool(_isFirstTimeGameKey, false);
-      await prefs.setBool(_trinityTutorialDoneKey, true);
+      await prefs.setBool(GameStatePrefs.isFirstTimeGame, false);
+      await prefs.setBool(GameStatePrefs.trinityTutorialComplete, true);
     } catch (_) {}
     // Respiration après la bannière avant le vrai plateau.
     await Future<void>.delayed(const Duration(milliseconds: 700));

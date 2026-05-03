@@ -63,7 +63,7 @@ class SettingsView extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Text(
-                            'PARAMÈTRES',
+                            l10n.settingsTitle,
                             textAlign: TextAlign.center,
                             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                   letterSpacing: 6,
@@ -74,7 +74,7 @@ class SettingsView extends StatelessWidget {
                           ),
                           SizedBox(height: (18 * sH).clamp(14.0, 22.0)),
                           _SectionCard(
-                            title: 'AUDIO',
+                            title: l10n.settingsSectionAudio,
                             accent: accent,
                             children: [
                               ValueListenableBuilder<bool>(
@@ -82,10 +82,10 @@ class SettingsView extends StatelessWidget {
                                 builder: (context, musicMuted, _) {
                                   return _SettingsSwitchTile(
                                     icon: Icons.volume_up_rounded,
-                                    title: 'Musique',
+                                    title: l10n.settingsMusicTitle,
                                     subtitle: musicMuted
-                                        ? 'Désactivée'
-                                        : 'Activée',
+                                        ? l10n.settingsMusicOff
+                                        : l10n.settingsMusicOn,
                                     value: !musicMuted,
                                     accent: accent,
                                     onChanged: (v) =>
@@ -99,10 +99,10 @@ class SettingsView extends StatelessWidget {
                                 builder: (context, sfxMuted, _) {
                                   return _SettingsSwitchTile(
                                     icon: Icons.surround_sound_rounded,
-                                    title: 'Effets sonores',
+                                    title: l10n.settingsSfxTitle,
                                     subtitle: sfxMuted
-                                        ? 'Désactivés'
-                                        : 'Activés',
+                                        ? l10n.settingsSfxOff
+                                        : l10n.settingsSfxOn,
                                     value: !sfxMuted,
                                     accent: accent,
                                     onChanged: (v) =>
@@ -114,7 +114,7 @@ class SettingsView extends StatelessWidget {
                           ),
                           SizedBox(height: 14 * sH),
                           _SectionCard(
-                            title: 'SENSATIONS',
+                            title: l10n.settingsSectionHaptics,
                             accent: accent,
                             children: [
                               ValueListenableBuilder<bool>(
@@ -122,10 +122,10 @@ class SettingsView extends StatelessWidget {
                                 builder: (context, enabled, _) {
                                   return _SettingsSwitchTile(
                                     icon: Icons.vibration_rounded,
-                                    title: 'Haptic Feedback',
+                                    title: l10n.settingsHapticsTitle,
                                     subtitle: enabled
-                                        ? 'Actif (premium)'
-                                        : 'Désactivé',
+                                        ? l10n.settingsHapticsOn
+                                        : l10n.settingsHapticsOff,
                                     value: enabled,
                                     accent: accent,
                                     onChanged: (v) =>
@@ -160,20 +160,20 @@ class SettingsView extends StatelessWidget {
                           ),
                           SizedBox(height: 14 * sH),
                           _SectionCard(
-                            title: 'INFOS',
+                            title: l10n.settingsSectionInfos,
                             accent: accent,
                             children: [
                               _InfoTile(
                                 icon: Icons.info_outline_rounded,
-                                title: 'Version',
+                                title: l10n.settingsVersionLabel,
                                 value: '1.0.0',
                                 accent: accent,
                               ),
                               const _TileDivider(),
                               _ActionTile(
                                 icon: Icons.auto_awesome_rounded,
-                                title: 'Crédits',
-                                subtitle: 'Voir les contributeurs',
+                                title: l10n.settingsCreditsTitle,
+                                subtitle: l10n.settingsCreditsSubtitle,
                                 accent: accent,
                                 onTap: () => _showCredits(context, accent),
                               ),
@@ -181,24 +181,21 @@ class SettingsView extends StatelessWidget {
                           ),
                           SizedBox(height: 14 * sH),
                           _SectionCard(
-                            title: 'DEBUG',
+                            title: l10n.settingsSectionDebug,
                             accent: const Color(0xFFFF4D4D),
                             children: [
                               _ActionTile(
                                 icon: Icons.warning_amber_rounded,
-                                title: 'RÉINITIALISER TOUT',
-                                subtitle:
-                                    'Efface le jeu (prefs) + relance le tutoriel',
+                                title: l10n.settingsResetTitle,
+                                subtitle: l10n.settingsResetSubtitle,
                                 accent: const Color(0xFFFF4D4D),
                                 onTap: () {
                                   unawaited(() async {
                                     await context.read<GameState>().fullHardReset();
                                     if (!context.mounted) return;
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                          'Jeu réinitialisé. Relancez pour voir le tutoriel.',
-                                        ),
+                                      SnackBar(
+                                        content: Text(l10n.settingsResetSnack),
                                       ),
                                     );
                                   }());
@@ -208,7 +205,7 @@ class SettingsView extends StatelessWidget {
                           ),
                           SizedBox(height: (10 * sH).clamp(8.0, 16.0)),
                           Text(
-                            'Dark Matte • Velour Accent',
+                            l10n.settingsFooterTagline,
                             textAlign: TextAlign.center,
                             style: Theme.of(context).textTheme.labelSmall?.copyWith(
                                   letterSpacing: 2.0,
@@ -232,34 +229,32 @@ class SettingsView extends StatelessWidget {
   void _showCredits(BuildContext context, Color accent) {
     showDialog<void>(
       context: context,
-      builder: (context) {
+      builder: (BuildContext dialogContext) {
+        final AppLocalizations dl10n = AppLocalizations.of(dialogContext)!;
         return AlertDialog(
           backgroundColor: _panel.withValues(alpha: 0.96),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
           title: Text(
-            'CRÉDITS',
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+            dl10n.settingsCreditsDialogTitle,
+            style: Theme.of(dialogContext).textTheme.titleSmall?.copyWith(
                   letterSpacing: 4,
                   fontWeight: FontWeight.w700,
                   color: accent.withValues(alpha: 0.92),
                 ),
           ),
           content: Text(
-            'Velour — Dark Matte Edition\n\n'
-            'Design & Direction: Velour Studio\n'
-            'Engineering: Flutter\n'
-            'Audio: Velour SFX Pack\n',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            dl10n.settingsCreditsBody,
+            style: Theme.of(dialogContext).textTheme.bodyMedium?.copyWith(
                   height: 1.35,
                   color: Colors.white.withValues(alpha: 0.72),
                 ),
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => Navigator.of(dialogContext).pop(),
               child: Text(
-                'FERMER',
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                dl10n.settingsClose,
+                style: Theme.of(dialogContext).textTheme.labelLarge?.copyWith(
                       letterSpacing: 3,
                       color: Colors.white.withValues(alpha: 0.70),
                     ),

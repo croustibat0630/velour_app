@@ -187,6 +187,150 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'French'**
   String get settingsLocaleFrench;
+
+  /// Settings screen main heading.
+  ///
+  /// In en, this message translates to:
+  /// **'SETTINGS'**
+  String get settingsTitle;
+
+  /// No description provided for @settingsSectionAudio.
+  ///
+  /// In en, this message translates to:
+  /// **'AUDIO'**
+  String get settingsSectionAudio;
+
+  /// No description provided for @settingsMusicTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Music'**
+  String get settingsMusicTitle;
+
+  /// No description provided for @settingsMusicOn.
+  ///
+  /// In en, this message translates to:
+  /// **'On'**
+  String get settingsMusicOn;
+
+  /// No description provided for @settingsMusicOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get settingsMusicOff;
+
+  /// No description provided for @settingsSfxTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sound effects'**
+  String get settingsSfxTitle;
+
+  /// No description provided for @settingsSfxOn.
+  ///
+  /// In en, this message translates to:
+  /// **'On'**
+  String get settingsSfxOn;
+
+  /// No description provided for @settingsSfxOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get settingsSfxOff;
+
+  /// No description provided for @settingsSectionHaptics.
+  ///
+  /// In en, this message translates to:
+  /// **'HAPTICS'**
+  String get settingsSectionHaptics;
+
+  /// No description provided for @settingsHapticsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Haptic feedback'**
+  String get settingsHapticsTitle;
+
+  /// No description provided for @settingsHapticsOn.
+  ///
+  /// In en, this message translates to:
+  /// **'On (premium)'**
+  String get settingsHapticsOn;
+
+  /// No description provided for @settingsHapticsOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get settingsHapticsOff;
+
+  /// No description provided for @settingsSectionInfos.
+  ///
+  /// In en, this message translates to:
+  /// **'INFO'**
+  String get settingsSectionInfos;
+
+  /// No description provided for @settingsVersionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Version'**
+  String get settingsVersionLabel;
+
+  /// No description provided for @settingsCreditsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Credits'**
+  String get settingsCreditsTitle;
+
+  /// No description provided for @settingsCreditsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'See contributors'**
+  String get settingsCreditsSubtitle;
+
+  /// No description provided for @settingsSectionDebug.
+  ///
+  /// In en, this message translates to:
+  /// **'DEBUG'**
+  String get settingsSectionDebug;
+
+  /// No description provided for @settingsResetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'RESET ALL'**
+  String get settingsResetTitle;
+
+  /// No description provided for @settingsResetSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Clears game data (prefs) and restarts onboarding'**
+  String get settingsResetSubtitle;
+
+  /// No description provided for @settingsResetSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Game reset. Relaunch the app to see the tutorial.'**
+  String get settingsResetSnack;
+
+  /// No description provided for @settingsFooterTagline.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark Matte • Velour Accent'**
+  String get settingsFooterTagline;
+
+  /// No description provided for @settingsCreditsDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'CREDITS'**
+  String get settingsCreditsDialogTitle;
+
+  /// No description provided for @settingsCreditsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Velour — Dark Matte Edition\n\nDesign & direction: Velour Studio\nEngineering: Flutter\nAudio: Velour SFX Pack'**
+  String get settingsCreditsBody;
+
+  /// No description provided for @settingsClose.
+  ///
+  /// In en, this message translates to:
+  /// **'CLOSE'**
+  String get settingsClose;
 }
 
 class _AppLocalizationsDelegate

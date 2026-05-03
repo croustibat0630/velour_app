@@ -62,4 +62,79 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsLocaleFrench => 'Français';
+
+  @override
+  String get settingsTitle => 'PARAMÈTRES';
+
+  @override
+  String get settingsSectionAudio => 'AUDIO';
+
+  @override
+  String get settingsMusicTitle => 'Musique';
+
+  @override
+  String get settingsMusicOn => 'Activée';
+
+  @override
+  String get settingsMusicOff => 'Désactivée';
+
+  @override
+  String get settingsSfxTitle => 'Effets sonores';
+
+  @override
+  String get settingsSfxOn => 'Activés';
+
+  @override
+  String get settingsSfxOff => 'Désactivés';
+
+  @override
+  String get settingsSectionHaptics => 'SENSATIONS';
+
+  @override
+  String get settingsHapticsTitle => 'Retour haptique';
+
+  @override
+  String get settingsHapticsOn => 'Actif (premium)';
+
+  @override
+  String get settingsHapticsOff => 'Désactivé';
+
+  @override
+  String get settingsSectionInfos => 'INFOS';
+
+  @override
+  String get settingsVersionLabel => 'Version';
+
+  @override
+  String get settingsCreditsTitle => 'Crédits';
+
+  @override
+  String get settingsCreditsSubtitle => 'Voir les contributeurs';
+
+  @override
+  String get settingsSectionDebug => 'DEBUG';
+
+  @override
+  String get settingsResetTitle => 'RÉINITIALISER TOUT';
+
+  @override
+  String get settingsResetSubtitle =>
+      'Efface le jeu (prefs) + relance le tutoriel';
+
+  @override
+  String get settingsResetSnack =>
+      'Jeu réinitialisé. Relancez pour voir le tutoriel.';
+
+  @override
+  String get settingsFooterTagline => 'Dark Matte • Velour Accent';
+
+  @override
+  String get settingsCreditsDialogTitle => 'CRÉDITS';
+
+  @override
+  String get settingsCreditsBody =>
+      'Velour — Dark Matte Edition\n\nDesign & direction : Velour Studio\nIngénierie : Flutter\nAudio : pack SFX Velour';
+
+  @override
+  String get settingsClose => 'FERMER';
 }

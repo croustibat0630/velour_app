@@ -63,5 +63,32 @@
     "description": "Settings: follow device language."
   },
   "settingsLocaleEnglish": "English",
-  "settingsLocaleFrench": "French"
+  "settingsLocaleFrench": "French",
+  "settingsTitle": "SETTINGS",
+  "@settingsTitle": {
+    "description": "Settings screen main heading."
+  },
+  "settingsSectionAudio": "AUDIO",
+  "settingsMusicTitle": "Music",
+  "settingsMusicOn": "On",
+  "settingsMusicOff": "Off",
+  "settingsSfxTitle": "Sound effects",
+  "settingsSfxOn": "On",
+  "settingsSfxOff": "Off",
+  "settingsSectionHaptics": "HAPTICS",
+  "settingsHapticsTitle": "Haptic feedback",
+  "settingsHapticsOn": "On (premium)",
+  "settingsHapticsOff": "Off",
+  "settingsSectionInfos": "INFO",
+  "settingsVersionLabel": "Version",
+  "settingsCreditsTitle": "Credits",
+  "settingsCreditsSubtitle": "See contributors",
+  "settingsSectionDebug": "DEBUG",
+  "settingsResetTitle": "RESET ALL",
+  "settingsResetSubtitle": "Clears game data (prefs) and restarts onboarding",
+  "settingsResetSnack": "Game reset. Relaunch the app to see the tutorial.",
+  "settingsFooterTagline": "Dark Matte • Velour Accent",
+  "settingsCreditsDialogTitle": "CREDITS",
+  "settingsCreditsBody": "Velour — Dark Matte Edition\n\nDesign & direction: Velour Studio\nEngineering: Flutter\nAudio: Velour SFX Pack",
+  "settingsClose": "CLOSE"
 }

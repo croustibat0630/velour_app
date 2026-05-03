@@ -4,9 +4,7 @@ import 'dart:math' as math;
 import 'package:cloud_firestore/cloud_firestore.dart' show QuerySnapshot;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
-import 'game_state_prefs.dart';
+import 'game_state_local_store.dart';
 import 'game_state_types.dart';
 export 'game_state_types.dart';
 
@@ -21,6 +19,7 @@ import '../widgets/ui/premium_alert_view.dart';
 
 class GameState extends ChangeNotifier {
   static const int slotCount = 7;
+  static const GameStateLocalStore _localDisk = GameStateLocalStore();
   static const Duration _baseMatchDelay = Duration(milliseconds: 350);
 
   GameState() {
@@ -610,18 +609,14 @@ class GameState extends ChangeNotifier {
   }
 
   Future<void> _persistLuxCoins() async {
-    try {
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setInt(GameStatePrefs.luxCoins, _luxCoins);
-    } catch (_) {}
+    await _localDisk.persistLuxCoins(_luxCoins);
   }
 
   Future<void> _persistSkinsLocal() async {
-    try {
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString(GameStatePrefs.activeSkinId, _activeSkinId);
-      await prefs.setStringList(GameStatePrefs.unlockedSkins, _unlockedSkins);
-    } catch (_) {}
+    await _localDisk.persistSkinsLocal(
+      activeSkinId: _activeSkinId,
+      unlockedSkins: _unlockedSkins,
+    );
   }
 
   /// Force une écriture disque immédiate du solde LUX.
@@ -637,18 +632,16 @@ class GameState extends ChangeNotifier {
     if (_economyLoaded) return _firstLaunchPendingWelcome;
     _economyLoaded = true;
     try {
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
-      final bool isFirstLaunch = prefs.getBool(GameStatePrefs.firstLaunch) ?? true;
-      _luxCoins = math.max(0, prefs.getInt(GameStatePrefs.luxCoins) ?? 0);
-      _firstLaunchPendingWelcome = isFirstLaunch;
-      _trinityTutorialComplete =
-          prefs.getBool(GameStatePrefs.trinityTutorialComplete) ?? false;
-      _isFirstTimeGame = prefs.getBool(GameStatePrefs.isFirstTimeGame) ?? true;
+      final EconomyWelcomeLoad? disk = await _localDisk.loadEconomyWelcome();
+      if (disk == null) return false;
+      _luxCoins = math.max(0, disk.luxCoinsRaw);
+      _firstLaunchPendingWelcome = disk.isFirstLaunch;
+      _trinityTutorialComplete = disk.trinityTutorialComplete;
+      _isFirstTimeGame = disk.isFirstTimeGame;
       _activeSkinId =
-          prefs.getString(GameStatePrefs.activeSkinId) ?? SkinCatalog.standard.id;
+          disk.activeSkinIdRaw ?? SkinCatalog.standard.id;
       _unlockedSkins =
-          prefs.getStringList(GameStatePrefs.unlockedSkins) ??
-          <String>[SkinCatalog.standard.id];
+          disk.unlockedSkinsRaw ?? <String>[SkinCatalog.standard.id];
       if (!_unlockedSkins.contains(SkinCatalog.standard.id)) {
         _unlockedSkins = <String>[SkinCatalog.standard.id, ..._unlockedSkins];
       }
@@ -676,18 +669,12 @@ class GameState extends ChangeNotifier {
       _pendingLuxJuiceSilent = true;
     }
     notifyListeners();
-    try {
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setInt(GameStatePrefs.luxCoins, _luxCoins);
-      await prefs.setBool(GameStatePrefs.firstLaunch, false);
-    } catch (_) {}
+    await _localDisk.persistWelcomeGrant(_luxCoins);
   }
 
   /// Debug : remet l’état « premier lancement » et le solde LUX à 0 (prefs).
   Future<void> debugResetFirstLaunchWelcome() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(GameStatePrefs.firstLaunch, true);
-    await prefs.setInt(GameStatePrefs.luxCoins, 0);
+    await _localDisk.debugResetFirstLaunchWelcome();
     _luxCoins = 0;
     _firstLaunchPendingWelcome = true;
     notifyListeners();
@@ -695,10 +682,7 @@ class GameState extends ChangeNotifier {
 
   /// Debug : wipe complet (prefs + état mémoire) pour retester tutoriel / économie.
   Future<void> fullHardReset() async {
-    try {
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.clear();
-    } catch (_) {}
+    await _localDisk.clearAll();
 
     _economyLoaded = false;
     _highScoreLoaded = false;
@@ -878,8 +862,7 @@ class GameState extends ChangeNotifier {
   Future<void> loadHighScore() async {
     if (_highScoreLoaded) return;
     _highScoreLoaded = true;
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    _highScore = prefs.getInt(GameStatePrefs.highScore) ?? 0;
+    _highScore = await _localDisk.loadHighScoreOrZero();
     if (_runStartedAt == null) {
       _runHighScoreBaseline = _highScore;
     }
@@ -889,10 +872,7 @@ class GameState extends ChangeNotifier {
   Future<void> _persistHighScoreIfNeeded() async {
     if (_lux <= _highScore) return;
     _highScore = _lux;
-    try {
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setInt(GameStatePrefs.highScore, _highScore);
-    } catch (_) {}
+    await _localDisk.persistHighScore(_highScore);
     unawaited(_syncHighScoreToCloud(_highScore));
     unawaited(_maybeTriggerOracleNamingCeremony(_highScore));
   }
@@ -1135,10 +1115,7 @@ class GameState extends ChangeNotifier {
       _gameLevel == 1;
 
   Future<void> _persistTrinityTutorialDone() async {
-    try {
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setBool(GameStatePrefs.trinityTutorialComplete, true);
-    } catch (_) {}
+    await _localDisk.persistTrinityTutorialComplete();
   }
 
   void _seedNarrativeStep1Board() {
@@ -1310,11 +1287,7 @@ class GameState extends ChangeNotifier {
     _isFirstTimeGame = false;
     _narrativePhase = NarrativeTutorialPhase.none;
     _trinityTutorialComplete = true;
-    try {
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setBool(GameStatePrefs.isFirstTimeGame, false);
-      await prefs.setBool(GameStatePrefs.trinityTutorialComplete, true);
-    } catch (_) {}
+    await _localDisk.persistNarrativeTutorialComplete();
     // Respiration après la bannière avant le vrai plateau.
     await Future<void>.delayed(const Duration(milliseconds: 700));
     _postNarrativeSpawnFadeTick++;

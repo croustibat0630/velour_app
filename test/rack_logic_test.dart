@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:velour_app/game/match_types.dart';
 import 'package:velour_app/game/rack_logic.dart';
@@ -162,6 +161,30 @@ void main() {
         _g('b', 2, 2),
       ];
       expect(RackLogic.computeStrategicSlotInsertIndex(_g('c', 3, 3), others), 2);
+    });
+  });
+
+  group('RackLogic.slotPairNeedingThirdCopy', () {
+    test('golden: paire identique détectée', () {
+      final List<GameItem> slots = <GameItem>[
+        _g('a', 1, 2),
+        _g('b', 1, 2),
+      ];
+      final ({int typeId, int colorId})? p =
+          RackLogic.slotPairNeedingThirdCopy(slots);
+      expect(p, isNotNull);
+      expect(p!.typeId, 1);
+      expect(p.colorId, 2);
+    });
+
+    test('pas de paire complète → null', () {
+      expect(
+        RackLogic.slotPairNeedingThirdCopy(<GameItem>[
+          _g('a', 1, 1),
+          _g('b', 1, 2),
+        ]),
+        isNull,
+      );
     });
   });
 

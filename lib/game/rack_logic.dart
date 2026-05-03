@@ -200,4 +200,22 @@ abstract final class RackLogic {
     }
     return false;
   }
+
+  /// Deux pièces identiques (type+couleur) dans le rack → paire pour biais spawn 3e.
+  static ({int typeId, int colorId})? slotPairNeedingThirdCopy(
+    List<GameItem> slots,
+  ) {
+    final Map<String, int> counts = <String, int>{};
+    for (final GameItem e in slots) {
+      final String k = '${e.typeId}_${e.colorId}';
+      counts[k] = (counts[k] ?? 0) + 1;
+    }
+    for (final GameItem e in slots) {
+      final String k = '${e.typeId}_${e.colorId}';
+      if ((counts[k] ?? 0) == 2) {
+        return (typeId: e.typeId, colorId: e.colorId);
+      }
+    }
+    return null;
+  }
 }

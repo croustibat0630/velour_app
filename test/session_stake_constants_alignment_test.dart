@@ -2,7 +2,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:velour_app/game/session_stake_constants.dart';
 import 'package:velour_app/game/session_stake_resolution.dart';
 import 'package:velour_app/providers/game_state.dart';
-import 'package:velour_app/providers/game_state_types.dart';
 
 void main() {
   test('GameState expose les mêmes valeurs que SessionStakeConstants', () {

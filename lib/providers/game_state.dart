@@ -9,6 +9,7 @@ import 'game_state_types.dart';
 export 'game_state_types.dart';
 
 import '../game/board_config.dart';
+import '../game/board_layout_logic.dart';
 import '../game/board_spawn_logic.dart';
 import '../game/forge_shop_logic.dart';
 import '../game/match_scoring.dart';
@@ -1484,7 +1485,8 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
       final bool spawnBiasActive =
           !isInitialSeed && _gameLevel > 1 && timeBar.value < 0.8;
       if (spawnBiasActive && _rng.nextDouble() < 0.3) {
-        final ({int typeId, int colorId})? pair = _slotPairNeedingThirdCopy();
+        final ({int typeId, int colorId})? pair =
+            RackLogic.slotPairNeedingThirdCopy(_slotItems);
         if (pair != null) {
           typeId = pair.typeId;
           colorId = pair.colorId;
@@ -1539,125 +1541,38 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     );
   }
 
-  double get _cellPitch => itemSize + _gridGap;
+  double get _cellPitch =>
+      BoardLayoutLogic.cellPitch(itemSize, _gridGap);
 
   Rect _boardSpawnRect() {
     final Rect? pz = _playZoneRect;
     if (pz == null || pz.isEmpty) return Rect.zero;
-    final double top = math.min(
-      math.max(pz.top, _boardSpawnMinY),
-      math.max(pz.top, pz.bottom - itemSize),
+    return BoardLayoutLogic.boardSpawnRect(
+      playZone: pz,
+      boardSpawnMinY: _boardSpawnMinY,
+      itemSize: itemSize,
     );
-    return Rect.fromLTRB(pz.left, top, pz.right, pz.bottom);
-  }
-
-  int _maxCol(Rect sb) {
-    final double pitch = _cellPitch;
-    if (sb.width < itemSize) return 0;
-    return math.max(0, ((sb.width - itemSize) / pitch).floor());
-  }
-
-  int _maxRow(Rect sb) {
-    final double pitch = _cellPitch;
-    if (sb.height < itemSize) return 0;
-    return math.max(0, ((sb.height - itemSize) / pitch).floor());
   }
 
   Offset _topLeftForCell(int col, int row) {
-    final Rect sb = _boardSpawnRect();
-    return Offset(sb.left + col * _cellPitch, sb.top + row * _cellPitch);
-  }
-
-  bool _cellValid(int col, int row) {
-    final Offset p = _topLeftForCell(col, row);
-    final Rect item = Rect.fromLTWH(p.dx, p.dy, itemSize, itemSize);
-    final Rect sb = _boardSpawnRect();
-    if (item.left < sb.left - 1e-6 ||
-        item.top < sb.top - 1e-6 ||
-        item.right > sb.right + 1e-6 ||
-        item.bottom > sb.bottom + 1e-6) {
-      return false;
-    }
-    if (_luxSafeRect.overlaps(item)) return false;
-    return true;
-  }
-
-  bool _cellOccupied(int col, int row) {
-    final Rect sb = _boardSpawnRect();
-    final double pitch = _cellPitch;
-    for (final e in _boardItems) {
-      final int ec = ((e.position.dx - sb.left) / pitch).round();
-      final int er = ((e.position.dy - sb.top) / pitch).round();
-      if (ec == col && er == row) return true;
-    }
-    return false;
+    return BoardLayoutLogic.topLeftForCell(
+      _boardSpawnRect(),
+      _cellPitch,
+      col,
+      row,
+    );
   }
 
   Offset _findNonOverlappingGridTopLeft() {
-    final Rect sb = _boardSpawnRect();
-    if (sb.isEmpty || sb.width < itemSize || sb.height < itemSize) {
-      final Rect? pz = _playZoneRect;
-      return pz != null ? Offset(pz.left, sb.top) : Offset.zero;
-    }
-
-    final int mc = _maxCol(sb);
-    final int mr = _maxRow(sb);
-
-    for (int t = 0; t < 90; t++) {
-      final int col = _rng.nextInt(mc + 1);
-      final int row = _rng.nextInt(mr + 1);
-      if (!_cellValid(col, row)) continue;
-      if (_cellOccupied(col, row)) continue;
-      return _topLeftForCell(col, row);
-    }
-
-    for (int row = 0; row <= mr; row++) {
-      for (int col = 0; col <= mc; col++) {
-        if (_cellValid(col, row) && !_cellOccupied(col, row)) {
-          return _topLeftForCell(col, row);
-        }
-      }
-    }
-
-    return _randomFreeGridTopLeft();
-  }
-
-  Offset _randomFreeGridTopLeft() {
-    final Rect sb = _boardSpawnRect();
-    if (sb.isEmpty) {
-      final Rect? pz = _playZoneRect;
-      return pz != null ? pz.topLeft : Offset.zero;
-    }
-    final int mc = _maxCol(sb);
-    final int mr = _maxRow(sb);
-    final List<Offset> free = <Offset>[];
-    for (int row = 0; row <= mr; row++) {
-      for (int col = 0; col <= mc; col++) {
-        if (_cellValid(col, row) && !_cellOccupied(col, row)) {
-          free.add(_topLeftForCell(col, row));
-        }
-      }
-    }
-    if (free.isEmpty) {
-      return Offset(sb.left, sb.top);
-    }
-    return free[_rng.nextInt(free.length)];
-  }
-
-  /// Deux pièces « identiques » = même [typeId] + [colorId] (les [id] sont uniques).
-  ({int typeId, int colorId})? _slotPairNeedingThirdCopy() {
-    final Map<String, int> counts = <String, int>{};
-    for (final GameItem e in _slotItems) {
-      final String k = '${e.typeId}_${e.colorId}';
-      counts[k] = (counts[k] ?? 0) + 1;
-    }
-    for (final GameItem e in _slotItems) {
-      final String k = '${e.typeId}_${e.colorId}';
-      if ((counts[k] ?? 0) == 2) {
-        return (typeId: e.typeId, colorId: e.colorId);
-      }
-    }
-    return null;
+    return BoardLayoutLogic.findNonOverlappingGridTopLeft(
+      playZone: _playZoneRect,
+      luxSafeRect: _luxSafeRect,
+      boardSpawnMinY: _boardSpawnMinY,
+      itemSize: itemSize,
+      gridGap: _gridGap,
+      boardGemTopLefts: _boardItems.map((GameItem e) => e.position).toList(),
+      rng: _rng,
+    );
   }
 
   void _insertIncomingSlotItem(GameItem incoming) {

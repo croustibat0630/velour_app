@@ -2,9 +2,7 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // --- FONCTIONS DE SÉCURITÉ ---
-    
+
     function isSignedIn() {
       return request.auth != null;
     }
@@ -13,33 +11,86 @@ service cloud.firestore {
       return request.auth.uid == userId;
     }
 
-    // Vérifie que le score ne fait qu'augmenter
-    function isValidScoreUpdate() {
-      let oldScore = resource.data.highScore;
-      let newScore = request.resource.data.highScore;
-      return newScore >= oldScore;
+    /// highScore ne baisse pas ; plafond anti-valeurs absurdes.
+    function isValidHighScore() {
+      let oldH = resource.data.get('highScore', 0);
+      let newH = request.resource.data.get('highScore', oldH);
+      return newH is int
+        && newH >= oldH
+        && newH >= 0
+        && newH <= 100000000;
     }
 
-    // Vérifie que l'inventaire ne fait que s'étendre (pas de suppression)
-    function isInventoryExtended() {
-      return request.resource.data.inventory.hasAll(resource.data.inventory);
+    /// Inventaire : pas de retrait d’éléments (merge / arrayUnion côté client).
+    function isInventoryMonotone() {
+      let oldInv = resource.data.get('inventory', []);
+      let newInv = request.resource.data.get('inventory', oldInv);
+      return oldInv is list
+        && newInv is list
+        && newInv.hasAll(oldInv)
+        && newInv.size() <= 200;
     }
 
-    // --- RÈGLES POUR LA COLLECTION PLAYERS ---
+    /// totalLux toujours entier ≥ 0 (merge conserve la clé si absente du patch).
+    function isValidTotalLux() {
+      let v = request.resource.data.get('totalLux', resource.data.get('totalLux', 0));
+      return v is int && v >= 0 && v <= 2000000000;
+    }
 
+    /// Aligné sur [OraclePseudo] : 1–15 caractères [A-Za-z0-9_].
+    function isValidPseudoIfPresent() {
+      return !request.resource.data.keys().hasAny(['pseudo'])
+        || (request.resource.data.pseudo is string
+            && request.resource.data.pseudo.size() >= 1
+            && request.resource.data.pseudo.size() <= 15
+            && request.resource.data.pseudo.matches('^[a-zA-Z0-9_]+$'));
+    }
+
+    function isValidActiveSkinIdIfPresent() {
+      return !request.resource.data.keys().hasAny(['activeSkinId'])
+        || (request.resource.data.activeSkinId is string
+            && request.resource.data.activeSkinId.size() > 0
+            && request.resource.data.activeSkinId.size() <= 64);
+    }
+
+    /// Création profil (auth anonyme + doc initial).
     match /players/{userId} {
-      // Tout le monde peut lire le profil (pour le Leaderboard)
       allow read: if true;
 
-      // Création du profil initial
-      allow create: if isSignedIn() && isOwner(userId);
-
-      // Mise à jour sécurisée
-      allow update: if isSignedIn() 
+      allow create: if isSignedIn()
         && isOwner(userId)
-        && isValidScoreUpdate()
-        && isInventoryExtended()
-        && request.resource.data.totalLux >= 0;
+        && request.resource.data.keys().hasOnly([
+          'highScore',
+          'totalLux',
+          'inventory',
+          'activeSkinId',
+          'lastSeen',
+          'updatedAt',
+        ])
+        && request.resource.data.highScore is int
+        && request.resource.data.highScore >= 0
+        && request.resource.data.highScore <= 100000000
+        && request.resource.data.totalLux is int
+        && request.resource.data.totalLux >= 0
+        && request.resource.data.totalLux <= 2000000000
+        && request.resource.data.inventory is list
+        && request.resource.data.inventory.size() > 0
+        && request.resource.data.inventory.size() <= 200
+        && request.resource.data.activeSkinId is string
+        && request.resource.data.activeSkinId.size() > 0
+        && request.resource.data.activeSkinId.size() <= 64
+        && request.resource.data.lastSeen is timestamp
+        && request.resource.data.updatedAt is timestamp;
+
+      allow update: if isSignedIn()
+        && isOwner(userId)
+        && isValidHighScore()
+        && isInventoryMonotone()
+        && isValidTotalLux()
+        && isValidPseudoIfPresent()
+        && isValidActiveSkinIdIfPresent();
+
+      allow delete: if false;
     }
   }
 }

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
@@ -21,7 +22,12 @@ typedef PlayerCloudPull = ({
 });
 
 /// Réponse de la callable [velourApplyLuxDelta] (`functions/src/index.ts`).
-typedef LuxDeltaApplyResult = ({bool ok, int? newLux});
+typedef LuxDeltaApplyResult = ({
+  bool ok,
+  int? newLux,
+  int? prevLux,
+  int? appliedDelta,
+});
 
 /// Accès Firestore / auth anonyme pour le profil joueur et le classement.
 ///
@@ -33,6 +39,9 @@ class FirestoreService {
 
   /// Même région que les callables dans `functions/src/index.ts`.
   static const String cloudFunctionsRegion = 'europe-west3';
+
+  /// Au-delà : log [VelourObservability.logEconomySecurity] (bootstrap LUX).
+  static const int maxBootstrapLuxDeltaSingleLog = 50000;
 
   /// Lazy : ne pas toucher Firebase au premier accès à [instance] (tests sans init).
   FirebaseFirestore get _db => FirebaseFirestore.instance;
@@ -292,8 +301,8 @@ class FirestoreService {
     return (luxCoins: lux, highScore: hs);
   }
 
+  /// Pousse inventaire / skin / high score — **pas** `totalLux` (réservé aux callables).
   Future<void> pushMergedPlayerProgress({
-    required int totalLux,
     required int highScore,
     required List<String> inventory,
     required String activeSkinId,
@@ -303,7 +312,6 @@ class FirestoreService {
     try {
       await _firestoreRetry(() async {
         await ref.set(<String, dynamic>{
-          'totalLux': totalLux,
           'highScore': highScore,
           'inventory': inventory,
           'activeSkinId': activeSkinId,
@@ -345,28 +353,63 @@ class FirestoreService {
     }
   }
 
-  Future<void> syncLuxToCloud(int amount) async {
-    final DocumentReference<Map<String, dynamic>>? ref = _playerRef;
-    if (!_authReady || ref == null) {
-      _pendingCloudLuxCoins = amount;
-      return;
-    }
-    try {
-      await _firestoreRetry(() async {
-        await ref.set(<String, dynamic>{
-          'totalLux': amount,
-          'lastSeen': FieldValue.serverTimestamp(),
-        }, SetOptions(merge: true));
-      });
-    } catch (e, st) {
-      VelourObservability.logFirestoreFailure(
-        'syncLuxToCloud',
-        error: e,
-        stackTrace: st,
-        context: <String, Object?>{'amount': amount},
+  /// Indice pour le prochain merge local (échec callable / auth tardive).
+  void queuePendingLuxCloudHint(int absoluteLuxCoinsHint) {
+    final int prev = _pendingCloudLuxCoins ?? 0;
+    _pendingCloudLuxCoins = math.max(prev, absoluteLuxCoinsHint);
+  }
+
+  /// Morceau de delta autorisé par appel [velourApplyLuxDelta] (aligné sur la CF).
+  static int chunkLuxDeltaForCallable(int delta) {
+    if (delta == 0) return 0;
+    if (delta > 0) return math.min(delta, 2500);
+    return math.max(delta, -500000);
+  }
+
+  /// Régularise le solde serveur vers [targetMergedLux] après bootstrap (chunks callables).
+  Future<bool> reconcileBootstrapLuxAgainstSnapshot({
+    required int targetMergedLux,
+    required int cloudLuxSnapshot,
+  }) async {
+    if (!_authReady || _uid == null) return false;
+    int serverCursor = math.max(0, cloudLuxSnapshot);
+    final int gap = (targetMergedLux - cloudLuxSnapshot).abs();
+    if (gap > maxBootstrapLuxDeltaSingleLog) {
+      VelourObservability.logEconomySecurity(
+        'bootstrap_lux_gap_suspicious',
+        data: <String, Object?>{
+          'target': targetMergedLux,
+          'cloudSnap': cloudLuxSnapshot,
+          'gap': gap,
+        },
       );
-      _pendingCloudLuxCoins = amount;
     }
+    for (
+      int iter = 0;
+      iter < 10000 && serverCursor != targetMergedLux;
+      iter++
+    ) {
+      final int rawDelta = targetMergedLux - serverCursor;
+      if (rawDelta == 0) break;
+      final int step = chunkLuxDeltaForCallable(rawDelta);
+      if (step == 0) break;
+      final LuxDeltaApplyResult? r = await tryApplyLuxDeltaViaCallable(step);
+      if (r == null || !r.ok) {
+        VelourObservability.logEconomySecurity(
+          'bootstrap_lux_reconcile_callable_failed',
+          data: <String, Object?>{
+            'step': step,
+            'serverCursor': serverCursor,
+            'target': targetMergedLux,
+          },
+        );
+        return false;
+      }
+      final int? n = r.newLux;
+      final int applied = r.appliedDelta ?? step;
+      serverCursor = n ?? (serverCursor + applied);
+    }
+    return serverCursor == targetMergedLux;
   }
 
   /// `true` si le dialogue peut se fermer (succès ou hors-ligne volontaire).
@@ -432,10 +475,10 @@ class FirestoreService {
   /// Applique un delta LUX en transaction serveur ([velourApplyLuxDelta]).
   ///
   /// Retourne `null` si l’appel est impossible (pas d’auth, hors ligne, fonction non
-  /// déployée) — l’appelant bascule alors sur [syncLuxToCloud] (écriture directe).
+  /// déployée).
   Future<LuxDeltaApplyResult?> tryApplyLuxDeltaViaCallable(int delta) async {
     if (delta == 0) {
-      return (ok: true, newLux: null);
+      return (ok: true, newLux: null, prevLux: null, appliedDelta: 0);
     }
     if (!_authReady || _uid == null) {
       return null;
@@ -449,20 +492,32 @@ class FirestoreService {
         'velourApplyLuxDelta',
         options: HttpsCallableOptions(timeout: const Duration(seconds: 25)),
       );
-      final HttpsCallableResult res = await callable.call(
-        <String, dynamic>{'delta': delta},
-      );
+      final HttpsCallableResult res = await callable.call(<String, dynamic>{
+        'delta': delta,
+      });
       final Object? data = res.data;
       if (data is! Map) {
-        return (ok: false, newLux: null);
+        return (ok: false, newLux: null, prevLux: null, appliedDelta: null);
       }
       final Map<String, dynamic> raw = Map<String, dynamic>.from(data);
       final bool ok = raw['ok'] == true;
       final int? newLux = (raw['newLux'] as num?)?.toInt();
+      final int? prevLux = (raw['prevLux'] as num?)?.toInt();
+      final int? appliedDelta = (raw['appliedDelta'] as num?)?.toInt();
       if (!ok) {
-        return (ok: false, newLux: newLux);
+        return (
+          ok: false,
+          newLux: newLux,
+          prevLux: prevLux,
+          appliedDelta: appliedDelta,
+        );
       }
-      return (ok: true, newLux: newLux);
+      return (
+        ok: true,
+        newLux: newLux,
+        prevLux: prevLux,
+        appliedDelta: appliedDelta,
+      );
     } on FirebaseFunctionsException catch (e, st) {
       VelourObservability.logFirestoreFailure(
         'velourApplyLuxDelta',

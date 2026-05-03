@@ -46,7 +46,6 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
       await _economy.flushCloudSyncOnLifecycleHide();
       if (FirestoreService.instance.isCloudReady) {
         await FirestoreService.instance.pushMergedPlayerProgress(
-          totalLux: _economy.luxCoins,
           highScore: _economy.highScore,
           inventory: List<String>.from(_unlockedSkins),
           activeSkinId: _activeSkinId,
@@ -91,6 +90,10 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
       final ({int? luxCoins, int? highScore}) pending = FirestoreService
           .instance
           .consumePendingCloudSyncHints();
+      final int cloudLuxSnapshot = math.max(
+        pulled.cloudLuxCoins,
+        pending.luxCoins ?? 0,
+      );
       await _economy.mergeBootstrapFromCloud(
         pulled: pulled,
         pendingLux: pending.luxCoins,
@@ -124,8 +127,12 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
       await _persistSkinsLocal();
       notifyListeners();
 
+      await FirestoreService.instance.reconcileBootstrapLuxAgainstSnapshot(
+        targetMergedLux: _economy.luxCoins,
+        cloudLuxSnapshot: cloudLuxSnapshot,
+      );
+
       await FirestoreService.instance.pushMergedPlayerProgress(
-        totalLux: _economy.luxCoins,
         highScore: _economy.highScore,
         inventory: List<String>.from(_unlockedSkins),
         activeSkinId: _activeSkinId,

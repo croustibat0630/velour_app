@@ -6,6 +6,21 @@ import 'dart:developer' as developer;
 /// future (export vers backend, taux d’erreur, etc.).
 abstract final class VelourObservability {
   static const String _logName = 'velour.firestore';
+  static const String _economySecurity = 'velour.economy.security';
+
+  /// Événements LUX / bootstrap jugés anormaux (audit côté client).
+  static void logEconomySecurity(
+    String event, {
+    Map<String, Object?> data = const {},
+  }) {
+    final String payload = data.entries
+        .map((e) => '${e.key}=${e.value}')
+        .join(' ');
+    developer.log(
+      payload.isEmpty ? event : '$event $payload',
+      name: _economySecurity,
+    );
+  }
 
   static void logFirestoreFailure(
     String operation, {

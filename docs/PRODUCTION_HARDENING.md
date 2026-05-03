@@ -15,7 +15,7 @@ Document de référence pour la mise à niveau « appli sérieuse » : sécurit�
 
 **Référence code :** `functions/src/index.ts` — callables **`velourHealth`** (ping) et **`velourApplyLuxDelta`** (transaction LUX sur `players/{uid}`, région `europe-west3`).
 
-**Client Flutter :** `EconomyService` envoie les variations LUX via `FirestoreService.tryApplyLuxDeltaViaCallable` ; en cas d’échec (fonction non déployée, hors ligne, etc.) repli automatique sur `syncLuxToCloud` (écriture Firestore directe).
+**Client Flutter :** `EconomyService` envoie les variations LUX uniquement via `FirestoreService.tryApplyLuxDeltaViaCallable` ; les règles Firestore **interdisent** toute mise à jour client du champ `totalLux`. En cas d’échec callable : log `velour.economy.security` + `queuePendingLuxCloudHint` pour le prochain merge.
 
 ### Déploiement staging (règles + functions)
 

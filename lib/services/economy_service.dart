@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 
 import '../providers/game_state_local_store.dart';
 import 'firestore_service.dart';
+import 'velour_observability.dart';
 
 void _economyLog(String event, {Map<String, Object?> data = const {}}) {
   final String payload = data.entries
@@ -21,8 +22,8 @@ void _economyLog(String event, {Map<String, Object?> data = const {}}) {
 ///
 /// Extrait du [GameState] (strangler) : ne contient pas la logique plateau / match.
 ///
-/// Synchronisation LUX cloud : priorité à la callable **`velourApplyLuxDelta`**
-/// (transaction serveur) ; repli sur [FirestoreService.syncLuxToCloud] si besoin.
+/// Synchronisation LUX cloud : uniquement la callable **`velourApplyLuxDelta`**
+/// (économie server-authoritative — pas d’écriture Firestore client sur `totalLux`).
 class EconomyService extends ChangeNotifier {
   EconomyService({GameStateLocalStore? localStore})
     : _local = localStore ?? const GameStateLocalStore();
@@ -209,7 +210,6 @@ class EconomyService extends ChangeNotifier {
 
     await _persistLuxCoins();
     await _drainPendingLuxCloudSync();
-    await _syncLuxToCloud(_luxCoins);
     if (_highScoreLoaded) {
       await _syncHighScoreToCloud(_highScore);
     }
@@ -252,32 +252,34 @@ class EconomyService extends ChangeNotifier {
     });
   }
 
-  /// Vide le tampon de deltas LUX (callable puis repli absolu Firestore si besoin).
+  /// Vide le tampon de deltas LUX via la callable (chunks côté serveur si plafond).
   Future<void> _drainPendingLuxCloudSync() async {
     while (_pendingLuxDeltaForCloud != 0) {
       final int d = _pendingLuxDeltaForCloud;
-      final LuxDeltaApplyResult? r =
-          await FirestoreService.instance.tryApplyLuxDeltaViaCallable(d);
+      final LuxDeltaApplyResult? r = await FirestoreService.instance
+          .tryApplyLuxDeltaViaCallable(d);
       if (r != null && r.ok) {
-        _pendingLuxDeltaForCloud -= d;
+        final int applied = r.appliedDelta ?? d;
+        _pendingLuxDeltaForCloud -= applied;
         final int? serverLux = r.newLux;
         if (serverLux != null && serverLux != _luxCoins) {
-          _luxCoins = serverLux;
+          _luxCoins = math.max(_luxCoins, serverLux);
           await _persistLuxCoins();
           notifyListeners();
         }
-        _economyLog('lux_cloud_delta_ok', data: {'delta': d, 'lux': _luxCoins});
+        _economyLog(
+          'lux_cloud_delta_ok',
+          data: {'requested': d, 'applied': applied, 'lux': _luxCoins},
+        );
       } else {
-        await _syncLuxToCloud(_luxCoins);
-        _pendingLuxDeltaForCloud = 0;
-        _economyLog('lux_cloud_delta_fallback', data: {'lux': _luxCoins});
+        VelourObservability.logEconomySecurity(
+          'lux_cloud_drain_failed',
+          data: <String, Object?>{'pending': d, 'lux': _luxCoins},
+        );
+        FirestoreService.instance.queuePendingLuxCloudHint(_luxCoins);
         break;
       }
     }
-  }
-
-  Future<void> _syncLuxToCloud(int amount) async {
-    await FirestoreService.instance.syncLuxToCloud(amount);
   }
 
   Future<void> _syncHighScoreToCloud(int score) async {

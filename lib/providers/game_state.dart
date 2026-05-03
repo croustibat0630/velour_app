@@ -1476,40 +1476,41 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
 
     for (int i = 0; i < count; i++) {
       final String id = _nextId();
-      // Shape + color scale with difficulty tier (`numberOfGemTypes`).
       final int maxShapeId = numberOfGemTypes;
-      int typeId = 1 + _rng.nextInt(maxShapeId);
-      int colorId = _pickColorId();
+      final int typeId;
+      final int colorId;
 
-      // V2 : biais de complétion (2× même type+couleur en slots → 30 % de forcer le 3e).
-      final bool spawnBiasActive =
-          !isInitialSeed && _gameLevel > 1 && timeBar.value < 0.8;
-      if (spawnBiasActive && _rng.nextDouble() < 0.3) {
-        final ({int typeId, int colorId})? pair =
-            RackLogic.slotPairNeedingThirdCopy(_slotItems);
-        if (pair != null) {
-          typeId = pair.typeId;
-          colorId = pair.colorId;
+      if (isInitialSeed) {
+        final ({int typeId, int colorId}) rolled =
+            BoardSpawnLogic.rollInitialSeedGem(
+          maxShapeId: maxShapeId,
+          shapeCounts: shapeCounts,
+          colorCounts: colorCounts,
+          rng: _rng,
+          nextColorId: _pickColorId,
+        );
+        typeId = rolled.typeId;
+        colorId = rolled.colorId;
+      } else {
+        final int t0 = 1 + _rng.nextInt(maxShapeId);
+        final int c0 = _pickColorId();
+        final bool spawnBiasActive =
+            _gameLevel > 1 && timeBar.value < 0.8;
+        final ({int typeId, int colorId}) biased =
+            BoardSpawnLogic.maybeApplySlotCompletionBias(
+          typeId: t0,
+          colorId: c0,
+          biasMayApply: spawnBiasActive,
+          roll01: _rng.nextDouble(),
+          pair: RackLogic.slotPairNeedingThirdCopy(_slotItems),
+        );
+        if (biased.typeId != t0 || biased.colorId != c0) {
           velourDebug(
-            '[Velour][Spawn] biais complétion 30% → type=$typeId color=$colorId',
+            '[Velour][Spawn] biais complétion 30% → type=${biased.typeId} color=${biased.colorId}',
           );
         }
-      }
-
-      colorId = BoardSpawnLogic.clampTriangleColor(typeId, colorId);
-      if (isInitialSeed) {
-        // Avoid too many identical shapes/colors on first board (readability + no freebies).
-        int tries = 0;
-        while (((shapeCounts[typeId] ?? 0) >= 2 ||
-                (colorCounts[colorId] ?? 0) >= 2) &&
-            tries < 36) {
-          typeId = 1 + _rng.nextInt(maxShapeId);
-          colorId = _pickColorId();
-          colorId = BoardSpawnLogic.clampTriangleColor(typeId, colorId);
-          tries++;
-        }
-        shapeCounts[typeId] = (shapeCounts[typeId] ?? 0) + 1;
-        colorCounts[colorId] = (colorCounts[colorId] ?? 0) + 1;
+        typeId = biased.typeId;
+        colorId = BoardSpawnLogic.clampTriangleColor(typeId, biased.colorId);
       }
       final Offset pos = _findNonOverlappingGridTopLeft();
       _boardItems.add(

@@ -39,4 +39,84 @@ void main() {
     );
     expect(c2, inInclusiveRange(1, 5));
   });
+
+  group('maybeApplySlotCompletionBias', () {
+    test('golden: biais actif + roll bas + paire → reprend la paire', () {
+      final ({int typeId, int colorId}) r =
+          BoardSpawnLogic.maybeApplySlotCompletionBias(
+        typeId: 9,
+        colorId: 9,
+        biasMayApply: true,
+        roll01: 0.1,
+        pair: (typeId: 2, colorId: 3),
+      );
+      expect(r.typeId, 2);
+      expect(r.colorId, 3);
+    });
+
+    test('golden: roll au-dessus du seuil → inchangé', () {
+      final ({int typeId, int colorId}) r =
+          BoardSpawnLogic.maybeApplySlotCompletionBias(
+        typeId: 1,
+        colorId: 2,
+        biasMayApply: true,
+        roll01: BoardSpawnLogic.spawnCompletionBiasChance + 0.01,
+        pair: (typeId: 9, colorId: 9),
+      );
+      expect(r.typeId, 1);
+      expect(r.colorId, 2);
+    });
+
+    test('golden: biais désactivé → jamais la paire', () {
+      final ({int typeId, int colorId}) r =
+          BoardSpawnLogic.maybeApplySlotCompletionBias(
+        typeId: 1,
+        colorId: 2,
+        biasMayApply: false,
+        roll01: 0.0,
+        pair: (typeId: 9, colorId: 9),
+      );
+      expect(r.typeId, 1);
+      expect(r.colorId, 2);
+    });
+
+    test('golden: pas de paire → inchangé même si roll bas', () {
+      final ({int typeId, int colorId}) r =
+          BoardSpawnLogic.maybeApplySlotCompletionBias(
+        typeId: 4,
+        colorId: 4,
+        biasMayApply: true,
+        roll01: 0.0,
+        pair: null,
+      );
+      expect(r.typeId, 4);
+      expect(r.colorId, 4);
+    });
+  });
+
+  group('rollInitialSeedGem', () {
+    test('golden: deux gemmes → chaque compteur forme/couleur ≤ 2', () {
+      final Map<int, int> shape = <int, int>{};
+      final Map<int, int> color = <int, int>{};
+      final Random rng = Random(99);
+      for (int i = 0; i < 2; i++) {
+        BoardSpawnLogic.rollInitialSeedGem(
+          maxShapeId: 4,
+          shapeCounts: shape,
+          colorCounts: color,
+          rng: rng,
+          nextColorId: () => 1,
+        );
+      }
+      expect(shape.values.fold<int>(0, (int a, int b) => a + b), 2);
+      expect(color.values.fold<int>(0, (int a, int b) => a + b), 2);
+      for (final int v in shape.values) {
+        expect(v, lessThanOrEqualTo(2));
+      }
+      for (final int v in color.values) {
+        expect(v, lessThanOrEqualTo(2));
+      }
+    });
+
+  });
 }

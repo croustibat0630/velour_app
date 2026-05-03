@@ -1,3 +1,4 @@
+import 'session_stake_constants.dart';
 import '../providers/game_state_types.dart';
 
 /// Résultat de la résolution des mises premium en fin de run (logique pure, testable).
@@ -15,15 +16,14 @@ class SessionStakeResolution {
 
 /// Applique les règles High Stakes / Royal à la fin d’une session (niveau atteint vs objectif).
 ///
-/// Les constantes numériques restent sur [GameState] côté UI ; ici on duplique les seuils
-/// pour garder ce module autonome (aligné avec `GameState.highStakesTargetLevel`, etc.).
+/// Les défauts numériques viennent de [SessionStakeConstants] (source unique).
 SessionStakeResolution resolveSessionStakeOnGameOver({
   required SessionStakeKind sessionStake,
   required int gameLevel,
-  int highStakesTargetLevel = 3,
-  int royalTargetLevel = 5,
-  int highStakesWinLux = 150,
-  int royalWinLux = 1250,
+  int highStakesTargetLevel = SessionStakeConstants.highStakesTargetLevel,
+  int royalTargetLevel = SessionStakeConstants.royalTargetLevel,
+  int highStakesWinLux = SessionStakeConstants.highStakesWinLux,
+  int royalWinLux = SessionStakeConstants.royalWinLux,
 }) {
   final SessionStakeKind ended = sessionStake;
 

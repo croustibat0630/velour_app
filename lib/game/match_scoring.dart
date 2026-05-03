@@ -1,3 +1,4 @@
+import 'session_stake_constants.dart';
 import '../providers/game_state_types.dart';
 
 /// Règles LUX pures pour un match (hors persistance / UI).
@@ -17,8 +18,8 @@ abstract final class MatchScoring {
   static double sessionScoreMultiplier(
     SessionStakeKind stake,
     int gameLevel, {
-    int highStakesTargetLevel = 3,
-    int royalTargetLevel = 5,
+    int highStakesTargetLevel = SessionStakeConstants.highStakesTargetLevel,
+    int royalTargetLevel = SessionStakeConstants.royalTargetLevel,
   }) {
     return switch (stake) {
       SessionStakeKind.highStakes =>

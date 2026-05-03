@@ -9,10 +9,12 @@ import 'game_state_types.dart';
 export 'game_state_types.dart';
 
 import '../game/board_config.dart';
+import '../game/board_spawn_logic.dart';
 import '../game/forge_shop_logic.dart';
 import '../game/match_scoring.dart';
 import '../game/match_feedback.dart';
 import '../game/rack_logic.dart';
+import '../game/session_stake_constants.dart';
 import '../game/session_stake_resolution.dart';
 import '../game/tutorial_board_placer.dart';
 import '../models/game_item.dart';
@@ -596,12 +598,13 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
   /// Prime royale : bonus LUX sur la prochaine **victoire** Royal uniquement.
   static const int forgeRoyalBountyPriceLux = 350;
   static const int forgeRoyalBountyBonusLux = 200;
-  static const int highStakesWinLux = 150;
-  static const int highStakesTargetLevel = 3;
+  static const int highStakesWinLux = SessionStakeConstants.highStakesWinLux;
+  static const int highStakesTargetLevel =
+      SessionStakeConstants.highStakesTargetLevel;
 
-  static const int royalAnteLux = 250;
-  static const int royalWinLux = 1250;
-  static const int royalTargetLevel = 5;
+  static const int royalAnteLux = SessionStakeConstants.royalAnteLux;
+  static const int royalWinLux = SessionStakeConstants.royalWinLux;
+  static const int royalTargetLevel = SessionStakeConstants.royalTargetLevel;
 
   /// Recharge chrono pleine une fois quand le temps atteint zéro (hors tutoriels).
   static const int forgeChronoPulsePriceLux = 175;
@@ -1491,10 +1494,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
         }
       }
 
-      // Final clarity: triangle is always ice-cyan.
-      if (typeId == 3) {
-        colorId = 1;
-      }
+      colorId = BoardSpawnLogic.clampTriangleColor(typeId, colorId);
       if (isInitialSeed) {
         // Avoid too many identical shapes/colors on first board (readability + no freebies).
         int tries = 0;
@@ -1503,9 +1503,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
             tries < 36) {
           typeId = 1 + _rng.nextInt(maxShapeId);
           colorId = _pickColorId();
-          if (typeId == 3) {
-            colorId = 1;
-          }
+          colorId = BoardSpawnLogic.clampTriangleColor(typeId, colorId);
           tries++;
         }
         shapeCounts[typeId] = (shapeCounts[typeId] ?? 0) + 1;
@@ -1526,11 +1524,6 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   int _pickColorId() {
-    final int maxColorId = numberOfGemTypes;
-    if (maxColorId <= 3) {
-      return 1 + _rng.nextInt(maxColorId);
-    }
-
     final Map<int, int> counts = <int, int>{};
     for (final e in _boardItems) {
       counts[e.colorId] = (counts[e.colorId] ?? 0) + 1;
@@ -1538,21 +1531,12 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     for (final e in _slotItems) {
       counts[e.colorId] = (counts[e.colorId] ?? 0) + 1;
     }
-
-    final List<double> w = List<double>.generate(maxColorId, (i) {
-      final int id = i + 1;
-      final int c = counts[id] ?? 0;
-      final double bias = (_gameLevel >= 7) ? 1.35 : 1.15;
-      return bias / (1.0 + c.toDouble());
-    });
-
-    final double sum = w.fold(0.0, (a, b) => a + b);
-    double r = _rng.nextDouble() * sum;
-    for (int i = 0; i < maxColorId; i++) {
-      r -= w[i];
-      if (r <= 0) return i + 1;
-    }
-    return 1;
+    return BoardSpawnLogic.pickWeightedColorId(
+      maxColorId: numberOfGemTypes,
+      gameLevel: _gameLevel,
+      colorPopulationCounts: counts,
+      rng: _rng,
+    );
   }
 
   double get _cellPitch => itemSize + _gridGap;

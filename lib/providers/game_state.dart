@@ -8,14 +8,17 @@ import 'game_state_local_store.dart';
 import 'game_state_types.dart';
 export 'game_state_types.dart';
 
-import '../game/oracle_pseudo.dart';
 import '../game/session_stake_resolution.dart';
+import '../game/tutorial_board_placer.dart';
 import '../models/game_item.dart';
 import '../models/skin_config.dart';
 import '../services/audio_handler.dart';
 import '../services/economy_service.dart';
 import '../services/firestore_service.dart';
 import '../services/haptics_handler.dart';
+import '../services/narrative_tutorial_service.dart';
+import '../services/oracle_naming_service.dart';
+import '../services/trinity_tutorial_service.dart';
 import '../services/stats_service.dart';
 import '../widgets/ui/premium_alert_view.dart';
 
@@ -29,10 +32,30 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
   /// Aligné sur [EconomyService.welcomeLuxGrant] (API stable pour l’UI).
   static int get welcomeLuxGrant => EconomyService.welcomeLuxGrant;
 
+  late final NarrativeTutorialService _narrativeTutorial;
+  final TrinityTutorialService _trinityTutorial = TrinityTutorialService();
+  final OracleNamingService _oracleNaming = OracleNamingService();
+
   GameState() {
     _economy.addListener(notifyListeners);
-    _economy.onPersonalBestCommitted = _maybeTriggerOracleNamingCeremony;
+    _economy.onPersonalBestCommitted = _oracleNaming.maybeOfferForNewHighScore;
     WidgetsBinding.instance.addObserver(this);
+    _narrativeTutorial = NarrativeTutorialService(
+      onPersistTutorialComplete: _persistNarrativeTutorialComplete,
+      onExplosionShake: _narrativeExplosionShake,
+      refundTimeBarPortion: (double portion) {
+        timeBar.value = (timeBar.value + portion).clamp(0.0, 1.0);
+      },
+      setTimeBarFull: () {
+        timeBar.value = 1.0;
+      },
+      onReseedBoardAfterShapeTutorialMatch: _seedNarrativeStep2Board,
+      onReseedBoardAfterColorTutorialMatch: _seedNarrativeStep3Board,
+      onCelebrationStarted: () => HapticsHandler.instance.mediumImpact(),
+    );
+    _narrativeTutorial.addListener(notifyListeners);
+    _trinityTutorial.addListener(notifyListeners);
+    _oracleNaming.addListener(notifyListeners);
   }
 
   bool _cloudLifecycleFlushBusy = false;
@@ -140,45 +163,14 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     } catch (_) {}
   }
 
-  bool _shouldShowNamingDialog = false;
-  bool get shouldShowNamingDialog => _shouldShowNamingDialog;
+  bool get shouldShowNamingDialog => _oracleNaming.shouldShowDialog;
 
-  void dismissNamingDialog() {
-    if (!_shouldShowNamingDialog) return;
-    _shouldShowNamingDialog = false;
-    notifyListeners();
-  }
+  void dismissNamingDialog() => _oracleNaming.dismiss();
 
   /// Enregistre le pseudo Oracle sur Firestore. Ne propage **jamais** d’exception
   /// (évite un dialogue bloqué avec bouton « busy » infini).
   /// `true` si la cérémonie peut se fermer (succès cloud ou fermeture locale hors-ligne).
-  Future<bool> updateOracleName(String newName) async {
-    final String trimmed = newName.trim();
-    if (trimmed.isEmpty) return false;
-    if (!OraclePseudo.isValid(trimmed)) return false;
-    final String cleaned = OraclePseudo.normalizeForStorage(trimmed);
-
-    if (!FirestoreService.instance.isCloudReady) {
-      _shouldShowNamingDialog = false;
-      notifyListeners();
-      return true;
-    }
-    final bool ok = await FirestoreService.instance.updateOraclePseudo(cleaned);
-    if (ok) {
-      _shouldShowNamingDialog = false;
-      notifyListeners();
-    }
-    return ok;
-  }
-
-  Future<void> _maybeTriggerOracleNamingCeremony(int newHighScore) async {
-    if (_shouldShowNamingDialog) return;
-    final bool offer = await FirestoreService.instance
-        .shouldOfferOracleNamingForNewHighScore(newHighScore);
-    if (!offer) return;
-    _shouldShowNamingDialog = true;
-    notifyListeners();
-  }
+  Future<bool> updateOracleName(String newName) => _oracleNaming.submitName(newName);
 
   /// Stream classement mondial (Top 10) — best-effort. En cas d'erreur cloud,
   /// le StreamBuilder côté UI affichera un état vide.
@@ -233,8 +225,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
   int _matchesResolvedThisRun = 0;
 
   /// `true` une fois le tutoriel trinité terminé (prefs).
-  bool _trinityTutorialComplete = false;
-  bool get isTrinityTutorialComplete => _trinityTutorialComplete;
+  bool get isTrinityTutorialComplete => _trinityTutorial.isComplete;
 
   /// Première partie : séquence narrative guidée (prefs).
   /// `true` tant que l’overlay « première partie » n’a pas été validé (prefs).
@@ -242,143 +233,63 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
   bool _isFirstTimeGame = false;
   bool get isFirstTimeGame => _isFirstTimeGame;
 
-  NarrativeTutorialPhase _narrativePhase = NarrativeTutorialPhase.none;
-  NarrativeTutorialPhase get narrativePhase => _narrativePhase;
+  NarrativeTutorialPhase get narrativePhase => _narrativeTutorial.phase;
 
-  /// 0 = HUD masqué, 1 = score + LUX (dès le 1er gain), 2 = + temps, 3 = + niveau.
-  int _narrativeUiReveal = 0;
-  int get narrativeUiReveal => _narrativeUiReveal;
+  int get narrativeUiReveal => _narrativeTutorial.uiReveal;
 
-  /// Incrémenté une fois au 1er gain narratif : intro LUX (450 ms, fade + scale easeOutBack).
-  int _narrativeLuxIntroTick = 0;
-  int get narrativeLuxIntroTick => _narrativeLuxIntroTick;
+  int get narrativeLuxIntroTick => _narrativeTutorial.luxIntroTick;
 
-  final List<String> _narrativeTapOrder = <String>[];
-  int _narrativeTapProgress = 0;
+  int get narrativePerfectBannerTick => _narrativeTutorial.perfectBannerTick;
 
-  int _narrativePerfectBannerTick = 0;
-  int get narrativePerfectBannerTick => _narrativePerfectBannerTick;
-
-  /// Incrémenté après le tutoriel narratif : fondu d’entrée des gemmes du plateau.
-  int _postNarrativeSpawnFadeTick = 0;
-  int get postNarrativeSpawnFadeTick => _postNarrativeSpawnFadeTick;
-
-  Timer? _narrativeFinalizeTimer;
+  int get postNarrativeSpawnFadeTick => _narrativeTutorial.postSpawnFadeTick;
 
   bool get isNarrativeTutorialActive =>
-      _isFirstTimeGame && _narrativePhase != NarrativeTutorialPhase.none;
+      _isFirstTimeGame && _narrativeTutorial.phase != NarrativeTutorialPhase.none;
 
-  bool get _isNarrativeTutorialCoreSteps =>
-      _narrativePhase == NarrativeTutorialPhase.step1Shape ||
-      _narrativePhase == NarrativeTutorialPhase.step2Color ||
-      _narrativePhase == NarrativeTutorialPhase.step3Perfect;
+  bool get _isNarrativeTutorialCoreSteps => _narrativeTutorial.isCoreSteps;
 
-  /// Les 3 gemmes du palier narratif actuel (ordre de clic libre).
-  Set<String> get narrativeTrioIds {
-    if (!_isNarrativeTutorialCoreSteps) return const <String>{};
-    return Set<String>.from(_narrativeTapOrder);
-  }
+  Set<String> get narrativeTrioIds => _narrativeTutorial.trioIds;
 
-  /// Pulse simultané sur les 3 gemmes du tutoriel tant qu’il reste des clics.
-  bool narrativeGuideGemShouldPulse(String id) {
-    if (!_isNarrativeTutorialCoreSteps) return false;
-    if (_narrativeTapProgress >= _narrativeTapOrder.length) return false;
-    return _narrativeTapOrder.contains(id);
-  }
+  bool narrativeGuideGemShouldPulse(String id) =>
+      _narrativeTutorial.guideGemShouldPulse(id);
 
-  /// Ralenti du vol des gemmes (étape 3).
-  int get narrativeGemFlightMs =>
-      _narrativePhase == NarrativeTutorialPhase.step3Perfect ? 1400 : 400;
+  int get narrativeGemFlightMs => _narrativeTutorial.gemFlightMs;
 
-  int _narrativeRippleTick = 0;
-  int get narrativeRippleTick => _narrativeRippleTick;
-  Offset? _narrativeRippleCenter;
-  Offset? get narrativeRippleCenter => _narrativeRippleCenter;
+  int get narrativeRippleTick => _narrativeTutorial.rippleTick;
 
-  NarrativeGemGainFx? _narrativeGemGainFx;
-  int _narrativeGemGainTick = 0;
-  Timer? _narrativeGemGainClearTimer;
-  NarrativeGemGainFx? get narrativeGemGainFx => _narrativeGemGainFx;
-  int get narrativeGemGainTick => _narrativeGemGainTick;
+  Offset? get narrativeRippleCenter => _narrativeTutorial.rippleCenter;
 
-  /// 0 = étape forme, 1 = couleur, 2 = parfait ; null hors étapes « rack ».
-  int? get narrativeTutorialStepDotIndex {
-    switch (_narrativePhase) {
-      case NarrativeTutorialPhase.step1Shape:
-        return 0;
-      case NarrativeTutorialPhase.step2Color:
-        return 1;
-      case NarrativeTutorialPhase.step3Perfect:
-        return 2;
-      case NarrativeTutorialPhase.celebration:
-      case NarrativeTutorialPhase.none:
-        return null;
-    }
-  }
+  NarrativeGemGainFx? get narrativeGemGainFx => _narrativeTutorial.gemGainFx;
 
-  /// Message Oracle dock (clé → [AppLocalizations] dans l’UI).
-  OracleDockMessageId get narrativeOracleDockMessageId {
-    switch (_narrativePhase) {
-      case NarrativeTutorialPhase.step1Shape:
-        return OracleDockMessageId.step1Shape;
-      case NarrativeTutorialPhase.step2Color:
-        return OracleDockMessageId.step2Color;
-      case NarrativeTutorialPhase.step3Perfect:
-        return OracleDockMessageId.step3Perfect;
-      case NarrativeTutorialPhase.celebration:
-        return OracleDockMessageId.celebration;
-      case NarrativeTutorialPhase.none:
-        return OracleDockMessageId.none;
-    }
-  }
+  int get narrativeGemGainTick => _narrativeTutorial.gemGainTick;
 
-  /// Opacités HUD (0–1) pour [NeonScoreBoard].
+  int? get narrativeTutorialStepDotIndex =>
+      _narrativeTutorial.tutorialStepDotIndex;
+
+  OracleDockMessageId get narrativeOracleDockMessageId =>
+      _narrativeTutorial.oracleDockMessageId;
+
   ({double level, double lux, double score, double time})
-  get narrativeHudOpacities {
-    if (!_isFirstTimeGame || _narrativePhase == NarrativeTutorialPhase.none) {
-      return (level: 1.0, lux: 1.0, score: 1.0, time: 1.0);
-    }
-    if (_narrativeUiReveal <= 0) {
-      return (level: 0.0, lux: 0.0, score: 0.0, time: 0.0);
-    }
-    if (_narrativeUiReveal == 1) {
-      // LUX visible dès le 1er gain (forme), lié au +100 affiché en floater.
-      return (level: 0.0, lux: 1.0, score: 1.0, time: 0.0);
-    }
-    if (_narrativeUiReveal == 2) {
-      return (level: 0.0, lux: 1.0, score: 1.0, time: 1.0);
-    }
-    return (level: 1.0, lux: 1.0, score: 1.0, time: 1.0);
-  }
-
-  TrinityTutorialPhase _trinityTutorialPhase = TrinityTutorialPhase.none;
-  TrinityBannerId _trinityBannerId = TrinityBannerId.none;
-  int _tutorialBannerTick = 0;
+  get narrativeHudOpacities =>
+      _narrativeTutorial.hudOpacities(_isFirstTimeGame);
 
   ComboFloaterFx? _comboFloater;
   int _comboFloaterTick = 0;
 
   /// Bloque plateau + chrono + spawn aléatoire pendant les phases trinité.
-  bool get isTrinityTutorialChronoFrozen =>
-      _trinityTutorialPhase == TrinityTutorialPhase.shape ||
-      _trinityTutorialPhase == TrinityTutorialPhase.color ||
-      _trinityTutorialPhase == TrinityTutorialPhase.perfect;
+  bool get isTrinityTutorialChronoFrozen => _trinityTutorial.isChronoFrozen;
 
   bool get isTrinityTutorialActive => isTrinityTutorialChronoFrozen;
 
   /// Chrono figé pendant la séquence narrative (première partie).
   bool get isNarrativeTutorialChronoFrozen =>
-      _isFirstTimeGame &&
-      (_narrativePhase == NarrativeTutorialPhase.step1Shape ||
-          _narrativePhase == NarrativeTutorialPhase.step2Color ||
-          _narrativePhase == NarrativeTutorialPhase.step3Perfect ||
-          _narrativePhase == NarrativeTutorialPhase.celebration);
+      _narrativeTutorial.isChronoFrozen(_isFirstTimeGame);
 
-  TrinityTutorialPhase get trinityTutorialPhase => _trinityTutorialPhase;
+  TrinityTutorialPhase get trinityTutorialPhase => _trinityTutorial.phase;
 
-  TrinityBannerId get trinityBannerId => _trinityBannerId;
+  TrinityBannerId get trinityBannerId => _trinityTutorial.bannerId;
 
-  int get tutorialBannerTick => _tutorialBannerTick;
+  int get tutorialBannerTick => _trinityTutorial.bannerTick;
 
   ComboFloaterFx? get comboFloater => _comboFloater;
 
@@ -669,7 +580,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
       final EconomyWelcomeLoad? disk = await _localDisk.loadEconomyWelcome();
       if (disk == null) return false;
       _economy.hydrateLuxAndWelcomeFromDisk(disk);
-      _trinityTutorialComplete = disk.trinityTutorialComplete;
+      _trinityTutorial.hydrateCompleteFromDisk(disk.trinityTutorialComplete);
       _isFirstTimeGame = disk.isFirstTimeGame;
       _activeSkinId = disk.activeSkinIdRaw ?? SkinCatalog.standard.id;
       _unlockedSkins =
@@ -703,27 +614,12 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     await _localDisk.clearAll();
 
     _economy.resetForFullHardReset();
-    _trinityTutorialComplete = false;
-    _trinityTutorialPhase = TrinityTutorialPhase.none;
-    _shouldShowNamingDialog = false;
+    _oracleNaming.reset();
     _unlockedSkins = <String>[SkinCatalog.standard.id];
     _activeSkinId = SkinCatalog.standard.id;
-    _trinityBannerId = TrinityBannerId.none;
-    _tutorialBannerTick++;
 
-    _narrativeFinalizeTimer?.cancel();
-    _narrativeFinalizeTimer = null;
-    _narrativePhase = NarrativeTutorialPhase.none;
-    _narrativeUiReveal = 0;
-    _narrativeLuxIntroTick = 0;
-    _narrativeTapOrder.clear();
-    _narrativeTapProgress = 0;
-    _narrativeRippleTick = 0;
-    _narrativeRippleCenter = null;
-    _narrativeGemGainClearTimer?.cancel();
-    _narrativeGemGainClearTimer = null;
-    _narrativeGemGainFx = null;
-    _narrativeGemGainTick++;
+    _trinityTutorial.hardReset();
+    _narrativeTutorial.hardReset();
     _isFirstTimeGame = true;
 
     resetGame();
@@ -940,9 +836,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   void resetGame() {
-    _postNarrativeSpawnFadeTick = 0;
-    _narrativeRippleTick = 0;
-    _narrativeRippleCenter = null;
+    _narrativeTutorial.onParentResetGame();
     _sessionStakeFooterLine = SessionStakeFooterLine.none;
     _cancelMatchScheduling();
     _stopTimeLoop();
@@ -968,12 +862,6 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
 
     _flightFx = null;
     _floatingTextFx = null;
-    _narrativeGemGainClearTimer?.cancel();
-    _narrativeGemGainClearTimer = null;
-    if (_narrativeGemGainFx != null) {
-      _narrativeGemGainFx = null;
-      _narrativeGemGainTick++;
-    }
     // Force UI to drop any in-flight overlays instantly (trail / floating text).
     _flightTick++;
     _floatingTick++;
@@ -1001,7 +889,6 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     _levelTransitionTimer = null;
     _sequenceTick = 0;
     _luxComboFlashTick = 0;
-    _narrativeLuxIntroTick = 0;
     _comboFloater = null;
     _comboFloaterTick = 0;
     _levelUpFlashTick = 0;
@@ -1076,127 +963,68 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     _levelTransitionTimer = null;
 
     if (_isFirstTimeGame && _sessionStake == SessionStakeKind.casual) {
-      _trinityTutorialPhase = TrinityTutorialPhase.none;
-      _trinityBannerId = TrinityBannerId.none;
-      _narrativeFinalizeTimer?.cancel();
-      _narrativeFinalizeTimer = null;
-      _narrativePhase = NarrativeTutorialPhase.step1Shape;
-      _narrativeUiReveal = 0;
-      _narrativeLuxIntroTick = 0;
-      _narrativeTapProgress = 0;
-      _narrativeTapOrder.clear();
+      _trinityTutorial.clearForNarrativeFirstRun();
+      _narrativeTutorial.beginCasualFirstRunBoardInit();
       timeBar.value = 0.0;
       _lux = 0;
       _seedNarrativeStep1Board();
-    } else if (_shouldStartTrinityTutorial()) {
-      _trinityTutorialPhase = TrinityTutorialPhase.shape;
-      _trinityBannerId = TrinityBannerId.shapeIntro;
-      _tutorialBannerTick++;
+    } else if (_trinityTutorial.shouldOfferAtInit(
+      isFirstTimeGame: _isFirstTimeGame,
+      stake: _sessionStake,
+      gameLevel: _gameLevel,
+    )) {
+      _trinityTutorial.beginShapeIntro();
       _seedTrinityBoardForCurrentPhase();
     } else {
-      _trinityTutorialPhase = TrinityTutorialPhase.none;
-      _trinityBannerId = TrinityBannerId.none;
+      _trinityTutorial.clearForInactiveBoardInit();
       _fillBoardToCap();
     }
   }
-
-  bool _shouldStartTrinityTutorial() =>
-      !_isFirstTimeGame &&
-      _sessionStake == SessionStakeKind.casual &&
-      !_trinityTutorialComplete &&
-      _gameLevel == 1;
 
   Future<void> _persistTrinityTutorialDone() async {
     await _localDisk.persistTrinityTutorialComplete();
   }
 
-  void _seedNarrativeStep1Board() {
+  void _prepareNarrativeTutorialBoardShell() {
     _boardItems.clear();
     _slotItems.clear();
     _slotSeqById.clear();
     _slotInsertSeq = 0;
-    _narrativeTapOrder.clear();
-    int i = 0;
-    for (final ({int typeId, int colorId}) spec
-        in <({int typeId, int colorId})>[
-          (typeId: 7, colorId: 1),
-          (typeId: 7, colorId: 3),
-          (typeId: 7, colorId: 4),
-        ]) {
-      final Offset c =
-          _tutorialBoardSlotCenter(i) - Offset(itemSize * 0.5, itemSize * 0.5);
-      final String id = _nextId();
-      _narrativeTapOrder.add(id);
-      _boardItems.add(
-        GameItem(
-          id: id,
-          typeId: spec.typeId,
-          colorId: spec.colorId,
-          position: c,
-          floatPeriodMs: 2200,
-          floatPhase: i * 0.12,
-        ),
-      );
-      i++;
-    }
-    _narrativeTapProgress = 0;
+    _narrativeTutorial.beginNarrativeStepSeeding();
+  }
+
+  Offset _narrativeGemTopLeft(int slotIndex) =>
+      _tutorialBoardSlotCenter(slotIndex) -
+      Offset(itemSize * 0.5, itemSize * 0.5);
+
+  void _seedNarrativeStep1Board() {
+    _prepareNarrativeTutorialBoardShell();
+    TutorialBoardPlacer.placeNarrativeStep1Gems(
+      board: _boardItems,
+      onNarrativeTapId: _narrativeTutorial.addTapId,
+      nextId: _nextId,
+      topLeftForSlot: _narrativeGemTopLeft,
+    );
   }
 
   void _seedNarrativeStep2Board() {
-    _boardItems.clear();
-    _slotItems.clear();
-    _slotSeqById.clear();
-    _slotInsertSeq = 0;
-    _narrativeTapOrder.clear();
-    int i = 0;
-    for (final ({int typeId, int colorId}) spec
-        in <({int typeId, int colorId})>[
-          (typeId: 1, colorId: 2),
-          (typeId: 7, colorId: 2),
-          (typeId: 4, colorId: 2),
-        ]) {
-      final Offset c =
-          _tutorialBoardSlotCenter(i) - Offset(itemSize * 0.5, itemSize * 0.5);
-      final String id = _nextId();
-      _narrativeTapOrder.add(id);
-      _boardItems.add(
-        GameItem(
-          id: id,
-          typeId: spec.typeId,
-          colorId: spec.colorId,
-          position: c,
-          floatPeriodMs: 2200,
-          floatPhase: i * 0.11,
-        ),
-      );
-      i++;
-    }
-    _narrativeTapProgress = 0;
+    _prepareNarrativeTutorialBoardShell();
+    TutorialBoardPlacer.placeNarrativeStep2Gems(
+      board: _boardItems,
+      onNarrativeTapId: _narrativeTutorial.addTapId,
+      nextId: _nextId,
+      topLeftForSlot: _narrativeGemTopLeft,
+    );
   }
 
   void _seedNarrativeStep3Board() {
-    _boardItems.clear();
-    _slotItems.clear();
-    _slotSeqById.clear();
-    _slotInsertSeq = 0;
-    _narrativeTapOrder.clear();
-    for (int i = 0; i < 3; i++) {
-      final Offset c =
-          _tutorialBoardSlotCenter(i) - Offset(itemSize * 0.5, itemSize * 0.5);
-      final String id = _nextId();
-      _narrativeTapOrder.add(id);
-      _boardItems.add(
-        GameItem(
-          id: id,
-          typeId: 7,
-          colorId: 2,
-          position: c,
-          floatPeriodMs: 2400,
-          floatPhase: i * 0.1,
-        ),
-      );
-    }
-    _narrativeTapProgress = 0;
+    _prepareNarrativeTutorialBoardShell();
+    TutorialBoardPlacer.placeNarrativeStep3Gems(
+      board: _boardItems,
+      onNarrativeTapId: _narrativeTutorial.addTapId,
+      nextId: _nextId,
+      topLeftForSlot: _narrativeGemTopLeft,
+    );
   }
 
   void _narrativeExplosionShake() {
@@ -1204,85 +1032,13 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     _shakeStrength = 15;
   }
 
-  NarrativeFloatingKey? _narrativeFloatingKey(RunBasis basis) {
-    if (!_isNarrativeTutorialCoreSteps) {
-      return null;
-    }
-    switch (_narrativePhase) {
-      case NarrativeTutorialPhase.step1Shape:
-        if (basis == RunBasis.shape) {
-          return NarrativeFloatingKey.shapeBonus;
-        }
-        return null;
-      case NarrativeTutorialPhase.step2Color:
-        if (basis == RunBasis.color) {
-          return NarrativeFloatingKey.colorBonus;
-        }
-        return null;
-      case NarrativeTutorialPhase.step3Perfect:
-        if (basis == RunBasis.perfect) {
-          return NarrativeFloatingKey.perfectBonus;
-        }
-        return null;
-      case NarrativeTutorialPhase.celebration:
-      case NarrativeTutorialPhase.none:
-        return null;
-    }
-  }
-
-  void _applyNarrativeAfterMatch(RunBasis basis) {
-    if (!_isFirstTimeGame || !_isNarrativeTutorialCoreSteps) {
-      return;
-    }
-    switch (_narrativePhase) {
-      case NarrativeTutorialPhase.step1Shape:
-        if (basis != RunBasis.shape) {
-          return;
-        }
-        _narrativeUiReveal = 1;
-        _narrativeLuxIntroTick++;
-        _narrativePhase = NarrativeTutorialPhase.step2Color;
-        _seedNarrativeStep2Board();
-        break;
-      case NarrativeTutorialPhase.step2Color:
-        if (basis != RunBasis.color) {
-          return;
-        }
-        _narrativeUiReveal = 2;
-        timeBar.value = (timeBar.value + _baseMatchTimeRefund).clamp(0.0, 1.0);
-        _narrativePhase = NarrativeTutorialPhase.step3Perfect;
-        _seedNarrativeStep3Board();
-        break;
-      case NarrativeTutorialPhase.step3Perfect:
-        if (basis != RunBasis.perfect) {
-          return;
-        }
-        _narrativeUiReveal = 3;
-        timeBar.value = 1.0;
-        _narrativeExplosionShake();
-        _narrativePhase = NarrativeTutorialPhase.celebration;
-        _narrativePerfectBannerTick++;
-        HapticsHandler.instance.mediumImpact();
-        _narrativeFinalizeTimer?.cancel();
-        _narrativeFinalizeTimer = Timer(const Duration(milliseconds: 2100), () {
-          unawaited(_completeNarrativeTutorialPersist());
-        });
-        break;
-      default:
-        break;
-    }
-  }
-
-  Future<void> _completeNarrativeTutorialPersist() async {
-    _narrativeFinalizeTimer?.cancel();
-    _narrativeFinalizeTimer = null;
+  Future<void> _persistNarrativeTutorialComplete() async {
     _isFirstTimeGame = false;
-    _narrativePhase = NarrativeTutorialPhase.none;
-    _trinityTutorialComplete = true;
+    _trinityTutorial.markCompleteFromNarrative();
     await _localDisk.persistNarrativeTutorialComplete();
     // Respiration après la bannière avant le vrai plateau.
     await Future<void>.delayed(const Duration(milliseconds: 700));
-    _postNarrativeSpawnFadeTick++;
+    _narrativeTutorial.bumpPostSpawnFade();
     _fillBoardToCap();
     notifyListeners();
   }
@@ -1300,108 +1056,19 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
 
   void _seedTrinityBoardForCurrentPhase() {
     _boardItems.clear();
-    final List<({int typeId, int colorId})> specs =
-        <({int typeId, int colorId})>[];
-    switch (_trinityTutorialPhase) {
-      case TrinityTutorialPhase.shape:
-        // Même forme, 3 couleurs (type 1 = pas de verrou triangle/cyan).
-        specs.addAll(<({int typeId, int colorId})>[
-          (typeId: 1, colorId: 1),
-          (typeId: 1, colorId: 2),
-          (typeId: 1, colorId: 3),
-        ]);
-        break;
-      case TrinityTutorialPhase.color:
-        // 3 formes différentes, même « or » (couleur 2).
-        specs.addAll(<({int typeId, int colorId})>[
-          (typeId: 1, colorId: 2),
-          (typeId: 2, colorId: 2),
-          (typeId: 4, colorId: 2),
-        ]);
-        break;
-      case TrinityTutorialPhase.perfect:
-        specs.addAll(<({int typeId, int colorId})>[
-          (typeId: 2, colorId: 3),
-          (typeId: 2, colorId: 3),
-          (typeId: 2, colorId: 3),
-        ]);
-        break;
-      case TrinityTutorialPhase.none:
-        return;
-    }
-    int i = 0;
-    for (final ({int typeId, int colorId}) s in specs) {
-      final Offset p =
-          _tutorialBoardSlotCenter(i) - Offset(itemSize * 0.5, itemSize * 0.5);
-      _boardItems.add(
-        GameItem(
-          id: _nextId(),
-          typeId: s.typeId,
-          colorId: s.colorId,
-          position: p,
-          floatPeriodMs: 2000,
-          floatPhase: i * 0.15,
-        ),
-      );
-      i++;
-    }
+    TutorialBoardPlacer.placeTrinityGemsForPhase(
+      phase: _trinityTutorial.phase,
+      board: _boardItems,
+      nextId: _nextId,
+      topLeftForSlot: _narrativeGemTopLeft,
+    );
   }
 
-  void _maybeAdvanceTrinityTutorial(RunBasis basis) {
-    if (_trinityTutorialComplete) {
-      _trinityTutorialPhase = TrinityTutorialPhase.none;
-      return;
-    }
-    bool ok = false;
-    switch (_trinityTutorialPhase) {
-      case TrinityTutorialPhase.shape:
-        ok = basis == RunBasis.shape;
-        break;
-      case TrinityTutorialPhase.color:
-        ok = basis == RunBasis.color;
-        break;
-      case TrinityTutorialPhase.perfect:
-        ok = basis == RunBasis.perfect;
-        break;
-      case TrinityTutorialPhase.none:
-        return;
-    }
-    if (!ok) {
-      return;
-    }
-
-    switch (_trinityTutorialPhase) {
-      case TrinityTutorialPhase.shape:
-        _trinityTutorialPhase = TrinityTutorialPhase.color;
-        _trinityBannerId = TrinityBannerId.colorIntro;
-        break;
-      case TrinityTutorialPhase.color:
-        _trinityTutorialPhase = TrinityTutorialPhase.perfect;
-        _trinityBannerId = TrinityBannerId.perfectIntro;
-        break;
-      case TrinityTutorialPhase.perfect:
-        _trinityTutorialComplete = true;
-        _trinityTutorialPhase = TrinityTutorialPhase.none;
-        _trinityBannerId = TrinityBannerId.none;
-        unawaited(_persistTrinityTutorialDone());
-        _slotItems.clear();
-        _slotSeqById.clear();
-        _slotInsertSeq = 0;
-        _boardItems.clear();
-        _tutorialBannerTick++;
-        _fillBoardToCap();
-        notifyListeners();
-        return;
-      case TrinityTutorialPhase.none:
-        return;
-    }
+  void _clearSlotsAndBoardForTrinityStep() {
     _slotItems.clear();
     _slotSeqById.clear();
     _slotInsertSeq = 0;
     _boardItems.clear();
-    _seedTrinityBoardForCurrentPhase();
-    _tutorialBannerTick++;
-    notifyListeners();
   }
 
   void _startTimeLoop() {
@@ -1835,32 +1502,17 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     final int idx = _boardItems.indexWhere((e) => e.id == id);
     if (idx == -1) return;
 
-    if (_isNarrativeTutorialCoreSteps &&
-        _narrativeTapProgress < _narrativeTapOrder.length) {
-      if (!_narrativeTapOrder.contains(id)) {
-        return;
-      }
+    if (!_narrativeTutorial.shouldAcceptBoardSelect(id)) {
+      return;
     }
 
     final GameItem item = _boardItems[idx];
     if (_isNarrativeTutorialCoreSteps) {
-      _narrativeRippleCenter =
-          item.position + Offset(itemSize * 0.5, itemSize * 0.5);
-      _narrativeRippleTick++;
-      _narrativeGemGainFx = NarrativeGemGainFx(
-        id: _nextId(),
-        from: item.position + Offset(itemSize * 0.38, itemSize * 0.32),
+      _narrativeTutorial.onBoardGemSelectedDuringTutorial(
+        itemTopLeft: item.position,
         colorId: item.colorId,
-      );
-      _narrativeGemGainTick++;
-      _narrativeGemGainClearTimer?.cancel();
-      _narrativeGemGainClearTimer = Timer(
-        const Duration(milliseconds: 900),
-        () {
-          _narrativeGemGainFx = null;
-          _narrativeGemGainTick++;
-          notifyListeners();
-        },
+        itemSize: itemSize,
+        nextId: _nextId,
       );
     }
     _boardItems.removeAt(idx);
@@ -1901,7 +1553,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     }
 
     if (_isNarrativeTutorialCoreSteps) {
-      _narrativeTapProgress++;
+      _narrativeTutorial.incrementTapProgress();
     }
 
     _recomputeAlerts();
@@ -2150,7 +1802,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     // (le parfait narratif déclenche medium à l’apparition de la bannière PERFECT).
     final bool narrativePerfectForBanner =
         _isFirstTimeGame &&
-        _narrativePhase == NarrativeTutorialPhase.step3Perfect &&
+        _narrativeTutorial.isStep3Perfect &&
         basis == RunBasis.perfect;
     if (basis == RunBasis.shape || basis == RunBasis.color) {
       HapticsHandler.instance.lightImpact();
@@ -2173,8 +1825,8 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     _maybeAdvanceLevel();
     if (isTrinityTutorialChronoFrozen) {
       timeBar.value = 1.0;
-    } else if (_isNarrativeTutorialCoreSteps) {
-      // Temps : paliers gérés dans [_applyNarrativeAfterMatch].
+    } else if (_narrativeTutorial.isCoreSteps) {
+      // Temps : paliers gérés dans [NarrativeTutorialService.applyAfterMatch].
     } else {
       timeBar.value = (timeBar.value + _matchTimeRefund).clamp(0.0, 1.0);
     }
@@ -2187,9 +1839,8 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
       (false, true) => '+$gain LUX ×${chainScoreMult.toStringAsFixed(1)}',
       (false, false) => '+$gain LUX',
     };
-    final NarrativeFloatingKey? narrativeFloatKey = _narrativeFloatingKey(
-      basis,
-    );
+    final NarrativeFloatingKey? narrativeFloatKey =
+        _narrativeTutorial.floatingKeyForMatch(basis);
     final RuntimeLuxFloatKind? runtimeLuxKind = narrativeFloatKey != null
         ? null
         : switch ((basis == RunBasis.perfect, isCascade)) {
@@ -2221,7 +1872,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
 
     final bool narrativePerfectFloat =
         _isFirstTimeGame &&
-        _narrativePhase == NarrativeTutorialPhase.step3Perfect &&
+        _narrativeTutorial.isStep3Perfect &&
         basis == RunBasis.perfect;
     // Parfait narratif : la bannière centrale porte le message — pas de floater
     // (évite triple +500 et laisse disparaître l’ancien +150 au même tick).
@@ -2284,15 +1935,25 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     // Perfect match : gros LUX / FX ; le plateau reste (meilleure continuité tactique).
 
     bool closedTrinityTutorial = false;
-    final TrinityTutorialPhase phaseBefore = _trinityTutorialPhase;
+    final TrinityTutorialPhase phaseBefore = _trinityTutorial.phase;
     if (isTrinityTutorialChronoFrozen) {
-      _maybeAdvanceTrinityTutorial(basis);
+      _trinityTutorial.advanceAfterMatch(
+        basis,
+        persistTrinityTutorialComplete: _persistTrinityTutorialDone,
+        onClearSlotsAndBoard: _clearSlotsAndBoardForTrinityStep,
+        onReseedTrinityBoard: _seedTrinityBoardForCurrentPhase,
+        onFillBoardToCap: _fillBoardToCap,
+      );
       closedTrinityTutorial =
           phaseBefore == TrinityTutorialPhase.perfect &&
-          _trinityTutorialPhase == TrinityTutorialPhase.none;
-    } else if (_isNarrativeTutorialCoreSteps) {
-      _applyNarrativeAfterMatch(basis);
-    } else if (_narrativePhase != NarrativeTutorialPhase.celebration) {
+          _trinityTutorial.phase == TrinityTutorialPhase.none;
+    } else if (_narrativeTutorial.isCoreSteps) {
+      _narrativeTutorial.applyAfterMatch(
+        _isFirstTimeGame,
+        basis,
+        _baseMatchTimeRefund,
+      );
+    } else if (_narrativeTutorial.phase != NarrativeTutorialPhase.celebration) {
       _fillBoardToCap();
     }
 
@@ -2427,7 +2088,12 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     _matchParticleClearTimer?.cancel();
     _comboFloaterClearTimer?.cancel();
     _levelTransitionTimer?.cancel();
-    _narrativeFinalizeTimer?.cancel();
+    _narrativeTutorial.removeListener(notifyListeners);
+    _narrativeTutorial.dispose();
+    _trinityTutorial.removeListener(notifyListeners);
+    _trinityTutorial.dispose();
+    _oracleNaming.removeListener(notifyListeners);
+    _oracleNaming.dispose();
     _economy.removeListener(notifyListeners);
     _economy.dispose();
     timeBar.dispose();

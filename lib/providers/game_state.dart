@@ -340,22 +340,17 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
   /// - High Stakes (50 LUX): base 1.2
   /// - Royal (250 LUX): base 1.4 + 20% faster target appearance
   /// - Each level-up: speed × 1.15 (cumulative)
-  double get _modeBaseSpeedMultiplier => switch (_sessionStake) {
-    SessionStakeKind.casual => 1.0,
-    SessionStakeKind.highStakes => 1.2,
-    SessionStakeKind.royal => 1.4,
-  };
-
-  double get _levelSpeedMultiplier {
-    final int level = _gameLevel.clamp(1, 999);
-    return math.pow(1.15, level - 1).toDouble();
-  }
-
   double get _difficultySpeedMultiplier =>
-      _modeBaseSpeedMultiplier * _levelSpeedMultiplier;
+      RunTimerLogic.difficultySpeedMultiplier(
+        stake: _sessionStake,
+        gameLevel: _gameLevel,
+      );
 
-  double get _timeDrainPerSecond =>
-      _baseTimeDrainPerSecond * _difficultySpeedMultiplier;
+  double get _timeDrainPerSecond => RunTimerLogic.timeDrainPerSecond(
+        baseTimeDrainPerSecond: _baseTimeDrainPerSecond,
+        stake: _sessionStake,
+        gameLevel: _gameLevel,
+      );
 
   Duration get _effectiveMatchDelay => RunTimerLogic.effectiveMatchDelay(
         baseMatchDelay: _baseMatchDelay,
@@ -365,8 +360,10 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
 
   /// Time bar refill per match at level 1; shrinks ~5% per level.
   static const double _baseMatchTimeRefund = 0.20;
-  double get _matchTimeRefund =>
-      _baseMatchTimeRefund * math.pow(0.95, _gameLevel - 1);
+  double get _matchTimeRefund => RunTimerLogic.matchTimeRefund(
+        baseMatchTimeRefund: _baseMatchTimeRefund,
+        gameLevel: _gameLevel,
+      );
 
   final ValueNotifier<double> timeBar = ValueNotifier<double>(1.0);
   double get timerValue => timeBar.value;
@@ -1377,9 +1374,10 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
       final double dt = now.difference(last).inMilliseconds / 1000.0;
       if (dt <= 0) return;
 
-      final double next = (timeBar.value - _timeDrainPerSecond * dt).clamp(
-        0.0,
-        1.0,
+      final double next = RunTimerLogic.nextTimeBarAfterTick(
+        currentValue: timeBar.value,
+        timeDrainPerSecond: _timeDrainPerSecond,
+        dtSeconds: dt,
       );
       if (next <= 0.0) {
         if (_isProcessingMatch || _awaitingScheduledMatch) {

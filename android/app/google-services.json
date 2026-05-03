@@ -7,9 +7,9 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:822433624910:android:22253e7b4659a0cef7a41f",
+        "mobilesdk_app_id": "1:822433624910:android:6fab3a38718e7a02f7a41f",
         "android_client_info": {
-          "package_name": "com.example.velour_app"
+          "package_name": "fr.grandjean.velour"
         }
       },
       "oauth_client": [],

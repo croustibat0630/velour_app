@@ -1,4 +1,4 @@
-package com.example.velour_app
+package fr.grandjean.velour
 
 import io.flutter.embedding.android.FlutterActivity
 

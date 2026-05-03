@@ -9,7 +9,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.example.velourApp</string>
+	<string>fr.grandjean.velour</string>
 	<key>PROJECT_ID</key>
 	<string>velour-6690f</string>
 	<key>STORAGE_BUCKET</key>
@@ -25,6 +25,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:822433624910:ios:9232549b69e3f5dbf7a41f</string>
+	<string>1:822433624910:ios:3a33077df7cfc146f7a41f</string>
 </dict>
 </plist>

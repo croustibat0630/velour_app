@@ -52,7 +52,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyAxmksPFPkpCzAQiHlaYCZkpPE5-6nHyC4',
-    appId: '1:822433624910:android:22253e7b4659a0cef7a41f',
+    appId: '1:822433624910:android:6fab3a38718e7a02f7a41f',
     messagingSenderId: '822433624910',
     projectId: 'velour-6690f',
     storageBucket: 'velour-6690f.firebasestorage.app',
@@ -60,29 +60,30 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyDsir0h0XIKnfFz-YfY04CeON1GPX4p1fY',
-    appId: '1:822433624910:ios:9232549b69e3f5dbf7a41f',
+    appId: '1:822433624910:ios:3a33077df7cfc146f7a41f',
     messagingSenderId: '822433624910',
     projectId: 'velour-6690f',
     storageBucket: 'velour-6690f.firebasestorage.app',
-    iosBundleId: 'com.example.velourApp',
+    iosBundleId: 'fr.grandjean.velour',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
     apiKey: 'AIzaSyDsir0h0XIKnfFz-YfY04CeON1GPX4p1fY',
-    appId: '1:822433624910:ios:9232549b69e3f5dbf7a41f',
+    appId: '1:822433624910:ios:3a33077df7cfc146f7a41f',
     messagingSenderId: '822433624910',
     projectId: 'velour-6690f',
     storageBucket: 'velour-6690f.firebasestorage.app',
-    iosBundleId: 'com.example.velourApp',
+    iosBundleId: 'fr.grandjean.velour',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
     apiKey: 'AIzaSyB5JnNgg0IhNnH4YuGbJUZaKGVyJpsDvKg',
-    appId: '1:822433624910:web:ec59004b8028e05df7a41f',
+    appId: '1:822433624910:web:c2ad25fd445d8563f7a41f',
     messagingSenderId: '822433624910',
     projectId: 'velour-6690f',
     authDomain: 'velour-6690f.firebaseapp.com',
     storageBucket: 'velour-6690f.firebasestorage.app',
-    measurementId: 'G-KE8BDV9ZPM',
+    measurementId: 'G-4F1JC7WZJY',
   );
+
 }

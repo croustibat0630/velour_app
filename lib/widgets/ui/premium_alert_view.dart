@@ -1,20 +1,22 @@
 import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
+import 'package:velour_app/l10n/app_localizations.dart';
 
+import '../../providers/game_state_types.dart';
 import '../../utils/responsive.dart';
 
 /// Fenêtre de confirmation d’abandon (« forfait ») pour session premium.
 class PremiumAlertView extends StatelessWidget {
   const PremiumAlertView({
     super.key,
-    required this.sessionName,
+    required this.stakeKind,
     required this.stakeAmountLux,
     required this.accentBorderColor,
     required this.stakeHighlightColor,
   });
 
-  final String sessionName;
+  final SessionStakeKind stakeKind;
   final int stakeAmountLux;
   final Color accentBorderColor;
   final Color stakeHighlightColor;
@@ -22,7 +24,7 @@ class PremiumAlertView extends StatelessWidget {
   /// `true` si le joueur confirme le forfait, `false` sinon.
   static Future<bool> show(
     BuildContext context, {
-    required String sessionName,
+    required SessionStakeKind stakeKind,
     required int stakeAmountLux,
     required Color accentBorderColor,
     required Color stakeHighlightColor,
@@ -32,7 +34,7 @@ class PremiumAlertView extends StatelessWidget {
       barrierColor: Colors.transparent,
       useRootNavigator: true,
       builder: (ctx) => PremiumAlertView(
-        sessionName: sessionName,
+        stakeKind: stakeKind,
         stakeAmountLux: stakeAmountLux,
         accentBorderColor: accentBorderColor,
         stakeHighlightColor: stakeHighlightColor,
@@ -50,6 +52,12 @@ class PremiumAlertView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
+    final String sessionLabel = switch (stakeKind) {
+      SessionStakeKind.royal => l10n.premiumSessionRoyal,
+      SessionStakeKind.highStakes => l10n.premiumSessionHighStakes,
+      SessionStakeKind.casual => '',
+    };
     final Size screen = MediaQuery.sizeOf(context);
     final double scaleH = Responsive.compactHeightScale(context);
     final double maxW = (screen.width * 0.78).clamp(280.0, 560.0);
@@ -116,7 +124,7 @@ class PremiumAlertView extends StatelessWidget {
                       ),
                       SizedBox(height: gap18),
                       Text(
-                        'FORFAIT ?',
+                        l10n.premiumForfeitTitle,
                         textAlign: TextAlign.center,
                         style:
                             Theme.of(context).textTheme.titleLarge?.copyWith(
@@ -137,18 +145,17 @@ class PremiumAlertView extends StatelessWidget {
                                   ),
                           children: [
                             TextSpan(
-                              text:
-                                  'En quittant cette session $sessionName, vous allez perdre définitivement votre mise de ',
+                              text: l10n.premiumForfeitLead(sessionLabel),
                             ),
                             TextSpan(
-                              text: '$stakeAmountLux LUX',
+                              text: '$stakeAmountLux',
                               style: TextStyle(
                                 color: stakeHighlightColor,
                                 fontWeight: FontWeight.w700,
                                 letterSpacing: 0.4,
                               ),
                             ),
-                            const TextSpan(text: '.'),
+                            TextSpan(text: l10n.premiumForfeitTrail),
                           ],
                         ),
                         textAlign: TextAlign.center,
@@ -177,9 +184,9 @@ class PremiumAlertView extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(14),
                                 ),
                               ),
-                              child: const Text(
-                                'RESTER',
-                                style: TextStyle(
+                              child: Text(
+                                l10n.premiumStay,
+                                style: const TextStyle(
                                   letterSpacing: 2.6,
                                   fontWeight: FontWeight.w700,
                                 ),
@@ -207,9 +214,9 @@ class PremiumAlertView extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(14),
                                 ),
                               ),
-                              child: const Text(
-                                'FORFAIT',
-                                style: TextStyle(
+                              child: Text(
+                                l10n.premiumForfeit,
+                                style: const TextStyle(
                                   letterSpacing: 2.4,
                                   fontWeight: FontWeight.w600,
                                 ),

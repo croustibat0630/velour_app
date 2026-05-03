@@ -21,6 +21,23 @@ enum NarrativeTutorialPhase {
 /// Mise choisie avant une partie (écran préparation).
 enum SessionStakeKind { casual, highStakes, royal }
 
+/// Ligne de pied de page sur l’overlay fin de partie (mises premium).
+enum SessionStakeFooterLine {
+  none,
+  highStakesFail,
+  highStakesWin150Lux,
+  royalFail,
+  royalWin1250Lux,
+}
+
+/// Résultat d’un tap sur une ligne skin en boutique.
+enum SkinPurchaseOutcome {
+  insufficientLux,
+  purchasedAndEquipped,
+  equippedFromOwned,
+  alreadyEquipped,
+}
+
 class FlightFx {
   FlightFx({
     required this.id,

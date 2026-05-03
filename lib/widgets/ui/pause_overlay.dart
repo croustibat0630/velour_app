@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:velour_app/l10n/app_localizations.dart';
 
 import '../../providers/game_state.dart';
 import '../../theme/theme_engine.dart';
@@ -19,6 +20,7 @@ class PauseOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
     final te = context.watch<ThemeEngine>();
     final double s = Responsive.compactHeightScale(context);
     return Material(
@@ -43,7 +45,7 @@ class PauseOverlay extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        'PAUSE',
+                        l10n.pauseTitle,
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
                               letterSpacing: 6,
                               fontWeight: FontWeight.w500,
@@ -58,13 +60,13 @@ class PauseOverlay extends StatelessWidget {
                       ),
                       SizedBox(height: 18 * s),
                       MenuTextButton(
-                        label: 'CONTINUER',
+                        label: l10n.pauseResume,
                         neon: te.colorForId(1),
                         onPressed: onContinue,
                       ),
                       SizedBox(height: 12 * s),
                       MenuTextButton(
-                        label: 'RETOUR AU MENU',
+                        label: l10n.pauseBackToMenu,
                         neon: te.colorForId(5),
                         fontSize: 16,
                         letterSpacing: 1.5,

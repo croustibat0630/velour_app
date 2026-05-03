@@ -520,11 +520,13 @@ class GameState extends ChangeNotifier {
   SessionStakeKind _sessionStake = SessionStakeKind.casual;
   SessionStakeKind get sessionStake => _sessionStake;
 
-  String? _sessionStakeFooterLine;
-  String? get sessionStakeFooterLine => _sessionStakeFooterLine;
+  SessionStakeFooterLine _sessionStakeFooterLine =
+      SessionStakeFooterLine.none;
+  SessionStakeFooterLine get sessionStakeFooterLine => _sessionStakeFooterLine;
 
-  bool _sessionStakeFooterIsFailure = false;
-  bool get sessionStakeFooterIsFailure => _sessionStakeFooterIsFailure;
+  bool get sessionStakeFooterIsFailure =>
+      _sessionStakeFooterLine == SessionStakeFooterLine.highStakesFail ||
+      _sessionStakeFooterLine == SessionStakeFooterLine.royalFail;
 
   /// Partie en cours : mise HIGH STAKES (50 LUX) — utile au HUD / GameView.
   bool get isHighStakesSession => _sessionStake == SessionStakeKind.highStakes;
@@ -716,18 +718,21 @@ class GameState extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> purchaseAndEquipSkin(SkinConfig skin) async {
+  Future<SkinPurchaseOutcome> purchaseAndEquipSkin(SkinConfig skin) async {
     final String id = skin.id;
     if (_unlockedSkins.contains(id)) {
+      if (_activeSkinId == id) {
+        return SkinPurchaseOutcome.alreadyEquipped;
+      }
       _activeSkinId = id;
       notifyListeners();
       unawaited(_persistSkinsLocal());
       unawaited(FirestoreService.instance.mergeActiveSkinOnly(id));
-      return;
+      return SkinPurchaseOutcome.equippedFromOwned;
     }
 
     if (skin.price > 0 && _luxCoins < skin.price) {
-      return;
+      return SkinPurchaseOutcome.insufficientLux;
     }
     if (skin.price > 0) {
       addLuxCoins(-skin.price);
@@ -738,6 +743,7 @@ class GameState extends ChangeNotifier {
     unawaited(_persistSkinsLocal());
 
     unawaited(FirestoreService.instance.mergeSkinPurchaseAndEquip(id));
+    return SkinPurchaseOutcome.purchasedAndEquipped;
   }
 
   /// Choix de mise depuis l’écran préparation. Retourne `false` si solde insuffisant (High Stakes).
@@ -792,9 +798,6 @@ class GameState extends ChangeNotifier {
       );
     }
     final SessionStakeKind kind = _sessionStake;
-    final String sessionName = kind == SessionStakeKind.royal
-        ? 'Royale'
-        : 'High Stakes';
     final Color accentBorder = kind == SessionStakeKind.royal
         ? const Color(0xFF9D50BB)
         : const Color(0xFFFFD700);
@@ -803,7 +806,7 @@ class GameState extends ChangeNotifier {
         : const Color(0xFFFFD700);
     return PremiumAlertView.show(
       context,
-      sessionName: sessionName,
+      stakeKind: kind,
       stakeAmountLux: amount,
       accentBorderColor: accentBorder,
       stakeHighlightColor: stakeHighlight,
@@ -820,23 +823,19 @@ class GameState extends ChangeNotifier {
     }
     if (_sessionStake == SessionStakeKind.highStakes) {
       if (_gameLevel < highStakesTargetLevel) {
-        _sessionStakeFooterLine = 'ÉCHEC DU PARI : MISE PERDUE';
-        _sessionStakeFooterIsFailure = true;
+        _sessionStakeFooterLine = SessionStakeFooterLine.highStakesFail;
       } else {
         addLuxCoins(highStakesWinLux);
         _lastStakeRewardLuxCoins = highStakesWinLux;
-        _sessionStakeFooterLine = 'VOUS GAGNEZ 150 LUX';
-        _sessionStakeFooterIsFailure = false;
+        _sessionStakeFooterLine = SessionStakeFooterLine.highStakesWin150Lux;
       }
     } else if (_sessionStake == SessionStakeKind.royal) {
       if (_gameLevel < royalTargetLevel) {
-        _sessionStakeFooterLine = 'ÉCHEC DU PARI ROYAL : MISE PERDUE';
-        _sessionStakeFooterIsFailure = true;
+        _sessionStakeFooterLine = SessionStakeFooterLine.royalFail;
       } else {
         addLuxCoins(royalWinLux);
         _lastStakeRewardLuxCoins = royalWinLux;
-        _sessionStakeFooterLine = 'VOUS GAGNEZ 1250 LUX';
-        _sessionStakeFooterIsFailure = false;
+        _sessionStakeFooterLine = SessionStakeFooterLine.royalWin1250Lux;
       }
     }
     _replaySuggestedStake = _lastEndedRunStakeKind;
@@ -847,8 +846,7 @@ class GameState extends ChangeNotifier {
   /// (mise déjà consommée à l’entrée en partie).
   void clearSessionStakeForMenu() {
     _sessionStake = SessionStakeKind.casual;
-    _sessionStakeFooterLine = null;
-    _sessionStakeFooterIsFailure = false;
+    _sessionStakeFooterLine = SessionStakeFooterLine.none;
     notifyListeners();
   }
 
@@ -950,8 +948,7 @@ class GameState extends ChangeNotifier {
     _postNarrativeSpawnFadeTick = 0;
     _narrativeRippleTick = 0;
     _narrativeRippleCenter = null;
-    _sessionStakeFooterLine = null;
-    _sessionStakeFooterIsFailure = false;
+    _sessionStakeFooterLine = SessionStakeFooterLine.none;
     _cancelMatchScheduling();
     _stopTimeLoop();
     _matchParticleClearTimer?.cancel();

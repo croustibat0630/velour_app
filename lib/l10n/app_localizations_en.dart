@@ -137,4 +137,204 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsClose => 'CLOSE';
+
+  @override
+  String get shopBackTooltip => 'Back';
+
+  @override
+  String get shopVaultTitle => 'THE VAULT';
+
+  @override
+  String get shopProductSparkReserve => 'SPARK RESERVE';
+
+  @override
+  String get shopProductOracleTreasure => 'ORACLE\'S TREASURE';
+
+  @override
+  String get shopProductRoyalLegacy => 'ROYAL LEGACY';
+
+  @override
+  String get shopBadgeBestDeal => 'BEST DEAL';
+
+  @override
+  String shopLuxAmount(int lux) {
+    return '$lux LUX';
+  }
+
+  @override
+  String get shopForgeTitle => 'THE ORACLE FORGE';
+
+  @override
+  String get shopSkinEquipped => 'Equipped';
+
+  @override
+  String get shopSkinOwned => 'Owned';
+
+  @override
+  String shopPriceLux(int price) {
+    return '$price LUX';
+  }
+
+  @override
+  String get shopVaultLoading => 'CONTACTING THE VAULT…';
+
+  @override
+  String get shopPurchaseSuccess => 'SUCCESS';
+
+  @override
+  String shopPurchaseLuxAdded(int lux) {
+    return '+$lux LUX';
+  }
+
+  @override
+  String get shopBackToGame => 'BACK TO GAME';
+
+  @override
+  String get shopSnackInsufficientLux => 'Not enough LUX.';
+
+  @override
+  String get shopSnackSkinEquipped => 'Skin equipped.';
+
+  @override
+  String get shopSnackSkinUnlocked => 'Skin unlocked and equipped.';
+
+  @override
+  String get statsTitle => 'MY CAREER';
+
+  @override
+  String statsStreakSession(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'STREAK: $count DAYS WITH A RUN',
+      one: 'STREAK: 1 DAY WITH A RUN',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get statsLuxEarned => 'LUX EARNED';
+
+  @override
+  String get statsBestGain => 'BEST WIN';
+
+  @override
+  String get statsMaxLevel => 'MAX LEVEL';
+
+  @override
+  String get statsShapesPlaced => 'SHAPES PLACED';
+
+  @override
+  String get statsMatches => 'MATCHES';
+
+  @override
+  String get statsTotalTime => 'TOTAL TIME';
+
+  @override
+  String get statsPrecisionTitle => 'ACCURACY';
+
+  @override
+  String get statsPrecisionHelp =>
+      'Match-to-placement ratio.\nHigher means cleaner runs.';
+
+  @override
+  String get statsModesTitle => 'MODE SPLIT';
+
+  @override
+  String get statsModeCasual => 'CASUAL';
+
+  @override
+  String get statsModeHighStakes => 'HIGH STAKES';
+
+  @override
+  String get statsModeRoyal => 'ROYAL';
+
+  @override
+  String get gameHudMenuTooltip => 'Menu';
+
+  @override
+  String get pauseTitle => 'PAUSED';
+
+  @override
+  String get pauseResume => 'RESUME';
+
+  @override
+  String get pauseBackToMenu => 'BACK TO MENU';
+
+  @override
+  String get premiumForfeitTitle => 'FORFEIT?';
+
+  @override
+  String premiumForfeitLead(String session) {
+    return 'If you leave this $session session, you forfeit your stake of ';
+  }
+
+  @override
+  String get premiumForfeitTrail => ' LUX permanently.';
+
+  @override
+  String get premiumSessionHighStakes => 'High Stakes';
+
+  @override
+  String get premiumSessionRoyal => 'Royal';
+
+  @override
+  String get premiumStay => 'STAY';
+
+  @override
+  String get premiumForfeit => 'FORFEIT';
+
+  @override
+  String get gameOverTitleSessionEnd => 'SESSION COMPLETE';
+
+  @override
+  String get gameOverTitleVictory => 'VICTORY';
+
+  @override
+  String get gameOverTitleDefeat => 'DEFEAT';
+
+  @override
+  String get gameOverSessionScore => 'SESSION SCORE';
+
+  @override
+  String get gameOverZeroLuxHintCasual =>
+      'No match LUX this session — timer ran out or you left before the first gain.';
+
+  @override
+  String get gameOverZeroLuxHintHighStakes =>
+      'No LUX banked before the end — goal not reached or time ran out.';
+
+  @override
+  String get gameOverZeroLuxHintRoyal =>
+      'No LUX banked before the end — goal not reached or time ran out.';
+
+  @override
+  String get gameOverFinalScore => 'FINAL SCORE';
+
+  @override
+  String get gameOverLuxWon => 'LUX WON';
+
+  @override
+  String get gameOverPersonalBest => 'NEW PERSONAL BEST';
+
+  @override
+  String get gameOverReplay => 'PLAY AGAIN';
+
+  @override
+  String get gameOverMainMenu => 'MAIN MENU';
+
+  @override
+  String get gameOverPrestigeBonus => 'PRESTIGE BONUS';
+
+  @override
+  String get gameOverFooterHighStakesFail => 'BET LOST: STAKE FORFEITED';
+
+  @override
+  String get gameOverFooterHighStakesWin150 => 'YOU WIN 150 LUX';
+
+  @override
+  String get gameOverFooterRoyalFail => 'ROYAL BET LOST: STAKE FORFEITED';
+
+  @override
+  String get gameOverFooterRoyalWin1250 => 'YOU WIN 1250 LUX';
 }

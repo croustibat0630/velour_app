@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:velour_app/l10n/app_localizations.dart';
 
 import '../services/stats_service.dart';
 import '../utils/responsive.dart';
@@ -30,6 +31,7 @@ class _StatsViewState extends State<StatsView> {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
     final double sH = Responsive.heightScale(context);
     final double sT = Responsive.textScale(context);
 
@@ -71,7 +73,7 @@ class _StatsViewState extends State<StatsView> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Text(
-                            'MA CARRIÈRE',
+                            l10n.statsTitle,
                             textAlign: TextAlign.center,
                             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                   letterSpacing: 6,
@@ -83,9 +85,7 @@ class _StatsViewState extends State<StatsView> {
                           SizedBox(height: (18 * sH).clamp(14.0, 22.0)),
                           if (_stats.streakDays > 0) ...[
                             Text(
-                              _stats.streakDays == 1
-                                  ? 'SÉRIE : 1 JOUR AVEC PARTIE'
-                                  : 'SÉRIE : ${_stats.streakDays} JOURS AVEC PARTIE',
+                              l10n.statsStreakSession(_stats.streakDays),
                               textAlign: TextAlign.center,
                               style: Theme.of(context).textTheme.labelLarge?.copyWith(
                                     letterSpacing: 2.8,
@@ -108,37 +108,37 @@ class _StatsViewState extends State<StatsView> {
                                 childAspectRatio: cols >= 3 ? 1.32 : 1.02,
                                 children: [
                                   _StatCard(
-                                    title: 'LUX GAGNÉS',
+                                    title: l10n.statsLuxEarned,
                                     value: '${_stats.totalLuxEarned}',
                                     accent: _gold,
                                     icon: Icons.brightness_1,
                                   ),
                                   _StatCard(
-                                    title: 'MEILLEUR GAIN',
+                                    title: l10n.statsBestGain,
                                     value: '${_stats.highStakeWin}',
                                     accent: _gold,
                                     icon: Icons.auto_awesome_rounded,
                                   ),
                                   _StatCard(
-                                    title: 'NIVEAU MAX',
+                                    title: l10n.statsMaxLevel,
                                     value: '${_stats.bestLevelReached}',
                                     accent: _gold,
                                     icon: Icons.trending_up_rounded,
                                   ),
                                   _StatCard(
-                                    title: 'FORMES POSÉES',
+                                    title: l10n.statsShapesPlaced,
                                     value: '${_stats.shapesPlaced}',
                                     accent: _gold,
                                     icon: Icons.category_rounded,
                                   ),
                                   _StatCard(
-                                    title: 'MATCHES',
+                                    title: l10n.statsMatches,
                                     value: '${_stats.totalMatchesPlayed}',
                                     accent: _gold,
                                     icon: Icons.done_all_rounded,
                                   ),
                                   _StatCard(
-                                    title: 'TEMPS TOTAL',
+                                    title: l10n.statsTotalTime,
                                     value: _formatDuration(_stats.totalPlayTime),
                                     accent: _gold,
                                     icon: Icons.schedule_rounded,
@@ -149,7 +149,7 @@ class _StatsViewState extends State<StatsView> {
                           ),
                           SizedBox(height: (14 * sH).clamp(10.0, 18.0)),
                           _Panel(
-                            title: 'PRÉCISION',
+                            title: l10n.statsPrecisionTitle,
                             accent: _gold,
                             child: Row(
                               children: [
@@ -182,7 +182,7 @@ class _StatsViewState extends State<StatsView> {
                                 const SizedBox(width: 14),
                                 Expanded(
                                   child: Text(
-                                    'Ratio matches / placements.\nPlus c’est haut, plus tes runs sont “propres”.',
+                                    l10n.statsPrecisionHelp,
                                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                           height: 1.35,
                                           color: Colors.white.withValues(alpha: 0.50),
@@ -194,26 +194,26 @@ class _StatsViewState extends State<StatsView> {
                           ),
                           SizedBox(height: 12 * sH),
                           _Panel(
-                            title: 'RÉPARTITION DES MODES',
+                            title: l10n.statsModesTitle,
                             accent: _gold,
                             child: Column(
                               children: [
                                 _ModeBar(
-                                  label: 'CASUAL',
+                                  label: l10n.statsModeCasual,
                                   value: _ratio(_stats.casualRuns, _stats.totalRuns),
                                   count: _stats.casualRuns,
                                   accent: Colors.white.withValues(alpha: 0.72),
                                 ),
                                 const SizedBox(height: 10),
                                 _ModeBar(
-                                  label: 'HIGH STAKES',
+                                  label: l10n.statsModeHighStakes,
                                   value: _ratio(_stats.highStakesRuns, _stats.totalRuns),
                                   count: _stats.highStakesRuns,
                                   accent: _gold.withValues(alpha: 0.92),
                                 ),
                                 const SizedBox(height: 10),
                                 _ModeBar(
-                                  label: 'ROYAL',
+                                  label: l10n.statsModeRoyal,
                                   value: _ratio(_stats.royalRuns, _stats.totalRuns),
                                   count: _stats.royalRuns,
                                   accent: const Color(0xFFE49BFF).withValues(alpha: 0.90),

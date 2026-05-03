@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'package:velour_app/l10n/app_localizations.dart';
 import 'package:velour_app/theme/colors.dart';
 import 'package:velour_app/theme/theme_engine.dart';
 import 'package:velour_app/widgets/items/neon_crystal.dart';
@@ -688,7 +689,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                           child: Material(
                             type: MaterialType.transparency,
                             child: IconButton(
-                              tooltip: 'Menu',
+                              tooltip: AppLocalizations.of(context)!.gameHudMenuTooltip,
                               onPressed: () async {
                                 if (!context.mounted) return;
                                 AudioHandler.instance.playMenuClick();
@@ -823,8 +824,6 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                                     recordAccentColor: recordAccent,
                                     sessionStakeFooter:
                                         gs.sessionStakeFooterLine,
-                                    sessionStakeFooterIsFailure:
-                                        gs.sessionStakeFooterIsFailure,
                                     onReplay: () async {
                                       final SessionStakeKind stake =
                                           gs.replaySuggestedStake ??

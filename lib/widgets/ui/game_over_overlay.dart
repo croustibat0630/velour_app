@@ -2,6 +2,7 @@ import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:velour_app/l10n/app_localizations.dart';
 
 import '../../providers/game_state.dart';
 import '../../services/audio_handler.dart';
@@ -23,8 +24,7 @@ class GameOverOverlay extends StatefulWidget {
     required this.recordAccentColor,
     required this.onReplay,
     required this.onMenu,
-    this.sessionStakeFooter,
-    this.sessionStakeFooterIsFailure = false,
+    this.sessionStakeFooter = SessionStakeFooterLine.none,
   });
 
   /// Somme des gains bruts (matches) avant multiplicateur prestige.
@@ -48,8 +48,7 @@ class GameOverOverlay extends StatefulWidget {
 
   final Future<void> Function() onReplay;
   final VoidCallback onMenu;
-  final String? sessionStakeFooter;
-  final bool sessionStakeFooterIsFailure;
+  final SessionStakeFooterLine sessionStakeFooter;
 
   @override
   State<GameOverOverlay> createState() => _GameOverOverlayState();
@@ -107,12 +106,12 @@ class _GameOverOverlayState extends State<GameOverOverlay>
     );
   }
 
-  String _title() {
+  String _title(AppLocalizations l10n) {
     if (widget.endedStakeKind == SessionStakeKind.casual) {
-      return 'SESSION TERMINÉE';
+      return l10n.gameOverTitleSessionEnd;
     }
-    if (widget.isPremiumWin) return 'VICTOIRE';
-    return 'ÉCHEC';
+    if (widget.isPremiumWin) return l10n.gameOverTitleVictory;
+    return l10n.gameOverTitleDefeat;
   }
 
   Color _titleAccent() {
@@ -132,18 +131,32 @@ class _GameOverOverlayState extends State<GameOverOverlay>
   bool get _showScoreFinal => widget.finalLux != widget.rawMatchLuxTotal;
 
   /// Quand le total matchs reste à 0 : expliciter sans accuser le joueur.
-  String? _zeroMatchLuxHint() {
+  String? _zeroMatchLuxHint(AppLocalizations l10n) {
     if (widget.rawMatchLuxTotal != 0) return null;
     if (widget.isPremiumWin) return null;
     return switch (widget.endedStakeKind) {
-      SessionStakeKind.casual =>
-        'Aucun LUX de match sur cette session — chrono écoulé ou retour menu avant le premier gain.',
-      SessionStakeKind.highStakes =>
-        'Aucun LUX encaissé avant la fin — objectif non atteint ou temps écoulé.',
-      SessionStakeKind.royal =>
-        'Aucun LUX encaissé avant la fin — objectif non atteint ou temps écoulé.',
+      SessionStakeKind.casual => l10n.gameOverZeroLuxHintCasual,
+      SessionStakeKind.highStakes => l10n.gameOverZeroLuxHintHighStakes,
+      SessionStakeKind.royal => l10n.gameOverZeroLuxHintRoyal,
     };
   }
+
+  String? _resolvedSessionStakeFooter(AppLocalizations l10n) {
+    return switch (widget.sessionStakeFooter) {
+      SessionStakeFooterLine.none => null,
+      SessionStakeFooterLine.highStakesFail =>
+        l10n.gameOverFooterHighStakesFail,
+      SessionStakeFooterLine.highStakesWin150Lux =>
+        l10n.gameOverFooterHighStakesWin150,
+      SessionStakeFooterLine.royalFail => l10n.gameOverFooterRoyalFail,
+      SessionStakeFooterLine.royalWin1250Lux =>
+        l10n.gameOverFooterRoyalWin1250,
+    };
+  }
+
+  bool get _sessionStakeFooterIsFailure =>
+      widget.sessionStakeFooter == SessionStakeFooterLine.highStakesFail ||
+      widget.sessionStakeFooter == SessionStakeFooterLine.royalFail;
 
   String _multLabel() {
     final double? m = widget.prestigeMultiplier;
@@ -155,6 +168,7 @@ class _GameOverOverlayState extends State<GameOverOverlay>
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
     final double sH = Responsive.heightScale(context);
     final double sT = Responsive.textScale(context);
     final Color titleNeon = _titleAccent();
@@ -214,6 +228,7 @@ class _GameOverOverlayState extends State<GameOverOverlay>
           child: AnimatedBuilder(
             animation: Listenable.merge([_in, _badgePulse]),
             builder: (context, _) {
+              final String? footerText = _resolvedSessionStakeFooter(l10n);
               int step = 0;
               final double bottomPad =
                   (30 * sH).clamp(28.0, 44.0) +
@@ -274,7 +289,7 @@ class _GameOverOverlayState extends State<GameOverOverlay>
                             enter(
                               step++,
                               Text(
-                                _title(),
+                                _title(l10n),
                                 textAlign: TextAlign.center,
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
@@ -287,7 +302,7 @@ class _GameOverOverlayState extends State<GameOverOverlay>
                               Column(
                                 children: [
                                   Text(
-                                    'SCORE DE LA PARTIE',
+                                    l10n.gameOverSessionScore,
                                     textAlign: TextAlign.center,
                                     style: labelSmall,
                                   ),
@@ -297,10 +312,10 @@ class _GameOverOverlayState extends State<GameOverOverlay>
                                     textAlign: TextAlign.center,
                                     style: monoNum,
                                   ),
-                                  if (_zeroMatchLuxHint() != null) ...[
+                                  if (_zeroMatchLuxHint(l10n) != null) ...[
                                     SizedBox(height: 12 * sH),
                                     Text(
-                                      _zeroMatchLuxHint()!,
+                                      _zeroMatchLuxHint(l10n)!,
                                       textAlign: TextAlign.center,
                                       style: Theme.of(context)
                                               .textTheme
@@ -330,6 +345,7 @@ class _GameOverOverlayState extends State<GameOverOverlay>
                               enter(
                                 step++,
                                 _PrestigeBonusBadge(
+                                  label: l10n.gameOverPrestigeBonus,
                                   multiplierLabel: _multLabel(),
                                   pulse: _badgePulse.value,
                                   scaleT: sT,
@@ -343,7 +359,7 @@ class _GameOverOverlayState extends State<GameOverOverlay>
                                 Column(
                                   children: [
                                     Text(
-                                      'SCORE FINAL',
+                                      l10n.gameOverFinalScore,
                                       textAlign: TextAlign.center,
                                       style: labelSmall,
                                     ),
@@ -375,7 +391,7 @@ class _GameOverOverlayState extends State<GameOverOverlay>
                                 Column(
                                   children: [
                                     Text(
-                                      'LUX REMPORTÉS',
+                                      l10n.gameOverLuxWon,
                                       textAlign: TextAlign.center,
                                       style: labelSmall,
                                     ),
@@ -420,19 +436,19 @@ class _GameOverOverlayState extends State<GameOverOverlay>
                                 ),
                               ),
                             ],
-                            if (widget.sessionStakeFooter != null) ...[
+                            if (footerText != null) ...[
                               SizedBox(height: 14 * sH),
                               enter(
                                 step++,
                                 Text(
-                                  widget.sessionStakeFooter!,
+                                  footerText,
                                   textAlign: TextAlign.center,
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                   style: labelSmall.copyWith(
                                     fontSize: (10.5 * sT).clamp(10.0, 12.5),
                                     letterSpacing: 2.0,
-                                    color: widget.sessionStakeFooterIsFailure
+                                    color: _sessionStakeFooterIsFailure
                                         ? const Color(
                                             0xFFFF6B6B,
                                           ).withValues(alpha: 0.92)
@@ -446,7 +462,7 @@ class _GameOverOverlayState extends State<GameOverOverlay>
                               enter(
                                 step++,
                                 Text(
-                                  'NOUVEAU RECORD PERSONNEL',
+                                  l10n.gameOverPersonalBest,
                                   textAlign: TextAlign.center,
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
@@ -511,7 +527,7 @@ class _GameOverOverlayState extends State<GameOverOverlay>
                                     ],
                                   ),
                                   child: MenuTextButton(
-                                    label: 'REJOUER',
+                                    label: l10n.gameOverReplay,
                                     neon: replayNeon,
                                     scale: sH,
                                     baseAlpha: 1.0,
@@ -526,7 +542,7 @@ class _GameOverOverlayState extends State<GameOverOverlay>
                             SizedBox(height: (12 * sH).clamp(10.0, 16.0)),
                             _enterCta(
                               _SecondaryMenuTextButton(
-                                label: 'MENU PRINCIPAL',
+                                label: l10n.gameOverMainMenu,
                                 onPressed: widget.onMenu,
                                 scale: sH,
                               ),
@@ -549,11 +565,13 @@ class _GameOverOverlayState extends State<GameOverOverlay>
 
 class _PrestigeBonusBadge extends StatelessWidget {
   const _PrestigeBonusBadge({
+    required this.label,
     required this.multiplierLabel,
     required this.pulse,
     required this.scaleT,
   });
 
+  final String label;
   final String multiplierLabel;
   final double pulse;
   final double scaleT;
@@ -591,7 +609,7 @@ class _PrestigeBonusBadge extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'BONUS PRESTIGE',
+              label,
               style: Theme.of(context).textTheme.labelLarge?.copyWith(
                 fontSize: (11 * scaleT).clamp(10.0, 13.0),
                 fontWeight: FontWeight.w800,

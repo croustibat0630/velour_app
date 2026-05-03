@@ -4,6 +4,7 @@ import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:velour_app/l10n/app_localizations.dart';
 
 import '../providers/game_state.dart';
 import '../models/skin_config.dart';
@@ -115,6 +116,7 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
     const Color gold = Color(0xFFFFD700);
     const Color cyan = Color(0xFF00E0ED);
     const Color violet = Color(0xFF9D50BB);
@@ -152,7 +154,7 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
                   top: 6,
                   left: 6,
                   child: IconButton(
-                    tooltip: 'Retour',
+                    tooltip: l10n.shopBackTooltip,
                     onPressed: () => Navigator.of(context).maybePop(),
                     icon: Icon(
                       Icons.close_rounded,
@@ -219,7 +221,7 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
                         children: [
                           const SizedBox(height: 6),
                           Text(
-                            'LE COFFRE-FORT',
+                            l10n.shopVaultTitle,
                             textAlign: TextAlign.center,
                             style: Theme.of(context)
                                 .textTheme
@@ -265,7 +267,7 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
                                       : 0;
                                   return _ShopProductCard(
                                     accent: cyan,
-                                    title: 'RÉSERVE ÉCLAT',
+                                    title: l10n.shopProductSparkReserve,
                                     lux: 100,
                                     price: '0,99€',
                                     badge: null,
@@ -305,10 +307,10 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
                                       : 0;
                                   return _ShopProductCard(
                                     accent: gold,
-                                    title: 'TRÉSOR DE L\'ORACLE',
+                                    title: l10n.shopProductOracleTreasure,
                                     lux: 750,
                                     price: '4,99€',
-                                    badge: 'MEILLEURE OFFRE',
+                                    badge: l10n.shopBadgeBestDeal,
                                     intense: true,
                                     highlightT: ht,
                                     onTapDown: (TapDownDetails d) {
@@ -345,7 +347,7 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
                                       : 0;
                                   return _ShopProductCard(
                                     accent: violet,
-                                    title: 'L\'HÉRITAGE ROYAL',
+                                    title: l10n.shopProductRoyalLegacy,
                                     lux: 5000,
                                     price: '19,99€',
                                     badge: null,
@@ -376,7 +378,7 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
                                   Text(
-                                    'LA FORGE DE L\'ORACLE',
+                                    l10n.shopForgeTitle,
                                     textAlign: TextAlign.center,
                                     style: Theme.of(context)
                                         .textTheme
@@ -399,9 +401,50 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
                                         skin: skin,
                                         equipped: gs.activeSkinId == skin.id,
                                         owned: gs.unlockedSkins.contains(skin.id),
-                                        onTap: () => unawaited(
-                                          gs.purchaseAndEquipSkin(skin),
-                                        ),
+                                        onTap: () async {
+                                          final SkinPurchaseOutcome r =
+                                              await gs.purchaseAndEquipSkin(
+                                            skin,
+                                          );
+                                          if (!context.mounted) return;
+                                          final AppLocalizations sl10n =
+                                              AppLocalizations.of(context)!;
+                                          switch (r) {
+                                            case SkinPurchaseOutcome
+                                                  .insufficientLux:
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(
+                                                SnackBar(
+                                                  content: Text(
+                                                    sl10n.shopSnackInsufficientLux,
+                                                  ),
+                                                ),
+                                              );
+                                            case SkinPurchaseOutcome
+                                                  .purchasedAndEquipped:
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(
+                                                SnackBar(
+                                                  content: Text(
+                                                    sl10n.shopSnackSkinUnlocked,
+                                                  ),
+                                                ),
+                                              );
+                                            case SkinPurchaseOutcome
+                                                  .equippedFromOwned:
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(
+                                                SnackBar(
+                                                  content: Text(
+                                                    sl10n.shopSnackSkinEquipped,
+                                                  ),
+                                                ),
+                                              );
+                                            case SkinPurchaseOutcome
+                                                  .alreadyEquipped:
+                                              break;
+                                          }
+                                        },
                                       ),
                                     ),
                                 ],
@@ -550,7 +593,7 @@ class _ShopProductCard extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               Text(
-                '$lux LUX',
+                AppLocalizations.of(context)!.shopLuxAmount(lux),
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       letterSpacing: 1.4,
@@ -756,8 +799,10 @@ class _SkinCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       owned
-                          ? (equipped ? 'Équipé' : 'Possédé')
-                          : '${skin.price} LUX',
+                          ? (equipped
+                              ? AppLocalizations.of(context)!.shopSkinEquipped
+                              : AppLocalizations.of(context)!.shopSkinOwned)
+                          : AppLocalizations.of(context)!.shopPriceLux(skin.price),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -843,7 +888,7 @@ class _VaultLoadingOverlay extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'COMMUNICATION AVEC LE COFFRE...',
+                    AppLocalizations.of(context)!.shopVaultLoading,
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           letterSpacing: 2.2,
@@ -874,6 +919,7 @@ class _PurchaseSuccessOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
     return Material(
       type: MaterialType.transparency,
       child: Stack(
@@ -924,7 +970,7 @@ class _PurchaseSuccessOverlay extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'SUCCÈS',
+                      l10n.shopPurchaseSuccess,
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
                             letterSpacing: 6,
@@ -935,7 +981,7 @@ class _PurchaseSuccessOverlay extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      '+$addedLux LUX',
+                      l10n.shopPurchaseLuxAdded(addedLux),
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                             letterSpacing: 1.2,
@@ -967,7 +1013,7 @@ class _PurchaseSuccessOverlay extends StatelessWidget {
                         ),
                       ),
                       child: Text(
-                        'RETOUR AU JEU',
+                        l10n.shopBackToGame,
                         style: Theme.of(context).textTheme.labelLarge?.copyWith(
                               letterSpacing: 3.0,
                               fontWeight: FontWeight.w700,

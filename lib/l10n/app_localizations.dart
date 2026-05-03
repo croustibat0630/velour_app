@@ -331,6 +331,366 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'CLOSE'**
   String get settingsClose;
+
+  /// No description provided for @shopBackTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get shopBackTooltip;
+
+  /// No description provided for @shopVaultTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'THE VAULT'**
+  String get shopVaultTitle;
+
+  /// No description provided for @shopProductSparkReserve.
+  ///
+  /// In en, this message translates to:
+  /// **'SPARK RESERVE'**
+  String get shopProductSparkReserve;
+
+  /// No description provided for @shopProductOracleTreasure.
+  ///
+  /// In en, this message translates to:
+  /// **'ORACLE\'S TREASURE'**
+  String get shopProductOracleTreasure;
+
+  /// No description provided for @shopProductRoyalLegacy.
+  ///
+  /// In en, this message translates to:
+  /// **'ROYAL LEGACY'**
+  String get shopProductRoyalLegacy;
+
+  /// No description provided for @shopBadgeBestDeal.
+  ///
+  /// In en, this message translates to:
+  /// **'BEST DEAL'**
+  String get shopBadgeBestDeal;
+
+  /// No description provided for @shopLuxAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'{lux} LUX'**
+  String shopLuxAmount(int lux);
+
+  /// No description provided for @shopForgeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'THE ORACLE FORGE'**
+  String get shopForgeTitle;
+
+  /// No description provided for @shopSkinEquipped.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipped'**
+  String get shopSkinEquipped;
+
+  /// No description provided for @shopSkinOwned.
+  ///
+  /// In en, this message translates to:
+  /// **'Owned'**
+  String get shopSkinOwned;
+
+  /// No description provided for @shopPriceLux.
+  ///
+  /// In en, this message translates to:
+  /// **'{price} LUX'**
+  String shopPriceLux(int price);
+
+  /// No description provided for @shopVaultLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'CONTACTING THE VAULT…'**
+  String get shopVaultLoading;
+
+  /// No description provided for @shopPurchaseSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'SUCCESS'**
+  String get shopPurchaseSuccess;
+
+  /// No description provided for @shopPurchaseLuxAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'+{lux} LUX'**
+  String shopPurchaseLuxAdded(int lux);
+
+  /// No description provided for @shopBackToGame.
+  ///
+  /// In en, this message translates to:
+  /// **'BACK TO GAME'**
+  String get shopBackToGame;
+
+  /// No description provided for @shopSnackInsufficientLux.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough LUX.'**
+  String get shopSnackInsufficientLux;
+
+  /// No description provided for @shopSnackSkinEquipped.
+  ///
+  /// In en, this message translates to:
+  /// **'Skin equipped.'**
+  String get shopSnackSkinEquipped;
+
+  /// No description provided for @shopSnackSkinUnlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Skin unlocked and equipped.'**
+  String get shopSnackSkinUnlocked;
+
+  /// No description provided for @statsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'MY CAREER'**
+  String get statsTitle;
+
+  /// No description provided for @statsStreakSession.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{STREAK: 1 DAY WITH A RUN} other{STREAK: {count} DAYS WITH A RUN}}'**
+  String statsStreakSession(int count);
+
+  /// No description provided for @statsLuxEarned.
+  ///
+  /// In en, this message translates to:
+  /// **'LUX EARNED'**
+  String get statsLuxEarned;
+
+  /// No description provided for @statsBestGain.
+  ///
+  /// In en, this message translates to:
+  /// **'BEST WIN'**
+  String get statsBestGain;
+
+  /// No description provided for @statsMaxLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'MAX LEVEL'**
+  String get statsMaxLevel;
+
+  /// No description provided for @statsShapesPlaced.
+  ///
+  /// In en, this message translates to:
+  /// **'SHAPES PLACED'**
+  String get statsShapesPlaced;
+
+  /// No description provided for @statsMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'MATCHES'**
+  String get statsMatches;
+
+  /// No description provided for @statsTotalTime.
+  ///
+  /// In en, this message translates to:
+  /// **'TOTAL TIME'**
+  String get statsTotalTime;
+
+  /// No description provided for @statsPrecisionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'ACCURACY'**
+  String get statsPrecisionTitle;
+
+  /// No description provided for @statsPrecisionHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Match-to-placement ratio.\nHigher means cleaner runs.'**
+  String get statsPrecisionHelp;
+
+  /// No description provided for @statsModesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'MODE SPLIT'**
+  String get statsModesTitle;
+
+  /// No description provided for @statsModeCasual.
+  ///
+  /// In en, this message translates to:
+  /// **'CASUAL'**
+  String get statsModeCasual;
+
+  /// No description provided for @statsModeHighStakes.
+  ///
+  /// In en, this message translates to:
+  /// **'HIGH STAKES'**
+  String get statsModeHighStakes;
+
+  /// No description provided for @statsModeRoyal.
+  ///
+  /// In en, this message translates to:
+  /// **'ROYAL'**
+  String get statsModeRoyal;
+
+  /// No description provided for @gameHudMenuTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Menu'**
+  String get gameHudMenuTooltip;
+
+  /// No description provided for @pauseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'PAUSED'**
+  String get pauseTitle;
+
+  /// No description provided for @pauseResume.
+  ///
+  /// In en, this message translates to:
+  /// **'RESUME'**
+  String get pauseResume;
+
+  /// No description provided for @pauseBackToMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'BACK TO MENU'**
+  String get pauseBackToMenu;
+
+  /// No description provided for @premiumForfeitTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'FORFEIT?'**
+  String get premiumForfeitTitle;
+
+  /// No description provided for @premiumForfeitLead.
+  ///
+  /// In en, this message translates to:
+  /// **'If you leave this {session} session, you forfeit your stake of '**
+  String premiumForfeitLead(String session);
+
+  /// No description provided for @premiumForfeitTrail.
+  ///
+  /// In en, this message translates to:
+  /// **' LUX permanently.'**
+  String get premiumForfeitTrail;
+
+  /// No description provided for @premiumSessionHighStakes.
+  ///
+  /// In en, this message translates to:
+  /// **'High Stakes'**
+  String get premiumSessionHighStakes;
+
+  /// No description provided for @premiumSessionRoyal.
+  ///
+  /// In en, this message translates to:
+  /// **'Royal'**
+  String get premiumSessionRoyal;
+
+  /// No description provided for @premiumStay.
+  ///
+  /// In en, this message translates to:
+  /// **'STAY'**
+  String get premiumStay;
+
+  /// No description provided for @premiumForfeit.
+  ///
+  /// In en, this message translates to:
+  /// **'FORFEIT'**
+  String get premiumForfeit;
+
+  /// No description provided for @gameOverTitleSessionEnd.
+  ///
+  /// In en, this message translates to:
+  /// **'SESSION COMPLETE'**
+  String get gameOverTitleSessionEnd;
+
+  /// No description provided for @gameOverTitleVictory.
+  ///
+  /// In en, this message translates to:
+  /// **'VICTORY'**
+  String get gameOverTitleVictory;
+
+  /// No description provided for @gameOverTitleDefeat.
+  ///
+  /// In en, this message translates to:
+  /// **'DEFEAT'**
+  String get gameOverTitleDefeat;
+
+  /// No description provided for @gameOverSessionScore.
+  ///
+  /// In en, this message translates to:
+  /// **'SESSION SCORE'**
+  String get gameOverSessionScore;
+
+  /// No description provided for @gameOverZeroLuxHintCasual.
+  ///
+  /// In en, this message translates to:
+  /// **'No match LUX this session — timer ran out or you left before the first gain.'**
+  String get gameOverZeroLuxHintCasual;
+
+  /// No description provided for @gameOverZeroLuxHintHighStakes.
+  ///
+  /// In en, this message translates to:
+  /// **'No LUX banked before the end — goal not reached or time ran out.'**
+  String get gameOverZeroLuxHintHighStakes;
+
+  /// No description provided for @gameOverZeroLuxHintRoyal.
+  ///
+  /// In en, this message translates to:
+  /// **'No LUX banked before the end — goal not reached or time ran out.'**
+  String get gameOverZeroLuxHintRoyal;
+
+  /// No description provided for @gameOverFinalScore.
+  ///
+  /// In en, this message translates to:
+  /// **'FINAL SCORE'**
+  String get gameOverFinalScore;
+
+  /// No description provided for @gameOverLuxWon.
+  ///
+  /// In en, this message translates to:
+  /// **'LUX WON'**
+  String get gameOverLuxWon;
+
+  /// No description provided for @gameOverPersonalBest.
+  ///
+  /// In en, this message translates to:
+  /// **'NEW PERSONAL BEST'**
+  String get gameOverPersonalBest;
+
+  /// No description provided for @gameOverReplay.
+  ///
+  /// In en, this message translates to:
+  /// **'PLAY AGAIN'**
+  String get gameOverReplay;
+
+  /// No description provided for @gameOverMainMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'MAIN MENU'**
+  String get gameOverMainMenu;
+
+  /// No description provided for @gameOverPrestigeBonus.
+  ///
+  /// In en, this message translates to:
+  /// **'PRESTIGE BONUS'**
+  String get gameOverPrestigeBonus;
+
+  /// No description provided for @gameOverFooterHighStakesFail.
+  ///
+  /// In en, this message translates to:
+  /// **'BET LOST: STAKE FORFEITED'**
+  String get gameOverFooterHighStakesFail;
+
+  /// No description provided for @gameOverFooterHighStakesWin150.
+  ///
+  /// In en, this message translates to:
+  /// **'YOU WIN 150 LUX'**
+  String get gameOverFooterHighStakesWin150;
+
+  /// No description provided for @gameOverFooterRoyalFail.
+  ///
+  /// In en, this message translates to:
+  /// **'ROYAL BET LOST: STAKE FORFEITED'**
+  String get gameOverFooterRoyalFail;
+
+  /// No description provided for @gameOverFooterRoyalWin1250.
+  ///
+  /// In en, this message translates to:
+  /// **'YOU WIN 1250 LUX'**
+  String get gameOverFooterRoyalWin1250;
 }
 
 class _AppLocalizationsDelegate

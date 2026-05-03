@@ -90,5 +90,90 @@
   "settingsFooterTagline": "Dark Matte • Velour Accent",
   "settingsCreditsDialogTitle": "CREDITS",
   "settingsCreditsBody": "Velour — Dark Matte Edition\n\nDesign & direction: Velour Studio\nEngineering: Flutter\nAudio: Velour SFX Pack",
-  "settingsClose": "CLOSE"
+  "settingsClose": "CLOSE",
+  "shopBackTooltip": "Back",
+  "shopVaultTitle": "THE VAULT",
+  "shopProductSparkReserve": "SPARK RESERVE",
+  "shopProductOracleTreasure": "ORACLE'S TREASURE",
+  "shopProductRoyalLegacy": "ROYAL LEGACY",
+  "shopBadgeBestDeal": "BEST DEAL",
+  "shopLuxAmount": "{lux} LUX",
+  "@shopLuxAmount": {
+    "placeholders": {
+      "lux": {"type": "int"}
+    }
+  },
+  "shopForgeTitle": "THE ORACLE FORGE",
+  "shopSkinEquipped": "Equipped",
+  "shopSkinOwned": "Owned",
+  "shopPriceLux": "{price} LUX",
+  "@shopPriceLux": {
+    "placeholders": {
+      "price": {"type": "int"}
+    }
+  },
+  "shopVaultLoading": "CONTACTING THE VAULT…",
+  "shopPurchaseSuccess": "SUCCESS",
+  "shopPurchaseLuxAdded": "+{lux} LUX",
+  "@shopPurchaseLuxAdded": {
+    "placeholders": {
+      "lux": {"type": "int"}
+    }
+  },
+  "shopBackToGame": "BACK TO GAME",
+  "shopSnackInsufficientLux": "Not enough LUX.",
+  "shopSnackSkinEquipped": "Skin equipped.",
+  "shopSnackSkinUnlocked": "Skin unlocked and equipped.",
+  "statsTitle": "MY CAREER",
+  "statsStreakSession": "{count, plural, one{STREAK: 1 DAY WITH A RUN} other{STREAK: {count} DAYS WITH A RUN}}",
+  "@statsStreakSession": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "statsLuxEarned": "LUX EARNED",
+  "statsBestGain": "BEST WIN",
+  "statsMaxLevel": "MAX LEVEL",
+  "statsShapesPlaced": "SHAPES PLACED",
+  "statsMatches": "MATCHES",
+  "statsTotalTime": "TOTAL TIME",
+  "statsPrecisionTitle": "ACCURACY",
+  "statsPrecisionHelp": "Match-to-placement ratio.\nHigher means cleaner runs.",
+  "statsModesTitle": "MODE SPLIT",
+  "statsModeCasual": "CASUAL",
+  "statsModeHighStakes": "HIGH STAKES",
+  "statsModeRoyal": "ROYAL",
+  "gameHudMenuTooltip": "Menu",
+  "pauseTitle": "PAUSED",
+  "pauseResume": "RESUME",
+  "pauseBackToMenu": "BACK TO MENU",
+  "premiumForfeitTitle": "FORFEIT?",
+  "premiumForfeitLead": "If you leave this {session} session, you forfeit your stake of ",
+  "@premiumForfeitLead": {
+    "placeholders": {
+      "session": {"type": "String"}
+    }
+  },
+  "premiumForfeitTrail": " LUX permanently.",
+  "premiumSessionHighStakes": "High Stakes",
+  "premiumSessionRoyal": "Royal",
+  "premiumStay": "STAY",
+  "premiumForfeit": "FORFEIT",
+  "gameOverTitleSessionEnd": "SESSION COMPLETE",
+  "gameOverTitleVictory": "VICTORY",
+  "gameOverTitleDefeat": "DEFEAT",
+  "gameOverSessionScore": "SESSION SCORE",
+  "gameOverZeroLuxHintCasual": "No match LUX this session — timer ran out or you left before the first gain.",
+  "gameOverZeroLuxHintHighStakes": "No LUX banked before the end — goal not reached or time ran out.",
+  "gameOverZeroLuxHintRoyal": "No LUX banked before the end — goal not reached or time ran out.",
+  "gameOverFinalScore": "FINAL SCORE",
+  "gameOverLuxWon": "LUX WON",
+  "gameOverPersonalBest": "NEW PERSONAL BEST",
+  "gameOverReplay": "PLAY AGAIN",
+  "gameOverMainMenu": "MAIN MENU",
+  "gameOverPrestigeBonus": "PRESTIGE BONUS",
+  "gameOverFooterHighStakesFail": "BET LOST: STAKE FORFEITED",
+  "gameOverFooterHighStakesWin150": "YOU WIN 150 LUX",
+  "gameOverFooterRoyalFail": "ROYAL BET LOST: STAKE FORFEITED",
+  "gameOverFooterRoyalWin1250": "YOU WIN 1250 LUX"
 }

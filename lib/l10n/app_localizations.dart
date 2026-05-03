@@ -448,6 +448,72 @@ abstract class AppLocalizations {
   /// **'Skin unlocked and equipped.'**
   String get shopSnackSkinUnlocked;
 
+  /// No description provided for @shopForgeBoostsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'SESSION BOOSTS'**
+  String get shopForgeBoostsSection;
+
+  /// No description provided for @shopForgeInsuranceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'ORACLE INSURANCE'**
+  String get shopForgeInsuranceTitle;
+
+  /// No description provided for @shopForgeInsuranceBody.
+  ///
+  /// In en, this message translates to:
+  /// **'If you lose your next High Stakes or Royal run, you recover 60% of the entry fee. Hold up to 3 charges.'**
+  String get shopForgeInsuranceBody;
+
+  /// No description provided for @shopForgeInsuranceCharges.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} / {max} charges'**
+  String shopForgeInsuranceCharges(int count, int max);
+
+  /// No description provided for @shopForgeRoyalBountyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'ROYAL BOUNTY'**
+  String get shopForgeRoyalBountyTitle;
+
+  /// No description provided for @shopForgeRoyalBountyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'+200 bonus LUX on your next Royal win (stacked with the 1 250 payout). One active bounty at a time.'**
+  String get shopForgeRoyalBountyBody;
+
+  /// No description provided for @shopForgeRoyalBountyActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active — next Royal win pays extra'**
+  String get shopForgeRoyalBountyActive;
+
+  /// No description provided for @shopSnackForgeInsurancePurchased.
+  ///
+  /// In en, this message translates to:
+  /// **'Insurance charge added.'**
+  String get shopSnackForgeInsurancePurchased;
+
+  /// No description provided for @shopSnackForgeRoyalBountyPurchased.
+  ///
+  /// In en, this message translates to:
+  /// **'Royal bounty active for your next Royal win.'**
+  String get shopSnackForgeRoyalBountyPurchased;
+
+  /// No description provided for @shopSnackForgeInsuranceFull.
+  ///
+  /// In en, this message translates to:
+  /// **'You already hold 3 insurance charges.'**
+  String get shopSnackForgeInsuranceFull;
+
+  /// No description provided for @shopSnackForgeRoyalBountyActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Royal bounty is already active.'**
+  String get shopSnackForgeRoyalBountyActive;
+
   /// No description provided for @statsTitle.
   ///
   /// In en, this message translates to:
@@ -699,6 +765,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'YOU WIN 1250 LUX'**
   String get gameOverFooterRoyalWin1250;
+
+  /// No description provided for @gameOverOracleInsuranceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'ORACLE COVER'**
+  String get gameOverOracleInsuranceTitle;
+
+  /// No description provided for @gameOverOracleInsuranceRefund.
+  ///
+  /// In en, this message translates to:
+  /// **'+{lux} LUX returned to your purse'**
+  String gameOverOracleInsuranceRefund(int lux);
 
   /// No description provided for @oracleDockStep1Shape.
   ///

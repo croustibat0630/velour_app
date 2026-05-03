@@ -131,6 +131,23 @@
   "shopSnackInsufficientLux": "Nicht genug LUX.",
   "shopSnackSkinEquipped": "Skin ausgerüstet.",
   "shopSnackSkinUnlocked": "Skin freigeschaltet und ausgerüstet.",
+  "shopForgeBoostsSection": "SESSION-BOOSTS",
+  "shopForgeInsuranceTitle": "ORAKEL-VERSICHERUNG",
+  "shopForgeInsuranceBody": "Verlierst du dein nächstes High-Stakes- oder Royal-Match, erhältst du 60 % des Einsatzes zurück. Bis zu 3 Ladungen.",
+  "shopForgeInsuranceCharges": "{count} / {max} Ladungen",
+  "@shopForgeInsuranceCharges": {
+    "placeholders": {
+      "count": {"type": "int"},
+      "max": {"type": "int"}
+    }
+  },
+  "shopForgeRoyalBountyTitle": "KÖNIGLICHE PRÄMIE",
+  "shopForgeRoyalBountyBody": "+200 Bonus-LUX beim nächsten Royal-Sieg (zusätzlich zu 1 250). Nur eine aktive Prämie.",
+  "shopForgeRoyalBountyActive": "Aktiv — nächster Royal-Sieg zahlt extra",
+  "shopSnackForgeInsurancePurchased": "Versicherungsladung hinzugefügt.",
+  "shopSnackForgeRoyalBountyPurchased": "Königliche Prämie aktiv für deinen nächsten Royal-Sieg.",
+  "shopSnackForgeInsuranceFull": "Du hast bereits 3 Versicherungsladungen.",
+  "shopSnackForgeRoyalBountyActive": "Eine königliche Prämie ist bereits aktiv.",
   "statsTitle": "MEINE KARRIERE",
   "statsStreakSession": "{count, plural, one{SERIE: 1 TAG MIT RUN} other{SERIE: {count} TAGE MIT RUN}}",
   "@statsStreakSession": {
@@ -187,6 +204,13 @@
   "gameOverFooterHighStakesWin150": "DU GEWINNST 150 LUX",
   "gameOverFooterRoyalFail": "ROYAL-WETTE VERLOREN: EINSATZ VERFALLEN",
   "gameOverFooterRoyalWin1250": "DU GEWINNST 1250 LUX",
+  "gameOverOracleInsuranceTitle": "ORAKEL-DECKUNG",
+  "gameOverOracleInsuranceRefund": "+{lux} LUX zurück in deine Börse",
+  "@gameOverOracleInsuranceRefund": {
+    "placeholders": {
+      "lux": {"type": "int"}
+    }
+  },
   "oracleDockStep1Shape": "Form = mind. +100 LUX\nGleiche Silhouette • 3 Farben → Ablage",
   "oracleDockStep2Color": "Farbe = +150 LUX\nGleicher Farbton • 3 Formen → Ablage",
   "oracleDockStep3Perfect": "Perfect = +500 LUX\n3 identische Edelsteine → Ablage",

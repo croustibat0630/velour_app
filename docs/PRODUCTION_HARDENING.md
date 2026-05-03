@@ -38,6 +38,26 @@ Document de référence pour la mise à niveau « appli sérieuse » : sécurit�
 
 **Étape intermédiaire (déjà en place ou à déployer) :** `allow read: if isSignedIn()` au lieu de `true` — supprime la lecture totalement anonyme ; **ne supprime pas** l’exposition doc complète entre utilisateurs authentifiés (dont anonymes Firebase).
 
+### Classement prod : retirer les profils de test
+
+Les entrées du top 10 viennent des documents `players/{uid}`. Pour un classement « propre » après des sessions de test, il faut **supprimer explicitement** les docs (et éventuellement les comptes Auth) des UID concernés — ce n’est pas automatique.
+
+**Flux recommandé (machine avec la clé de service, jamais dans le dépôt) :**
+
+1. `cd functions` puis `export GOOGLE_APPLICATION_CREDENTIALS=/chemin/absolu/vers-service-account.json`
+2. `bash scripts/run-leaderboard-cleanup.sh` — génère un snapshot JSON dans `functions/scripts/.local/` (gitignoré) avec les ~30 premiers du classement (**même requête que l’app**).
+3. Copier `functions/scripts/uids-a-supprimer.example.txt` vers `uids-a-supprimer.txt` (gitignoré), y mettre **une ligne par UID** à retirer.
+4. `npm run admin:delete-players -- --uids-file=scripts/uids-a-supprimer.txt --verbose` puis la même commande avec `--execute`.
+5. Optionnel : `--with-auth` avec `--execute` pour supprimer aussi les comptes **Auth** (irréversible).
+
+Export seul : `npm run admin:export-leaderboard-top -- --limit=50 --out=scripts/.local/top.json`
+
+**Pré-lancement (tous les comptes = tests)** : purge complète de la collection `players` + option Auth — `npm run admin:purge-all-players-help` puis `npm run admin:purge-all-players -- --execute --with-auth` (irréversible ; à ne plus utiliser une fois en prod avec de vrais joueurs).
+
+**Normalisation pseudos / `updatedAt`** : `npm run admin:normalize-pseudos -- --help` — utile pour données incohérentes, pas pour retirer un joueur du classement.
+
+Référence : `functions/scripts/exportLeaderboardTopAdmin.js`, `functions/scripts/deletePlayersAdmin.js`, `functions/scripts/normalizePlayerPseudos.js`.
+
 ## 3. Règles Firestore (invariants côté règles)
 
 - High score monotone, borné.

@@ -58,6 +58,23 @@
   "shopSnackInsufficientLux": "LUX insuffisants.",
   "shopSnackSkinEquipped": "Skin équipé.",
   "shopSnackSkinUnlocked": "Skin déverrouillé et équipé.",
+  "shopForgeBoostsSection": "BOOSTS DE SESSION",
+  "shopForgeInsuranceTitle": "ASSURANCE ORACLE",
+  "shopForgeInsuranceBody": "Si tu perds ta prochaine partie High Stakes ou Royal, tu récupères 60 % de la mise d’entrée. Jusqu’à 3 charges.",
+  "shopForgeInsuranceCharges": "{count} / {max} charges",
+  "@shopForgeInsuranceCharges": {
+    "placeholders": {
+      "count": {"type": "int"},
+      "max": {"type": "int"}
+    }
+  },
+  "shopForgeRoyalBountyTitle": "PRIME ROYALE",
+  "shopForgeRoyalBountyBody": "+200 LUX bonus sur ta prochaine victoire Royal (en plus des 1 250). Une prime active à la fois.",
+  "shopForgeRoyalBountyActive": "Active — prochaine victoire Royal paie un bonus",
+  "shopSnackForgeInsurancePurchased": "Charge d’assurance ajoutée.",
+  "shopSnackForgeRoyalBountyPurchased": "Prime royale active pour ta prochaine victoire Royal.",
+  "shopSnackForgeInsuranceFull": "Tu as déjà 3 charges d’assurance.",
+  "shopSnackForgeRoyalBountyActive": "Une prime royale est déjà active.",
   "statsTitle": "MA CARRIÈRE",
   "statsStreakSession": "{count, plural, one{SÉRIE : 1 JOUR AVEC PARTIE} other{SÉRIE : {count} JOURS AVEC PARTIE}}",
   "statsLuxEarned": "LUX GAGNÉS",
@@ -100,6 +117,13 @@
   "gameOverFooterHighStakesWin150": "VOUS GAGNEZ 150 LUX",
   "gameOverFooterRoyalFail": "ÉCHEC DU PARI ROYAL : MISE PERDUE",
   "gameOverFooterRoyalWin1250": "VOUS GAGNEZ 1250 LUX",
+  "gameOverOracleInsuranceTitle": "COUVERTURE ORACLE",
+  "gameOverOracleInsuranceRefund": "+{lux} LUX rendus dans ta besace",
+  "@gameOverOracleInsuranceRefund": {
+    "placeholders": {
+      "lux": {"type": "int"}
+    }
+  },
   "oracleDockStep1Shape": "Forme = +100 LUX (min.)\nMême silhouette • 3 couleurs → rack",
   "oracleDockStep2Color": "Couleur = +150 LUX\nMême teinte • 3 formes → rack",
   "oracleDockStep3Perfect": "Parfait = +500 LUX\n3 gemmes identiques → rack",

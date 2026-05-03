@@ -399,6 +399,143 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
                                         ),
                                   ),
                                   SizedBox(height: (12 * s).clamp(10.0, 16.0)),
+                                  Text(
+                                    l10n.shopForgeBoostsSection,
+                                    textAlign: TextAlign.center,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .labelLarge
+                                        ?.copyWith(
+                                          letterSpacing: 3.2,
+                                          fontWeight: FontWeight.w700,
+                                          color: Colors.white.withValues(
+                                            alpha: 0.52,
+                                          ),
+                                          fontSize: (11 * s).clamp(10.0, 13.0),
+                                        ),
+                                  ),
+                                  SizedBox(height: (10 * s).clamp(8.0, 14.0)),
+                                  _ForgeBoostCard(
+                                    title: l10n.shopForgeInsuranceTitle,
+                                    body: l10n.shopForgeInsuranceBody,
+                                    priceLux: GameState.forgeOracleInsurancePriceLux,
+                                    accent: const Color(0xFFFFD700),
+                                    metaLine: l10n.shopForgeInsuranceCharges(
+                                      gs.oracleInsuranceCharges,
+                                      GameState.forgeOracleInsuranceMaxCharges,
+                                    ),
+                                    enabled: gs.oracleInsuranceCharges <
+                                        GameState.forgeOracleInsuranceMaxCharges,
+                                    showStockedBadge:
+                                        gs.oracleInsuranceCharges > 0,
+                                    onTap: () async {
+                                      AudioHandler.instance.playMenuClick();
+                                      final ForgePurchaseOutcome r = await gs
+                                          .purchaseForgeOracleInsurance();
+                                      if (!context.mounted) return;
+                                      final AppLocalizations sl10n =
+                                          AppLocalizations.of(context)!;
+                                      switch (r) {
+                                        case ForgePurchaseOutcome
+                                            .insufficientLux:
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                sl10n.shopSnackInsufficientLux,
+                                              ),
+                                            ),
+                                          );
+                                        case ForgePurchaseOutcome
+                                            .purchasedInsurance:
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                sl10n
+                                                    .shopSnackForgeInsurancePurchased,
+                                              ),
+                                            ),
+                                          );
+                                        case ForgePurchaseOutcome
+                                            .insuranceStackFull:
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                sl10n.shopSnackForgeInsuranceFull,
+                                              ),
+                                            ),
+                                          );
+                                        default:
+                                          break;
+                                      }
+                                    },
+                                  ),
+                                  SizedBox(height: (8 * s).clamp(6.0, 12.0)),
+                                  _ForgeBoostCard(
+                                    title: l10n.shopForgeRoyalBountyTitle,
+                                    body: l10n.shopForgeRoyalBountyBody,
+                                    priceLux: GameState.forgeRoyalBountyPriceLux,
+                                    accent: const Color(0xFFE49BFF),
+                                    metaLine: gs.royalVictoryBountyPending
+                                        ? l10n.shopForgeRoyalBountyActive
+                                        : null,
+                                    enabled: !gs.royalVictoryBountyPending,
+                                    showPrimeActiveBadge:
+                                        gs.royalVictoryBountyPending,
+                                    onTap: () async {
+                                      AudioHandler.instance.playMenuClick();
+                                      final ForgePurchaseOutcome r = await gs
+                                          .purchaseForgeRoyalVictoryBounty();
+                                      if (!context.mounted) return;
+                                      final AppLocalizations sl10n =
+                                          AppLocalizations.of(context)!;
+                                      switch (r) {
+                                        case ForgePurchaseOutcome
+                                            .insufficientLux:
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                sl10n.shopSnackInsufficientLux,
+                                              ),
+                                            ),
+                                          );
+                                        case ForgePurchaseOutcome
+                                            .purchasedRoyalBounty:
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                sl10n
+                                                    .shopSnackForgeRoyalBountyPurchased,
+                                              ),
+                                            ),
+                                          );
+                                        case ForgePurchaseOutcome
+                                            .royalBountyAlreadyActive:
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                sl10n
+                                                    .shopSnackForgeRoyalBountyActive,
+                                              ),
+                                            ),
+                                          );
+                                        default:
+                                          break;
+                                      }
+                                    },
+                                  ),
+                                  SizedBox(height: (16 * s).clamp(12.0, 20.0)),
                                   for (final SkinConfig skin in SkinCatalog.all)
                                     Padding(
                                       padding: const EdgeInsets.symmetric(
@@ -710,6 +847,171 @@ class _Badge extends StatelessWidget {
           fontWeight: FontWeight.w700,
           fontSize: (9.5 * sT).clamp(9.0, 10.0),
           color: const Color(0xFF0C0C10).withValues(alpha: 0.92),
+        ),
+      ),
+    );
+  }
+}
+
+class _ForgeBoostCard extends StatelessWidget {
+  const _ForgeBoostCard({
+    required this.title,
+    required this.body,
+    required this.priceLux,
+    required this.accent,
+    required this.enabled,
+    required this.onTap,
+    this.metaLine,
+    this.showStockedBadge = false,
+    this.showPrimeActiveBadge = false,
+  });
+
+  final String title;
+  final String body;
+  final int priceLux;
+  final Color accent;
+  final bool enabled;
+  final VoidCallback onTap;
+  final String? metaLine;
+
+  /// Au moins une charge d’assurance en poche (icône + halo).
+  final bool showStockedBadge;
+
+  /// Prime royale active (icône + halo).
+  final bool showPrimeActiveBadge;
+
+  @override
+  Widget build(BuildContext context) {
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
+    final List<BoxShadow> glow = (showStockedBadge || showPrimeActiveBadge)
+        ? <BoxShadow>[
+            BoxShadow(
+              color: accent.withValues(alpha: 0.22),
+              blurRadius: 20,
+              spreadRadius: 1,
+            ),
+            BoxShadow(
+              color: accent.withValues(alpha: 0.10),
+              blurRadius: 40,
+              spreadRadius: 2,
+            ),
+          ]
+        : const <BoxShadow>[];
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          onTap: enabled ? onTap : null,
+          borderRadius: BorderRadius.circular(16),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0A0C12).withValues(
+                    alpha: enabled ? 0.88 : 0.52,
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: accent.withValues(
+                      alpha: (showStockedBadge || showPrimeActiveBadge)
+                          ? 0.58
+                          : (enabled ? 0.42 : 0.18),
+                    ),
+                    width:
+                        (showStockedBadge || showPrimeActiveBadge) ? 1.35 : 1,
+                  ),
+                  boxShadow: glow,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            title,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleSmall
+                                ?.copyWith(
+                                  letterSpacing: 2.4,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.white.withValues(alpha: 0.90),
+                                ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          l10n.shopPriceLux(priceLux),
+                          textAlign: TextAlign.right,
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleSmall
+                              ?.copyWith(
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 1.0,
+                                color: accent.withValues(
+                                  alpha: enabled ? 0.95 : 0.45,
+                                ),
+                              ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      body,
+                      maxLines: 5,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        height: 1.35,
+                        color: Colors.white.withValues(
+                          alpha: enabled ? 0.52 : 0.38,
+                        ),
+                      ),
+                    ),
+                    if (metaLine != null && metaLine!.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        metaLine!,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                          letterSpacing: 1.6,
+                          fontWeight: FontWeight.w700,
+                          color: accent.withValues(
+                            alpha: enabled ? 0.72 : 0.40,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              if (showStockedBadge || showPrimeActiveBadge)
+                Positioned(
+                  top: 4,
+                  right: 6,
+                  child: Icon(
+                    Icons.verified_rounded,
+                    size: 22,
+                    color: accent.withValues(alpha: 0.95),
+                    shadows: [
+                      Shadow(
+                        color: accent.withValues(alpha: 0.45),
+                        blurRadius: 10,
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );

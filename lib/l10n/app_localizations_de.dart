@@ -202,6 +202,48 @@ class AppLocalizationsDe extends AppLocalizations {
   String get shopSnackSkinUnlocked => 'Skin freigeschaltet und ausgerüstet.';
 
   @override
+  String get shopForgeBoostsSection => 'SESSION-BOOSTS';
+
+  @override
+  String get shopForgeInsuranceTitle => 'ORAKEL-VERSICHERUNG';
+
+  @override
+  String get shopForgeInsuranceBody =>
+      'Verlierst du dein nächstes High-Stakes- oder Royal-Match, erhältst du 60 % des Einsatzes zurück. Bis zu 3 Ladungen.';
+
+  @override
+  String shopForgeInsuranceCharges(int count, int max) {
+    return '$count / $max Ladungen';
+  }
+
+  @override
+  String get shopForgeRoyalBountyTitle => 'KÖNIGLICHE PRÄMIE';
+
+  @override
+  String get shopForgeRoyalBountyBody =>
+      '+200 Bonus-LUX beim nächsten Royal-Sieg (zusätzlich zu 1 250). Nur eine aktive Prämie.';
+
+  @override
+  String get shopForgeRoyalBountyActive =>
+      'Aktiv — nächster Royal-Sieg zahlt extra';
+
+  @override
+  String get shopSnackForgeInsurancePurchased =>
+      'Versicherungsladung hinzugefügt.';
+
+  @override
+  String get shopSnackForgeRoyalBountyPurchased =>
+      'Königliche Prämie aktiv für deinen nächsten Royal-Sieg.';
+
+  @override
+  String get shopSnackForgeInsuranceFull =>
+      'Du hast bereits 3 Versicherungsladungen.';
+
+  @override
+  String get shopSnackForgeRoyalBountyActive =>
+      'Eine königliche Prämie ist bereits aktiv.';
+
+  @override
   String get statsTitle => 'MEINE KARRIERE';
 
   @override
@@ -342,6 +384,14 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get gameOverFooterRoyalWin1250 => 'DU GEWINNST 1250 LUX';
+
+  @override
+  String get gameOverOracleInsuranceTitle => 'ORAKEL-DECKUNG';
+
+  @override
+  String gameOverOracleInsuranceRefund(int lux) {
+    return '+$lux LUX zurück in deine Börse';
+  }
 
   @override
   String get oracleDockStep1Shape =>

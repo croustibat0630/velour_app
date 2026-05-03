@@ -58,7 +58,6 @@ class _StatsViewState extends State<StatsView> {
           SafeArea(
             child: Stack(
               children: [
-                const Positioned(top: 6, left: 6, child: UniversalBackButton()),
                 Center(
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 760),
@@ -254,6 +253,7 @@ class _StatsViewState extends State<StatsView> {
                     ),
                   ),
                 ),
+                const Positioned(top: 6, left: 6, child: UniversalBackButton()),
               ],
             ),
           ),

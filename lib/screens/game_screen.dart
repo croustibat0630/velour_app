@@ -835,6 +835,8 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                                     recordAccentColor: recordAccent,
                                     sessionStakeFooter:
                                         gs.sessionStakeFooterLine,
+                                    oracleInsuranceRefundLux:
+                                        gs.lastOracleInsuranceRefundLux,
                                     onReplay: () async {
                                       final SessionStakeKind stake =
                                           gs.replaySuggestedStake ??

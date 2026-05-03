@@ -56,6 +56,9 @@ class FirestoreService {
   DocumentReference<Map<String, dynamic>>? get _playerRef =>
       _uid == null ? null : _db.collection('players').doc(_uid);
 
+  /// Top 10 : [highScore] décroissant, puis [updatedAt] croissant (ex-aequo stables).
+  /// Les docs sans [updatedAt] n’apparaissent pas dans ce snapshot — utiliser le
+  /// script admin `functions/scripts/normalizePlayerPseudos.js` si besoin de backfill.
   Query<Map<String, dynamic>> get _topTenQuery => _db
       .collection('players')
       .orderBy('highScore', descending: true)
@@ -136,7 +139,10 @@ class FirestoreService {
         },
       );
 
-      clockSub = Stream<int>.periodic(const Duration(seconds: 45)).listen((_) {
+      clockSub = Stream<int>.periodic(
+        const Duration(seconds: 45),
+        (int count) => count,
+      ).listen((_) {
         unawaited(() async {
           try {
             final DocumentSnapshot<Map<String, dynamic>> snap = await ref.get();

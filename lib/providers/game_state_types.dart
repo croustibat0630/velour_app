@@ -38,6 +38,15 @@ enum SkinPurchaseOutcome {
   alreadyEquipped,
 }
 
+/// Résultat d’un achat de consommable LUX (Forge).
+enum ForgePurchaseOutcome {
+  insufficientLux,
+  purchasedInsurance,
+  purchasedRoyalBounty,
+  insuranceStackFull,
+  royalBountyAlreadyActive,
+}
+
 /// Message dock Oracle (tutoriel narratif) — texte résolu via [AppLocalizations].
 enum OracleDockMessageId {
   none,

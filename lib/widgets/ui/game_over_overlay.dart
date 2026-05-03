@@ -25,6 +25,7 @@ class GameOverOverlay extends StatefulWidget {
     required this.onReplay,
     required this.onMenu,
     this.sessionStakeFooter = SessionStakeFooterLine.none,
+    this.oracleInsuranceRefundLux = 0,
   });
 
   /// Somme des gains bruts (matches) avant multiplicateur prestige.
@@ -50,6 +51,9 @@ class GameOverOverlay extends StatefulWidget {
   final VoidCallback onMenu;
   final SessionStakeFooterLine sessionStakeFooter;
 
+  /// Remboursement LUX d’assurance Oracle sur échec premium (0 = masqué).
+  final int oracleInsuranceRefundLux;
+
   @override
   State<GameOverOverlay> createState() => _GameOverOverlayState();
 }
@@ -73,6 +77,11 @@ class _GameOverOverlayState extends State<GameOverOverlay>
       vsync: this,
       duration: const Duration(milliseconds: 1100),
     )..repeat(reverse: true);
+    if (widget.oracleInsuranceRefundLux > 0) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        AudioHandler.instance.playCredit();
+      });
+    }
   }
 
   @override
@@ -464,6 +473,25 @@ class _GameOverOverlayState extends State<GameOverOverlay>
                                 ),
                               ),
                             ],
+                            if (widget.oracleInsuranceRefundLux > 0) ...[
+                              SizedBox(height: 18 * sH),
+                              enter(
+                                step++,
+                                AnimatedBuilder(
+                                  animation: _badgePulse,
+                                  builder: (context, _) {
+                                    final double pulse = Curves.easeInOutSine
+                                        .transform(_badgePulse.value);
+                                    return _OracleInsuranceRefundCallout(
+                                      lux: widget.oracleInsuranceRefundLux,
+                                      pulse: pulse,
+                                      scaleT: sT,
+                                      scaleH: sH,
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
                             if (widget.isPersonalBest) ...[
                               SizedBox(height: 16 * sH),
                               enter(
@@ -641,6 +669,113 @@ class _PrestigeBonusBadge extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _OracleInsuranceRefundCallout extends StatelessWidget {
+  const _OracleInsuranceRefundCallout({
+    required this.lux,
+    required this.pulse,
+    required this.scaleT,
+    required this.scaleH,
+  });
+
+  final int lux;
+  final double pulse;
+  final double scaleT;
+  final double scaleH;
+
+  static const Color _gold = Color(0xFFFFD700);
+
+  @override
+  Widget build(BuildContext context) {
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
+    final double glow = 0.72 + 0.28 * pulse;
+    return Container(
+      padding: EdgeInsets.fromLTRB(
+        16,
+        (14 * scaleH).clamp(12.0, 18.0),
+        16,
+        (14 * scaleH).clamp(12.0, 18.0),
+      ),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        color: const Color(0xFF0C0E16).withValues(alpha: 0.94),
+        border: Border.all(
+          color: _gold.withValues(alpha: 0.35 + 0.35 * pulse),
+          width: 1.2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: _gold.withValues(alpha: 0.18 * glow),
+            blurRadius: 22 + 18 * pulse,
+            spreadRadius: 1 + pulse,
+          ),
+          BoxShadow(
+            color: _gold.withValues(alpha: 0.08 * glow),
+            blurRadius: 48,
+            spreadRadius: 2,
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.auto_awesome_rounded,
+            size: (36 * scaleT).clamp(30.0, 44.0),
+            color: _gold.withValues(alpha: 0.92),
+            shadows: [
+              Shadow(
+                color: _gold.withValues(alpha: 0.45 * glow),
+                blurRadius: 20,
+              ),
+            ],
+          ),
+          SizedBox(height: (10 * scaleH).clamp(8.0, 14.0)),
+          Text(
+            l10n.gameOverOracleInsuranceTitle,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+              letterSpacing: 3.6,
+              fontWeight: FontWeight.w800,
+              color: _gold.withValues(alpha: 0.88),
+            ),
+          ),
+          SizedBox(height: (10 * scaleH).clamp(8.0, 12.0)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.brightness_1,
+                size: (22 * scaleT).clamp(18.0, 28.0),
+                color: _gold.withValues(alpha: 0.95),
+              ),
+              SizedBox(width: (10 * scaleH).clamp(8.0, 12.0)),
+              Flexible(
+                child: Text(
+                  l10n.gameOverOracleInsuranceRefund(lux),
+                  textAlign: TextAlign.center,
+                  maxLines: 3,
+                  style: GoogleFonts.robotoMono(
+                    fontSize: (20 * scaleT).clamp(17.0, 26.0),
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.6,
+                    color: Colors.white.withValues(alpha: 0.94),
+                    shadows: [
+                      Shadow(
+                        color: _gold.withValues(alpha: 0.35 * glow),
+                        blurRadius: 14,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

@@ -44,7 +44,6 @@ class SettingsView extends StatelessWidget {
           SafeArea(
             child: Stack(
               children: [
-                const Positioned(top: 6, left: 6, child: UniversalBackButton()),
                 Center(
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 560),
@@ -223,6 +222,7 @@ class SettingsView extends StatelessWidget {
                     ),
                   ),
                 ),
+                const Positioned(top: 6, left: 6, child: UniversalBackButton()),
               ],
             ),
           ),

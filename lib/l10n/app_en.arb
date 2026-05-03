@@ -125,6 +125,23 @@
   "shopSnackInsufficientLux": "Not enough LUX.",
   "shopSnackSkinEquipped": "Skin equipped.",
   "shopSnackSkinUnlocked": "Skin unlocked and equipped.",
+  "shopForgeBoostsSection": "SESSION BOOSTS",
+  "shopForgeInsuranceTitle": "ORACLE INSURANCE",
+  "shopForgeInsuranceBody": "If you lose your next High Stakes or Royal run, you recover 60% of the entry fee. Hold up to 3 charges.",
+  "shopForgeInsuranceCharges": "{count} / {max} charges",
+  "@shopForgeInsuranceCharges": {
+    "placeholders": {
+      "count": {"type": "int"},
+      "max": {"type": "int"}
+    }
+  },
+  "shopForgeRoyalBountyTitle": "ROYAL BOUNTY",
+  "shopForgeRoyalBountyBody": "+200 bonus LUX on your next Royal win (stacked with the 1 250 payout). One active bounty at a time.",
+  "shopForgeRoyalBountyActive": "Active — next Royal win pays extra",
+  "shopSnackForgeInsurancePurchased": "Insurance charge added.",
+  "shopSnackForgeRoyalBountyPurchased": "Royal bounty active for your next Royal win.",
+  "shopSnackForgeInsuranceFull": "You already hold 3 insurance charges.",
+  "shopSnackForgeRoyalBountyActive": "Royal bounty is already active.",
   "statsTitle": "MY CAREER",
   "statsStreakSession": "{count, plural, one{STREAK: 1 DAY WITH A RUN} other{STREAK: {count} DAYS WITH A RUN}}",
   "@statsStreakSession": {
@@ -177,6 +194,13 @@
   "gameOverFooterHighStakesWin150": "YOU WIN 150 LUX",
   "gameOverFooterRoyalFail": "ROYAL BET LOST: STAKE FORFEITED",
   "gameOverFooterRoyalWin1250": "YOU WIN 1250 LUX",
+  "gameOverOracleInsuranceTitle": "ORACLE COVER",
+  "gameOverOracleInsuranceRefund": "+{lux} LUX returned to your purse",
+  "@gameOverOracleInsuranceRefund": {
+    "placeholders": {
+      "lux": {"type": "int"}
+    }
+  },
   "oracleDockStep1Shape": "Shape = +100 LUX (min.)\nSame silhouette • 3 colors → rack",
   "oracleDockStep2Color": "Color = +150 LUX\nSame hue • 3 shapes → rack",
   "oracleDockStep3Perfect": "Perfect = +500 LUX\n3 identical gems → rack",

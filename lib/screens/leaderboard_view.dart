@@ -131,7 +131,6 @@ class _LeaderboardViewState extends State<LeaderboardView> {
             bottom: false,
             child: Stack(
               children: [
-                const Positioned(top: 6, left: 6, child: UniversalBackButton()),
                 Center(
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 560),
@@ -367,6 +366,7 @@ class _LeaderboardViewState extends State<LeaderboardView> {
                     ),
                   ),
                 ),
+                const Positioned(top: 6, left: 6, child: UniversalBackButton()),
               ],
             ),
           ),

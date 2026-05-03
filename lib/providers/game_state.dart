@@ -8,6 +8,7 @@ import 'game_state_local_store.dart';
 import 'game_state_types.dart';
 export 'game_state_types.dart';
 
+import '../game/forge_shop_logic.dart';
 import '../game/session_stake_resolution.dart';
 import '../game/tutorial_board_placer.dart';
 import '../models/game_item.dart';
@@ -491,6 +492,20 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
   SessionStakeKind _sessionStake = SessionStakeKind.casual;
   SessionStakeKind get sessionStake => _sessionStake;
 
+  /// Consommables Forge (persistés).
+  int _oracleInsuranceCharges = 0;
+  bool _royalVictoryBountyPending = false;
+
+  /// Évite une double résolution de mise (chrono vs impasse) sur la même fin de run.
+  bool _sessionStakeResolveConsumed = false;
+
+  int get oracleInsuranceCharges => _oracleInsuranceCharges;
+  bool get royalVictoryBountyPending => _royalVictoryBountyPending;
+
+  /// Dernier remboursement assurance sur l’overlay fin de partie (0 si aucun).
+  int _lastOracleInsuranceRefundLux = 0;
+  int get lastOracleInsuranceRefundLux => _lastOracleInsuranceRefundLux;
+
   SessionStakeFooterLine _sessionStakeFooterLine = SessionStakeFooterLine.none;
   SessionStakeFooterLine get sessionStakeFooterLine => _sessionStakeFooterLine;
 
@@ -517,6 +532,15 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
   };
 
   static const int highStakesAnteLux = 50;
+
+  /// Boutique Forge — assurance Oracle (rembourse part de la mise si échec premium).
+  static const int forgeOracleInsurancePriceLux = 200;
+  static const int forgeOracleInsuranceMaxCharges = 3;
+  static const int forgeOracleInsuranceRefundPercent = 60;
+
+  /// Prime royale : bonus LUX sur la prochaine **victoire** Royal uniquement.
+  static const int forgeRoyalBountyPriceLux = 350;
+  static const int forgeRoyalBountyBonusLux = 200;
   static const int highStakesWinLux = 150;
   static const int highStakesTargetLevel = 3;
 
@@ -591,11 +615,30 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
       if (!_unlockedSkins.contains(_activeSkinId)) {
         _activeSkinId = SkinCatalog.standard.id;
       }
+      await _hydrateForgeShopFromDisk();
       notifyListeners();
       return _economy.hasPendingWelcomeGift;
     } catch (_) {
       return false;
     }
+  }
+
+  Future<void> _hydrateForgeShopFromDisk() async {
+    try {
+      final ({int charges, bool royalBounty}) r = await _localDisk.loadForgeShop();
+      _oracleInsuranceCharges = r.charges.clamp(0, forgeOracleInsuranceMaxCharges);
+      _royalVictoryBountyPending = r.royalBounty;
+    } catch (_) {}
+  }
+
+  Future<void> _persistForgeShopPrefs() async {
+    await _localDisk.persistForgeShop(
+      insuranceCharges: _oracleInsuranceCharges.clamp(
+        0,
+        forgeOracleInsuranceMaxCharges,
+      ),
+      royalVictoryBountyPending: _royalVictoryBountyPending,
+    );
   }
 
   /// Déclenche le cadeau de bienvenue (1 seule fois, persistant).
@@ -617,6 +660,10 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     _oracleNaming.reset();
     _unlockedSkins = <String>[SkinCatalog.standard.id];
     _activeSkinId = SkinCatalog.standard.id;
+    _oracleInsuranceCharges = 0;
+    _royalVictoryBountyPending = false;
+    _sessionStakeResolveConsumed = false;
+    _lastOracleInsuranceRefundLux = 0;
 
     _trinityTutorial.hardReset();
     _narrativeTutorial.hardReset();
@@ -652,6 +699,38 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
 
     unawaited(FirestoreService.instance.mergeSkinPurchaseAndEquip(id));
     return SkinPurchaseOutcome.purchasedAndEquipped;
+  }
+
+  Future<ForgePurchaseOutcome> purchaseForgeOracleInsurance() async {
+    await loadEconomyWelcome();
+    if (_oracleInsuranceCharges >= forgeOracleInsuranceMaxCharges) {
+      return ForgePurchaseOutcome.insuranceStackFull;
+    }
+    if (_economy.luxCoins < forgeOracleInsurancePriceLux) {
+      return ForgePurchaseOutcome.insufficientLux;
+    }
+    addLuxCoins(-forgeOracleInsurancePriceLux);
+    _oracleInsuranceCharges++;
+    notifyListeners();
+    unawaited(_persistForgeShopPrefs());
+    unawaited(_economy.flushLuxCoinsPersistenceOnly());
+    return ForgePurchaseOutcome.purchasedInsurance;
+  }
+
+  Future<ForgePurchaseOutcome> purchaseForgeRoyalVictoryBounty() async {
+    await loadEconomyWelcome();
+    if (_royalVictoryBountyPending) {
+      return ForgePurchaseOutcome.royalBountyAlreadyActive;
+    }
+    if (_economy.luxCoins < forgeRoyalBountyPriceLux) {
+      return ForgePurchaseOutcome.insufficientLux;
+    }
+    addLuxCoins(-forgeRoyalBountyPriceLux);
+    _royalVictoryBountyPending = true;
+    notifyListeners();
+    unawaited(_persistForgeShopPrefs());
+    unawaited(_economy.flushLuxCoinsPersistenceOnly());
+    return ForgePurchaseOutcome.purchasedRoyalBounty;
   }
 
   /// Choix de mise depuis l’écran préparation. Retourne `false` si solde insuffisant (High Stakes).
@@ -722,8 +801,14 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   void _resolveSessionStakeOnGameOver() {
+    if (_sessionStakeResolveConsumed) {
+      return;
+    }
+    _sessionStakeResolveConsumed = true;
+
     _lastEndedRunStakeKind = _sessionStake;
     _lastStakeRewardLuxCoins = 0;
+    _lastOracleInsuranceRefundLux = 0;
 
     final SessionStakeResolution r = resolveSessionStakeOnGameOver(
       sessionStake: _sessionStake,
@@ -736,8 +821,32 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
 
     _sessionStakeFooterLine = r.footerLine;
     if (r.rewardLuxCoins > 0) {
-      addLuxCoins(r.rewardLuxCoins);
-      _lastStakeRewardLuxCoins = r.rewardLuxCoins;
+      int reward = r.rewardLuxCoins;
+      if (_royalVictoryBountyPending &&
+          _lastEndedRunStakeKind == SessionStakeKind.royal &&
+          r.footerLine == SessionStakeFooterLine.royalWin1250Lux) {
+        reward += forgeRoyalBountyBonusLux;
+        _royalVictoryBountyPending = false;
+        unawaited(_persistForgeShopPrefs());
+      }
+      addLuxCoins(reward);
+      _lastStakeRewardLuxCoins = reward;
+    } else if (isPremiumStakeFailure(r.footerLine) &&
+        _oracleInsuranceCharges > 0 &&
+        (_lastEndedRunStakeKind == SessionStakeKind.highStakes ||
+            _lastEndedRunStakeKind == SessionStakeKind.royal)) {
+      final int refund = oracleInsuranceRefundLux(
+        endedStake: _lastEndedRunStakeKind,
+        highStakesAnteLux: highStakesAnteLux,
+        royalAnteLux: royalAnteLux,
+        refundPercentOfAnte: forgeOracleInsuranceRefundPercent,
+      );
+      if (refund > 0) {
+        addLuxCoins(refund);
+        _oracleInsuranceCharges--;
+        _lastOracleInsuranceRefundLux = refund;
+        unawaited(_persistForgeShopPrefs());
+      }
     }
     _replaySuggestedStake = r.replaySuggestedStake;
     _sessionStake = SessionStakeKind.casual;
@@ -873,6 +982,8 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     _deferredTimerGameOver = false;
 
     _isGameOver = false;
+    _sessionStakeResolveConsumed = false;
+    _lastOracleInsuranceRefundLux = 0;
     _lux = 0;
     _runMatchLuxRawTotal = 0;
     _lastGameWasPersonalBest = false;

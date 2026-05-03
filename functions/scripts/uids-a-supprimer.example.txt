@@ -1,0 +1,3 @@
+# Copie ce fichier vers uids-a-supprimer.txt (gitignoré) puis une ligne = un UID Firebase à retirer de `players`.
+# Exemple (faux UID) :
+# abcdefghijklmnopqrstuv1

@@ -113,4 +113,37 @@ class GameStateLocalStore {
       await prefs.setBool(GameStatePrefs.trinityTutorialComplete, true);
     } catch (_) {}
   }
+
+  Future<({int charges, bool royalBounty})> loadForgeShop() async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final int charges =
+          (prefs.getInt(GameStatePrefs.oracleInsuranceCharges) ?? 0).clamp(
+            0,
+            99,
+          );
+      final bool royal =
+          prefs.getBool(GameStatePrefs.royalVictoryBountyPending) ?? false;
+      return (charges: charges, royalBounty: royal);
+    } catch (_) {
+      return (charges: 0, royalBounty: false);
+    }
+  }
+
+  Future<void> persistForgeShop({
+    required int insuranceCharges,
+    required bool royalVictoryBountyPending,
+  }) async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setInt(
+        GameStatePrefs.oracleInsuranceCharges,
+        insuranceCharges.clamp(0, 99),
+      );
+      await prefs.setBool(
+        GameStatePrefs.royalVictoryBountyPending,
+        royalVictoryBountyPending,
+      );
+    } catch (_) {}
+  }
 }

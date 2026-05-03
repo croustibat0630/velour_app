@@ -51,3 +51,7 @@ app.*.map.json
 .env
 .env.*
 !.env.example
+
+# Admin local : snapshots classement + liste d’UID à purger (ne pas committer)
+functions/scripts/.local/
+functions/scripts/uids-a-supprimer.txt

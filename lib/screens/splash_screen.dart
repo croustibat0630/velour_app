@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:velour_app/l10n/app_localizations.dart';
 
 import '../providers/game_state.dart';
+import '../utils/velour_debug_log.dart';
 import '../services/app_settings.dart';
 import '../services/audio_handler.dart';
 import '../services/stats_service.dart';
@@ -49,7 +50,9 @@ class _SplashScreenState extends State<SplashScreen>
 
     try {
       await context.read<GameState>().bootstrapCloudAfterLocalLoad();
-    } catch (_) {}
+    } catch (e, st) {
+      velourDebug('bootstrapCloudAfterLocalLoad: $e\n$st');
+    }
 
     // Ne jamais bloquer la navigation sur l’audio (Chrome : AudioContext
     // inactif avant geste → init/preload peut pendre sur resume()).

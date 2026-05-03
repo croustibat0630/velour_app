@@ -1,7 +1,8 @@
 name: velour_app
 description: >-
-  Velour — puzzle néon en runs (formes, couleurs, perfect), chrono,
-  mises LUX (casual / high stakes / royal), skins et classement en ligne.
+  Velour — puzzle néon par runs : formes, couleurs, perfect, chrono,
+  mises LUX (casual / high stakes / royal), forge, thèmes néon et
+  classement en ligne (Firebase).
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev

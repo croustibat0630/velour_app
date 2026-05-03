@@ -1,0 +1,17 @@
+---
+description: Commits et pushes Git après changements importants (Velour)
+alwaysApply: true
+---
+
+# Workflow Git (agent + contributeurs)
+
+Après un **lot cohérent** de modifications (feature, correctif sensible, refacto, durcissement prod, mise à jour deps) :
+
+1. Vérifier le dépôt : `git status`
+2. Lancer si pertinent : `dart analyze`, `flutter test` (ou au minimum après toucher `lib/` ou `test/`)
+3. **Commit** : message clair, style conventionnel si possible (`feat:`, `fix:`, `refactor:`, `docs:`, `chore:`)
+4. **Push** vers `origin` dès que le lot est stable (pas de demi-travail laissé des jours sans commit)
+
+Préférer **un commit = une intention** (facilite review et `git bisect`). Éviter un énorme diff qui mélange formatage global et logique métier quand c’est évitable.
+
+Ne pas demander à l’utilisateur de « faire le git » à la place de l’agent si l’environnement permet `git_write` / réseau : exécuter `git add`, `git commit`, et `git push` quand c’est demandé ou à la fin d’une mission importante.

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:velour_app/l10n/app_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -61,7 +62,10 @@ class VelourApp extends StatelessWidget {
             });
           }
           return MaterialApp(
-            title: 'Velour',
+            onGenerateTitle: (BuildContext context) =>
+                AppLocalizations.of(context)?.appTitle ?? 'Velour',
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
             debugShowCheckedModeBanner: false,
             builder: (context, child) {
               return Stack(

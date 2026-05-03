@@ -1,0 +1,7 @@
+{
+  "@@locale": "en",
+  "appTitle": "Velour",
+  "@appTitle": {
+    "description": "Application name shown in the window / task switcher."
+  }
+}

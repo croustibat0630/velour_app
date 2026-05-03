@@ -1,11 +1,28 @@
 import 'dart:math';
 
+import '../models/game_item.dart';
+
 /// Tirage de couleur et règles de spawn **sans** layout plateau (testable).
 abstract final class BoardSpawnLogic {
   BoardSpawnLogic._();
 
   /// Probabilité d’aligner le 3e exemplaire quand une paire identique est déjà en rack.
   static const double spawnCompletionBiasChance = 0.3;
+
+  /// Compte les occurrences de chaque [colorId] sur plateau + rack (pondération spawn).
+  static Map<int, int> mergeColorCounts(
+    Iterable<GameItem> board,
+    Iterable<GameItem> slots,
+  ) {
+    final Map<int, int> counts = <int, int>{};
+    for (final GameItem e in board) {
+      counts[e.colorId] = (counts[e.colorId] ?? 0) + 1;
+    }
+    for (final GameItem e in slots) {
+      counts[e.colorId] = (counts[e.colorId] ?? 0) + 1;
+    }
+    return counts;
+  }
 
   /// Triangle (typeId 3) toujours glace cyan pour lisibilité.
   static int clampTriangleColor(int typeId, int colorId) {

@@ -15,6 +15,7 @@ import '../game/forge_shop_logic.dart';
 import '../game/match_scoring.dart';
 import '../game/match_feedback.dart';
 import '../game/rack_logic.dart';
+import '../game/run_timer_logic.dart';
 import '../game/session_stake_constants.dart';
 import '../game/session_stake_resolution.dart';
 import '../game/tutorial_board_placer.dart';
@@ -356,16 +357,11 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
   double get _timeDrainPerSecond =>
       _baseTimeDrainPerSecond * _difficultySpeedMultiplier;
 
-  Duration get _effectiveMatchDelay {
-    // Use the difficulty multiplier to tighten the "target appearance"/resolution
-    // cadence. Royal additionally reduces the delay by 20%.
-    final double royalT = isRoyalSession ? 0.80 : 1.0;
-    final double mult = _difficultySpeedMultiplier;
-    final int ms = (_baseMatchDelay.inMilliseconds * royalT / mult)
-        .round()
-        .clamp(120, _baseMatchDelay.inMilliseconds);
-    return Duration(milliseconds: ms);
-  }
+  Duration get _effectiveMatchDelay => RunTimerLogic.effectiveMatchDelay(
+        baseMatchDelay: _baseMatchDelay,
+        difficultySpeedMultiplier: _difficultySpeedMultiplier,
+        isRoyalSession: isRoyalSession,
+      );
 
   /// Time bar refill per match at level 1; shrinks ~5% per level.
   static const double _baseMatchTimeRefund = 0.20;
@@ -1527,17 +1523,13 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   int _pickColorId() {
-    final Map<int, int> counts = <int, int>{};
-    for (final e in _boardItems) {
-      counts[e.colorId] = (counts[e.colorId] ?? 0) + 1;
-    }
-    for (final e in _slotItems) {
-      counts[e.colorId] = (counts[e.colorId] ?? 0) + 1;
-    }
     return BoardSpawnLogic.pickWeightedColorId(
       maxColorId: numberOfGemTypes,
       gameLevel: _gameLevel,
-      colorPopulationCounts: counts,
+      colorPopulationCounts: BoardSpawnLogic.mergeColorCounts(
+        _boardItems,
+        _slotItems,
+      ),
       rng: _rng,
     );
   }

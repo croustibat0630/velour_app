@@ -1,9 +1,24 @@
 import 'dart:math';
+import 'dart:ui' show Offset;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:velour_app/game/board_spawn_logic.dart';
+import 'package:velour_app/models/game_item.dart';
 
 void main() {
+  test('mergeColorCounts agrège plateau + rack', () {
+    final List<GameItem> board = <GameItem>[
+      GameItem(id: 'a', typeId: 1, colorId: 2, position: Offset.zero),
+      GameItem(id: 'b', typeId: 2, colorId: 2, position: Offset.zero),
+    ];
+    final List<GameItem> slots = <GameItem>[
+      GameItem(id: 'c', typeId: 1, colorId: 3, position: Offset.zero),
+    ];
+    final Map<int, int> m = BoardSpawnLogic.mergeColorCounts(board, slots);
+    expect(m[2], 2);
+    expect(m[3], 1);
+  });
+
   test('clampTriangleColor : type 3 → cyan 1', () {
     expect(BoardSpawnLogic.clampTriangleColor(3, 99), 1);
     expect(BoardSpawnLogic.clampTriangleColor(2, 4), 4);

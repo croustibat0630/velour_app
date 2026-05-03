@@ -1,0 +1,9 @@
+# Copie ce fichier vers android/key.properties et remplis les valeurs.
+# Ne commite jamais key.properties ni le fichier .jks / .keystore.
+#
+# storeFile : chemin relatif au dossier android/ (ex. upload-keystore.jks)
+
+storePassword=ton_mot_de_passe_keystore
+keyPassword=ton_mot_de_passe_alias
+keyAlias=velourRelease
+storeFile=upload-keystore.jks

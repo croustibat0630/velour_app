@@ -44,6 +44,11 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
+# Signature release Android (ne jamais versionner)
+/android/key.properties
+/android/*.jks
+/android/*.keystore
+
 # Captures d’écran accidentelles à la racine (`flutter run` / outils)
 /flutter_*.png
 

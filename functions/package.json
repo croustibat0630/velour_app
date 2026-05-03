@@ -2,7 +2,7 @@
   "name": "velour-functions",
   "private": true,
   "engines": {
-    "node": ">=20"
+    "node": "20"
   },
   "main": "lib/index.js",
   "scripts": {

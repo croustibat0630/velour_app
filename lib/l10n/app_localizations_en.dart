@@ -10,4 +10,41 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get appTitle => 'Velour';
+
+  @override
+  String get brandTitleDisplay => 'VELOUR';
+
+  @override
+  String get menuEditionSubtitle => 'DARK MATTE EDITION';
+
+  @override
+  String menuStreakDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'STREAK: $count DAYS',
+      one: 'STREAK: 1 DAY',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get menuPlay => 'PLAY';
+
+  @override
+  String get menuLeaderboard => 'WORLD LEADERBOARD';
+
+  @override
+  String get menuShop => 'SHOP';
+
+  @override
+  String get menuCareer => 'CAREER';
+
+  @override
+  String get menuSettings => 'SETTINGS';
+
+  @override
+  String luxHudPrefix(int highScore) {
+    return 'HIGH SCORE  $highScore   •   LUX COINS';
+  }
 }

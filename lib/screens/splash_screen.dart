@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:velour_app/l10n/app_localizations.dart';
 
 import '../services/app_settings.dart';
 import '../services/audio_handler.dart';
@@ -108,6 +109,7 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
     final ThemeEngine te = context.watch<ThemeEngine>();
     final Color neon = te.colorForId(1);
 
@@ -134,7 +136,7 @@ class _SplashScreenState extends State<SplashScreen>
             return Opacity(
               opacity: opacity,
               child: Text(
-                'VELOUR',
+                l10n.brandTitleDisplay,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.displaySmall?.copyWith(
                       fontSize: 52,

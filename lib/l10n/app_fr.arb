@@ -1,4 +1,13 @@
 {
   "@@locale": "fr",
-  "appTitle": "Velour"
+  "appTitle": "Velour",
+  "brandTitleDisplay": "VELOUR",
+  "menuEditionSubtitle": "ÉDITION DARK MATTE",
+  "menuStreakDays": "{count, plural, one{SÉRIE : 1 JOUR} other{SÉRIE : {count} JOURS}}",
+  "menuPlay": "COMMENCER",
+  "menuLeaderboard": "CLASSEMENT MONDIAL",
+  "menuShop": "BOUTIQUE",
+  "menuCareer": "CARRIÈRE",
+  "menuSettings": "PARAMÈTRES",
+  "luxHudPrefix": "MEILLEUR SCORE  {highScore}   •   LUX"
 }

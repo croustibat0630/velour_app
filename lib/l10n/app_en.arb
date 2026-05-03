@@ -3,5 +3,51 @@
   "appTitle": "Velour",
   "@appTitle": {
     "description": "Application name shown in the window / task switcher."
+  },
+  "brandTitleDisplay": "VELOUR",
+  "@brandTitleDisplay": {
+    "description": "Logo-style app name on splash and main menu (uppercase)."
+  },
+  "menuEditionSubtitle": "DARK MATTE EDITION",
+  "@menuEditionSubtitle": {
+    "description": "Subtitle under the logo on the main menu."
+  },
+  "menuStreakDays": "{count, plural, one{STREAK: 1 DAY} other{STREAK: {count} DAYS}}",
+  "@menuStreakDays": {
+    "description": "Daily play streak on the main menu.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "menuPlay": "PLAY",
+  "@menuPlay": {
+    "description": "Main menu: start a run."
+  },
+  "menuLeaderboard": "WORLD LEADERBOARD",
+  "@menuLeaderboard": {
+    "description": "Main menu: online rankings."
+  },
+  "menuShop": "SHOP",
+  "@menuShop": {
+    "description": "Main menu: cosmetics store."
+  },
+  "menuCareer": "CAREER",
+  "@menuCareer": {
+    "description": "Main menu: stats / progression."
+  },
+  "menuSettings": "SETTINGS",
+  "@menuSettings": {
+    "description": "Main menu: settings."
+  },
+  "luxHudPrefix": "HIGH SCORE  {highScore}   •   LUX COINS",
+  "@luxHudPrefix": {
+    "description": "Prefix line above animated LUX balance (high score + label).",
+    "placeholders": {
+      "highScore": {
+        "type": "int"
+      }
+    }
   }
 }

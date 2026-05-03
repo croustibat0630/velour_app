@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:velour_app/l10n/app_localizations.dart';
 
 import '../providers/game_state.dart';
 import '../services/audio_handler.dart';
@@ -121,6 +122,7 @@ class _MainMenuViewState extends State<MainMenuView>
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
     final ThemeEngine te = context.watch<ThemeEngine>();
     final GameState gs = context.watch<GameState>();
     final double scaleH = Responsive.compactHeightScale(context);
@@ -195,7 +197,7 @@ class _MainMenuViewState extends State<MainMenuView>
                                 final double glow = 0.18 + 0.12 * s;
                                 final Color skinGlow = gs.currentSkin.primaryColor;
                                 return Text(
-                                  'VELOUR',
+                                  l10n.brandTitleDisplay,
                                   textAlign: TextAlign.center,
                                   style: Theme.of(context)
                                       .textTheme
@@ -233,7 +235,7 @@ class _MainMenuViewState extends State<MainMenuView>
                             ),
                             SizedBox(height: 22 * scaleH),
                             Text(
-                              'DARK MATTE EDITION',
+                              l10n.menuEditionSubtitle,
                               style: Theme.of(context)
                                   .textTheme
                                   .bodySmall
@@ -256,9 +258,7 @@ class _MainMenuViewState extends State<MainMenuView>
                                   ),
                                   SizedBox(width: 8 * scaleH),
                                   Text(
-                                    _streakDays == 1
-                                        ? 'SÉRIE : 1 JOUR'
-                                        : 'SÉRIE : $_streakDays JOURS',
+                                    l10n.menuStreakDays(_streakDays),
                                     style: Theme.of(context)
                                         .textTheme
                                         .labelLarge
@@ -274,7 +274,7 @@ class _MainMenuViewState extends State<MainMenuView>
                               SizedBox(height: 16 * scaleH),
                             ],
                             MenuTextButton(
-                              label: 'COMMENCER',
+                              label: l10n.menuPlay,
                               neon: te.colorForId(1),
                               scale: scaleH,
                               onPressed: () => _primeMenuInteraction(() {
@@ -295,7 +295,7 @@ class _MainMenuViewState extends State<MainMenuView>
                             ),
                             SizedBox(height: 14 * scaleH),
                             MenuTextButton(
-                              label: 'BOUTIQUE',
+                              label: l10n.menuShop,
                               neon: te.colorForId(2),
                               scale: scaleH,
                               onPressed: () => _primeMenuInteraction(
@@ -305,7 +305,7 @@ class _MainMenuViewState extends State<MainMenuView>
                             ),
                             SizedBox(height: 14 * scaleH),
                             MenuTextButton(
-                              label: 'CARRIÈRE',
+                              label: l10n.menuCareer,
                               neon: const Color(0xFFFFD700),
                               scale: scaleH,
                               onPressed: () => _primeMenuInteraction(
@@ -315,7 +315,7 @@ class _MainMenuViewState extends State<MainMenuView>
                             ),
                             SizedBox(height: 14 * scaleH),
                             MenuTextButton(
-                              label: 'PARAMÈTRES',
+                              label: l10n.menuSettings,
                               neon: te.colorForId(4),
                               scale: scaleH,
                               onPressed: () => _primeMenuInteraction(
@@ -332,8 +332,7 @@ class _MainMenuViewState extends State<MainMenuView>
                                     lux: gs.luxCoins,
                                     initialValue: _overrideInitialValue,
                                     color: gold,
-                                    prefix:
-                                        'HIGH SCORE  ${gs.highScore}   •   LUX COINS',
+                                    prefix: l10n.luxHudPrefix(gs.highScore),
                                   ),
                                 );
                               },

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
+import 'package:velour_app/l10n/app_localizations.dart';
 import 'package:velour_app/screens/splash_screen.dart';
 import 'package:velour_app/theme/theme_engine.dart';
 
@@ -15,6 +16,8 @@ void main() {
         create: (_) => ThemeEngine(),
         child: MaterialApp(
           navigatorKey: navKey,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: const SplashScreen(),
         ),
       ),

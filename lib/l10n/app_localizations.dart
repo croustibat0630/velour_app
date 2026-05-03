@@ -103,6 +103,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Velour'**
   String get appTitle;
+
+  /// Logo-style app name on splash and main menu (uppercase).
+  ///
+  /// In en, this message translates to:
+  /// **'VELOUR'**
+  String get brandTitleDisplay;
+
+  /// Subtitle under the logo on the main menu.
+  ///
+  /// In en, this message translates to:
+  /// **'DARK MATTE EDITION'**
+  String get menuEditionSubtitle;
+
+  /// Daily play streak on the main menu.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{STREAK: 1 DAY} other{STREAK: {count} DAYS}}'**
+  String menuStreakDays(int count);
+
+  /// Main menu: start a run.
+  ///
+  /// In en, this message translates to:
+  /// **'PLAY'**
+  String get menuPlay;
+
+  /// Main menu: online rankings.
+  ///
+  /// In en, this message translates to:
+  /// **'WORLD LEADERBOARD'**
+  String get menuLeaderboard;
+
+  /// Main menu: cosmetics store.
+  ///
+  /// In en, this message translates to:
+  /// **'SHOP'**
+  String get menuShop;
+
+  /// Main menu: stats / progression.
+  ///
+  /// In en, this message translates to:
+  /// **'CAREER'**
+  String get menuCareer;
+
+  /// Main menu: settings.
+  ///
+  /// In en, this message translates to:
+  /// **'SETTINGS'**
+  String get menuSettings;
+
+  /// Prefix line above animated LUX balance (high score + label).
+  ///
+  /// In en, this message translates to:
+  /// **'HIGH SCORE  {highScore}   •   LUX COINS'**
+  String luxHudPrefix(int highScore);
 }
 
 class _AppLocalizationsDelegate

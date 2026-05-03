@@ -13,9 +13,9 @@ concurrency:
 
 jobs:
   analyze_and_test:
-    name: Analyze & test
+    name: Analyze, test & web build
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -30,7 +30,10 @@ jobs:
         run: flutter pub get
 
       - name: Analyze
-        run: dart analyze
+        run: dart analyze --fatal-infos
 
       - name: Test
         run: flutter test
+
+      - name: Build web (release)
+        run: flutter build web --release --no-wasm-dry-run

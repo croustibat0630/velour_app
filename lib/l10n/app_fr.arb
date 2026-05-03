@@ -98,5 +98,16 @@
   "gameOverFooterHighStakesFail": "ÉCHEC DU PARI : MISE PERDUE",
   "gameOverFooterHighStakesWin150": "VOUS GAGNEZ 150 LUX",
   "gameOverFooterRoyalFail": "ÉCHEC DU PARI ROYAL : MISE PERDUE",
-  "gameOverFooterRoyalWin1250": "VOUS GAGNEZ 1250 LUX"
+  "gameOverFooterRoyalWin1250": "VOUS GAGNEZ 1250 LUX",
+  "oracleDockStep1Shape": "Forme = +100 LUX (min.)\nMême silhouette • 3 couleurs → rack",
+  "oracleDockStep2Color": "Couleur = +150 LUX\nMême teinte • 3 formes → rack",
+  "oracleDockStep3Perfect": "Parfait = +500 LUX\n3 gemmes identiques → rack",
+  "oracleDockCelebration": "100 < 150 < 500 LUX\nVise le parfait en priorité.",
+  "tutorialTrinityShapeIntro": "La forme est la structure. Regroupez-les.",
+  "tutorialTrinityColorIntro": "La couleur est l'harmonie. Elle crée des opportunités.",
+  "tutorialTrinityPerfectIntro": "Le Perfect Match : L'union absolue. Déclenche l'éclat LUX.",
+  "narrativeFloatShapeBonus": "+100 LUX : STRUCTURE (FORME)",
+  "narrativeFloatColorBonus": "+150 LUX : HARMONIE (COULEUR)",
+  "narrativeFloatPerfectBonus": "+500 LUX : ÉCLAT TOTAL",
+  "gameNarrativePerfectMatchBanner": "PERFECT MATCH"
 }

@@ -175,5 +175,16 @@
   "gameOverFooterHighStakesFail": "BET LOST: STAKE FORFEITED",
   "gameOverFooterHighStakesWin150": "YOU WIN 150 LUX",
   "gameOverFooterRoyalFail": "ROYAL BET LOST: STAKE FORFEITED",
-  "gameOverFooterRoyalWin1250": "YOU WIN 1250 LUX"
+  "gameOverFooterRoyalWin1250": "YOU WIN 1250 LUX",
+  "oracleDockStep1Shape": "Shape = +100 LUX (min.)\nSame silhouette • 3 colors → rack",
+  "oracleDockStep2Color": "Color = +150 LUX\nSame hue • 3 shapes → rack",
+  "oracleDockStep3Perfect": "Perfect = +500 LUX\n3 identical gems → rack",
+  "oracleDockCelebration": "100 < 150 < 500 LUX\nAim for perfect first.",
+  "tutorialTrinityShapeIntro": "Shape is structure. Group them.",
+  "tutorialTrinityColorIntro": "Color is harmony. It creates opportunities.",
+  "tutorialTrinityPerfectIntro": "The Perfect Match: absolute union. Triggers the LUX burst.",
+  "narrativeFloatShapeBonus": "+100 LUX : STRUCTURE (SHAPE)",
+  "narrativeFloatColorBonus": "+150 LUX : HARMONY (COLOR)",
+  "narrativeFloatPerfectBonus": "+500 LUX : TOTAL BRILLIANCE",
+  "gameNarrativePerfectMatchBanner": "PERFECT MATCH"
 }

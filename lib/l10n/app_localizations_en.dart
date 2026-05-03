@@ -337,4 +337,43 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gameOverFooterRoyalWin1250 => 'YOU WIN 1250 LUX';
+
+  @override
+  String get oracleDockStep1Shape =>
+      'Shape = +100 LUX (min.)\nSame silhouette • 3 colors → rack';
+
+  @override
+  String get oracleDockStep2Color =>
+      'Color = +150 LUX\nSame hue • 3 shapes → rack';
+
+  @override
+  String get oracleDockStep3Perfect =>
+      'Perfect = +500 LUX\n3 identical gems → rack';
+
+  @override
+  String get oracleDockCelebration =>
+      '100 < 150 < 500 LUX\nAim for perfect first.';
+
+  @override
+  String get tutorialTrinityShapeIntro => 'Shape is structure. Group them.';
+
+  @override
+  String get tutorialTrinityColorIntro =>
+      'Color is harmony. It creates opportunities.';
+
+  @override
+  String get tutorialTrinityPerfectIntro =>
+      'The Perfect Match: absolute union. Triggers the LUX burst.';
+
+  @override
+  String get narrativeFloatShapeBonus => '+100 LUX : STRUCTURE (SHAPE)';
+
+  @override
+  String get narrativeFloatColorBonus => '+150 LUX : HARMONY (COLOR)';
+
+  @override
+  String get narrativeFloatPerfectBonus => '+500 LUX : TOTAL BRILLIANCE';
+
+  @override
+  String get gameNarrativePerfectMatchBanner => 'PERFECT MATCH';
 }

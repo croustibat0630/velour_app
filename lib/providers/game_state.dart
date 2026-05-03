@@ -249,24 +249,19 @@ class GameState extends ChangeNotifier {
     }
   }
 
-  /// Texte Oracle selon la phase (tutoriel narratif) — style télégraphique.
-  /// Seeds : forme 100, couleur 150, parfait 500.
-  String get narrativeOracleInstruction {
+  /// Message Oracle dock (clé → [AppLocalizations] dans l’UI).
+  OracleDockMessageId get narrativeOracleDockMessageId {
     switch (_narrativePhase) {
       case NarrativeTutorialPhase.step1Shape:
-        return 'Forme = +100 LUX (min.)\n'
-            'Même silhouette • 3 couleurs → rack';
+        return OracleDockMessageId.step1Shape;
       case NarrativeTutorialPhase.step2Color:
-        return 'Couleur = +150 LUX\n'
-            'Même teinte • 3 formes → rack';
+        return OracleDockMessageId.step2Color;
       case NarrativeTutorialPhase.step3Perfect:
-        return 'Parfait = +500 LUX\n'
-            '3 gemmes identiques → rack';
+        return OracleDockMessageId.step3Perfect;
       case NarrativeTutorialPhase.celebration:
-        return '100 < 150 < 500 LUX\n'
-            'Vise le parfait en priorité.';
+        return OracleDockMessageId.celebration;
       case NarrativeTutorialPhase.none:
-        return '';
+        return OracleDockMessageId.none;
     }
   }
 
@@ -290,7 +285,7 @@ class GameState extends ChangeNotifier {
   }
 
   TrinityTutorialPhase _trinityTutorialPhase = TrinityTutorialPhase.none;
-  String? _tutorialBannerMessage;
+  TrinityBannerId _trinityBannerId = TrinityBannerId.none;
   int _tutorialBannerTick = 0;
 
   ComboFloaterFx? _comboFloater;
@@ -314,7 +309,7 @@ class GameState extends ChangeNotifier {
 
   TrinityTutorialPhase get trinityTutorialPhase => _trinityTutorialPhase;
 
-  String? get tutorialBannerMessage => _tutorialBannerMessage;
+  TrinityBannerId get trinityBannerId => _trinityBannerId;
 
   int get tutorialBannerTick => _tutorialBannerTick;
 
@@ -696,7 +691,7 @@ class GameState extends ChangeNotifier {
     _shouldShowNamingDialog = false;
     _unlockedSkins = <String>[SkinCatalog.standard.id];
     _activeSkinId = SkinCatalog.standard.id;
-    _tutorialBannerMessage = null;
+    _trinityBannerId = TrinityBannerId.none;
     _tutorialBannerTick++;
 
     _narrativeFinalizeTimer?.cancel();
@@ -1082,7 +1077,7 @@ class GameState extends ChangeNotifier {
 
     if (_isFirstTimeGame && _sessionStake == SessionStakeKind.casual) {
       _trinityTutorialPhase = TrinityTutorialPhase.none;
-      _tutorialBannerMessage = null;
+      _trinityBannerId = TrinityBannerId.none;
       _narrativeFinalizeTimer?.cancel();
       _narrativeFinalizeTimer = null;
       _narrativePhase = NarrativeTutorialPhase.step1Shape;
@@ -1095,12 +1090,12 @@ class GameState extends ChangeNotifier {
       _seedNarrativeStep1Board();
     } else if (_shouldStartTrinityTutorial()) {
       _trinityTutorialPhase = TrinityTutorialPhase.shape;
-      _tutorialBannerMessage = 'La forme est la structure. Regroupez-les.';
+      _trinityBannerId = TrinityBannerId.shapeIntro;
       _tutorialBannerTick++;
       _seedTrinityBoardForCurrentPhase();
     } else {
       _trinityTutorialPhase = TrinityTutorialPhase.none;
-      _tutorialBannerMessage = null;
+      _trinityBannerId = TrinityBannerId.none;
       _fillBoardToCap();
     }
   }
@@ -1209,26 +1204,26 @@ class GameState extends ChangeNotifier {
     _shakeStrength = 15;
   }
 
-  String? _narrativeFloatingLine(RunBasis basis, String defaultLuxLabel) {
+  NarrativeFloatingKey? _narrativeFloatingKey(RunBasis basis) {
     if (!_isNarrativeTutorialCoreSteps) {
       return null;
     }
     switch (_narrativePhase) {
       case NarrativeTutorialPhase.step1Shape:
         if (basis == RunBasis.shape) {
-          return '+100 LUX : STRUCTURE (FORME)';
+          return NarrativeFloatingKey.shapeBonus;
         }
-        return defaultLuxLabel;
+        return null;
       case NarrativeTutorialPhase.step2Color:
         if (basis == RunBasis.color) {
-          return '+150 LUX : HARMONIE (COULEUR)';
+          return NarrativeFloatingKey.colorBonus;
         }
-        return defaultLuxLabel;
+        return null;
       case NarrativeTutorialPhase.step3Perfect:
         if (basis == RunBasis.perfect) {
-          return '+500 LUX : ÉCLAT TOTAL';
+          return NarrativeFloatingKey.perfectBonus;
         }
-        return defaultLuxLabel;
+        return null;
       case NarrativeTutorialPhase.celebration:
       case NarrativeTutorialPhase.none:
         return null;
@@ -1378,18 +1373,16 @@ class GameState extends ChangeNotifier {
     switch (_trinityTutorialPhase) {
       case TrinityTutorialPhase.shape:
         _trinityTutorialPhase = TrinityTutorialPhase.color;
-        _tutorialBannerMessage =
-            'La couleur est l\'harmonie. Elle crée des opportunités.';
+        _trinityBannerId = TrinityBannerId.colorIntro;
         break;
       case TrinityTutorialPhase.color:
         _trinityTutorialPhase = TrinityTutorialPhase.perfect;
-        _tutorialBannerMessage =
-            'Le Perfect Match : L\'union absolue. Déclenche l\'éclat LUX.';
+        _trinityBannerId = TrinityBannerId.perfectIntro;
         break;
       case TrinityTutorialPhase.perfect:
         _trinityTutorialComplete = true;
         _trinityTutorialPhase = TrinityTutorialPhase.none;
-        _tutorialBannerMessage = null;
+        _trinityBannerId = TrinityBannerId.none;
         unawaited(_persistTrinityTutorialDone());
         _slotItems.clear();
         _slotSeqById.clear();
@@ -2194,8 +2187,8 @@ class GameState extends ChangeNotifier {
       (false, true) => '+$gain LUX ×${chainScoreMult.toStringAsFixed(1)}',
       (false, false) => '+$gain LUX',
     };
-    final String displayLuxLine =
-        _narrativeFloatingLine(basis, luxLabel) ?? luxLabel;
+    final NarrativeFloatingKey? narrativeFloatKey =
+        _narrativeFloatingKey(basis);
 
     if (isCascade) {
       _comboFloater = ComboFloaterFx(
@@ -2224,11 +2217,12 @@ class GameState extends ChangeNotifier {
     } else {
       _floatingTextFx = FloatingTextFx(
         id: _nextId(),
-        text: displayLuxLine,
+        text: luxLabel,
         position: center,
         typeId: typeId,
         colorId: (basis == RunBasis.perfect) ? 0 : 1,
         isNarrativePerfectBurst: false,
+        narrativeFloatKey: narrativeFloatKey,
       );
       _floatingTick++;
     }

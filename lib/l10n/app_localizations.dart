@@ -691,6 +691,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'YOU WIN 1250 LUX'**
   String get gameOverFooterRoyalWin1250;
+
+  /// No description provided for @oracleDockStep1Shape.
+  ///
+  /// In en, this message translates to:
+  /// **'Shape = +100 LUX (min.)\nSame silhouette • 3 colors → rack'**
+  String get oracleDockStep1Shape;
+
+  /// No description provided for @oracleDockStep2Color.
+  ///
+  /// In en, this message translates to:
+  /// **'Color = +150 LUX\nSame hue • 3 shapes → rack'**
+  String get oracleDockStep2Color;
+
+  /// No description provided for @oracleDockStep3Perfect.
+  ///
+  /// In en, this message translates to:
+  /// **'Perfect = +500 LUX\n3 identical gems → rack'**
+  String get oracleDockStep3Perfect;
+
+  /// No description provided for @oracleDockCelebration.
+  ///
+  /// In en, this message translates to:
+  /// **'100 < 150 < 500 LUX\nAim for perfect first.'**
+  String get oracleDockCelebration;
+
+  /// No description provided for @tutorialTrinityShapeIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Shape is structure. Group them.'**
+  String get tutorialTrinityShapeIntro;
+
+  /// No description provided for @tutorialTrinityColorIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Color is harmony. It creates opportunities.'**
+  String get tutorialTrinityColorIntro;
+
+  /// No description provided for @tutorialTrinityPerfectIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'The Perfect Match: absolute union. Triggers the LUX burst.'**
+  String get tutorialTrinityPerfectIntro;
+
+  /// No description provided for @narrativeFloatShapeBonus.
+  ///
+  /// In en, this message translates to:
+  /// **'+100 LUX : STRUCTURE (SHAPE)'**
+  String get narrativeFloatShapeBonus;
+
+  /// No description provided for @narrativeFloatColorBonus.
+  ///
+  /// In en, this message translates to:
+  /// **'+150 LUX : HARMONY (COLOR)'**
+  String get narrativeFloatColorBonus;
+
+  /// No description provided for @narrativeFloatPerfectBonus.
+  ///
+  /// In en, this message translates to:
+  /// **'+500 LUX : TOTAL BRILLIANCE'**
+  String get narrativeFloatPerfectBonus;
+
+  /// No description provided for @gameNarrativePerfectMatchBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'PERFECT MATCH'**
+  String get gameNarrativePerfectMatchBanner;
 }
 
 class _AppLocalizationsDelegate

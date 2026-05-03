@@ -38,6 +38,30 @@ enum SkinPurchaseOutcome {
   alreadyEquipped,
 }
 
+/// Message dock Oracle (tutoriel narratif) — texte résolu via [AppLocalizations].
+enum OracleDockMessageId {
+  none,
+  step1Shape,
+  step2Color,
+  step3Perfect,
+  celebration,
+}
+
+/// Bannière tutoriel « Trinité » (hors run narrative).
+enum TrinityBannerId {
+  none,
+  shapeIntro,
+  colorIntro,
+  perfectIntro,
+}
+
+/// Floater LUX fixe pendant le tutoriel narratif (sinon libellé runtime).
+enum NarrativeFloatingKey {
+  shapeBonus,
+  colorBonus,
+  perfectBonus,
+}
+
 class FlightFx {
   FlightFx({
     required this.id,
@@ -62,6 +86,7 @@ class FloatingTextFx {
     required this.typeId,
     required this.colorId,
     this.isNarrativePerfectBurst = false,
+    this.narrativeFloatKey,
   });
 
   final String id;
@@ -72,6 +97,9 @@ class FloatingTextFx {
 
   /// Style « burst » sur le floater ; le parfait narratif n’affiche plus le floater.
   final bool isNarrativePerfectBurst;
+
+  /// Si non null, l’UI affiche la chaîne ARB correspondante au lieu de [text].
+  final NarrativeFloatingKey? narrativeFloatKey;
 }
 
 /// Petit « +1 » tutoriel narratif : part de la gemme vers le haut / la zone score.

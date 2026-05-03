@@ -2,6 +2,10 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:velour_app/l10n/app_localizations.dart';
+import 'package:velour_app/l10n/narrative_messages.dart';
+
+import '../../providers/game_state_types.dart';
 
 /// Texte Oracle lisible sur tout fond : léger contour sans ShaderMask.
 class _OracleStrokedLabel extends StatelessWidget {
@@ -102,7 +106,7 @@ class _NarrativeTutorialAmbientLayerState
 class NarrativeOracleMessageBar extends StatelessWidget {
   const NarrativeOracleMessageBar({
     super.key,
-    required this.message,
+    required this.messageId,
     required this.accent,
     required this.secondary,
     this.tutorialStepIndex,
@@ -111,7 +115,7 @@ class NarrativeOracleMessageBar extends StatelessWidget {
     this.dockToBottom = true,
   });
 
-  final String message;
+  final OracleDockMessageId messageId;
   final Color accent;
   final Color secondary;
 
@@ -121,6 +125,9 @@ class NarrativeOracleMessageBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
+    final String message =
+        resolveOracleDockMessage(l10n, messageId);
     if (message.isEmpty) return const SizedBox.shrink();
 
     final TextStyle oracleStyle = GoogleFonts.montserrat(
@@ -202,7 +209,7 @@ class NarrativeOracleMessageBar extends StatelessWidget {
                     },
                     child: Material(
                       key: ValueKey<String>(
-                        '${tutorialStepIndex ?? -1}|$message',
+                        '${tutorialStepIndex ?? -1}|$messageId',
                       ),
                       color: Colors.transparent,
                       child: Container(

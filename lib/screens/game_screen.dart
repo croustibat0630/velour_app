@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:velour_app/l10n/app_localizations.dart';
+import 'package:velour_app/l10n/narrative_messages.dart';
 import 'package:velour_app/theme/colors.dart';
 import 'package:velour_app/theme/theme_engine.dart';
 import 'package:velour_app/widgets/items/neon_crystal.dart';
@@ -553,7 +554,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                               6 +
                               MediaQuery.paddingOf(context).bottom,
                           child: NarrativeOracleMessageBar(
-                            message: gameState.narrativeOracleInstruction,
+                            messageId: gameState.narrativeOracleDockMessageId,
                             accent: gameState.currentSkin.primaryColor,
                             secondary: gameState.currentSkin.secondaryColor,
                             tutorialStepIndex:
@@ -578,7 +579,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                             ),
                           ),
                         ),
-                      if (gameState.tutorialBannerMessage != null &&
+                      if (gameState.trinityBannerId != TrinityBannerId.none &&
                           !gameState.isNarrativeTutorialActive)
                         Positioned(
                           left: width * 0.10,
@@ -601,7 +602,10 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                                 child: Padding(
                                   padding: const EdgeInsets.all(16),
                                   child: Text(
-                                    gameState.tutorialBannerMessage!,
+                                    resolveTrinityBanner(
+                                      AppLocalizations.of(context)!,
+                                      gameState.trinityBannerId,
+                                    ),
                                     textAlign: TextAlign.center,
                                     style: Theme.of(context)
                                         .textTheme
@@ -629,6 +633,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                             child: _FloatingText(
                               key: ValueKey(_floating!.id),
                               text: _floating!.text,
+                              narrativeFloatKey: _floating!.narrativeFloatKey,
                               position: _floating!.position,
                               color: neonColor(_floating!.colorId),
                               spectacularBurst:
@@ -1409,12 +1414,14 @@ class _FloatingText extends StatefulWidget {
   const _FloatingText({
     super.key,
     required this.text,
+    this.narrativeFloatKey,
     required this.position,
     required this.color,
     this.spectacularBurst = false,
   });
 
   final String text;
+  final NarrativeFloatingKey? narrativeFloatKey;
   final Offset position;
   final Color color;
   final bool spectacularBurst;
@@ -1438,6 +1445,12 @@ class _FloatingTextState extends State<_FloatingText>
 
   @override
   Widget build(BuildContext context) {
+    final String displayText = widget.narrativeFloatKey != null
+        ? resolveNarrativeFloating(
+            AppLocalizations.of(context)!,
+            widget.narrativeFloatKey!,
+          )
+        : widget.text;
     final bool burst = widget.spectacularBurst;
     const Color gold = Color(0xFFFFD700);
     return Stack(
@@ -1501,7 +1514,7 @@ class _FloatingTextState extends State<_FloatingText>
                 child: Transform.scale(
                   scale: scale,
                   alignment: Alignment.centerLeft,
-                  child: Text(widget.text, style: style),
+                  child: Text(displayText, style: style),
                 ),
               ),
             );
@@ -2308,7 +2321,7 @@ class _NarrativePerfectCelebrationBannerState
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(26, 22, 26, 22),
                   child: Text(
-                    'PERFECT MATCH',
+                    AppLocalizations.of(context)!.gameNarrativePerfectMatchBanner,
                     textAlign: TextAlign.center,
                     style: GoogleFonts.montserrat(
                       fontSize: 21,

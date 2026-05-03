@@ -7,6 +7,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
+import 'services/app_settings.dart';
 import 'providers/game_state.dart';
 import 'screens/game_screen.dart';
 import 'screens/leaderboard_view.dart';
@@ -61,38 +62,48 @@ class VelourApp extends StatelessWidget {
               te.applySkinColors(primary: p, secondary: s);
             });
           }
-          return MaterialApp(
-            onGenerateTitle: (BuildContext context) =>
-                AppLocalizations.of(context)?.appTitle ?? 'Velour',
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            debugShowCheckedModeBanner: false,
-            builder: (context, child) {
-              return Stack(
-                fit: StackFit.expand,
-                children: [
-                  child ?? const SizedBox.shrink(),
-                  const WelcomeGiftGlobalLayer(),
+          return ListenableBuilder(
+            listenable: AppSettings.instance.localePreference,
+            builder: (BuildContext context, Widget? _) {
+              return MaterialApp(
+                locale: AppSettings.materialLocaleFor(
+                  AppSettings.instance.localePreference.value,
+                ),
+                onGenerateTitle: (BuildContext context) =>
+                    AppLocalizations.of(context)?.appTitle ?? 'Velour',
+                localizationsDelegates:
+                    AppLocalizations.localizationsDelegates,
+                supportedLocales: AppLocalizations.supportedLocales,
+                debugShowCheckedModeBanner: false,
+                builder: (context, child) {
+                  return Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      child ?? const SizedBox.shrink(),
+                      const WelcomeGiftGlobalLayer(),
+                    ],
+                  );
+                },
+                theme: ThemeData.dark().copyWith(
+                  scaffoldBackgroundColor: const Color(0xFF0A0A0F),
+                  textTheme: GoogleFonts.montserratTextTheme(
+                    ThemeData.dark().textTheme,
+                  ),
+                ),
+                home: const SplashScreen(),
+                navigatorObservers: [
+                  RouteTransitionObserver(),
+                  velourRouteObserver,
                 ],
+                routes: {
+                  '/main': (_) => const MainMenuView(),
+                  '/game': (_) => const GameScreen(),
+                  '/leaderboard': (_) => const LeaderboardView(),
+                  '/shop': (_) => const ShopView(),
+                  '/settings': (_) => const SettingsView(),
+                  '/stats': (_) => const StatsView(),
+                },
               );
-            },
-            theme: ThemeData.dark().copyWith(
-              scaffoldBackgroundColor: const Color(0xFF0A0A0F),
-              textTheme:
-                  GoogleFonts.montserratTextTheme(ThemeData.dark().textTheme),
-            ),
-            home: const SplashScreen(),
-            navigatorObservers: [
-              RouteTransitionObserver(),
-              velourRouteObserver,
-            ],
-            routes: {
-              '/main': (_) => const MainMenuView(),
-              '/game': (_) => const GameScreen(),
-              '/leaderboard': (_) => const LeaderboardView(),
-              '/shop': (_) => const ShopView(),
-              '/settings': (_) => const SettingsView(),
-              '/stats': (_) => const StatsView(),
             },
           );
         },

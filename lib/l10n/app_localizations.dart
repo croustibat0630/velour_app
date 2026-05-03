@@ -157,6 +157,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'HIGH SCORE  {highScore}   •   LUX COINS'**
   String luxHudPrefix(int highScore);
+
+  /// Settings: section title for locale.
+  ///
+  /// In en, this message translates to:
+  /// **'LANGUAGE'**
+  String get settingsSectionLanguage;
+
+  /// Settings: label next to the locale dropdown.
+  ///
+  /// In en, this message translates to:
+  /// **'Display language'**
+  String get settingsLanguageRowTitle;
+
+  /// Settings: follow device language.
+  ///
+  /// In en, this message translates to:
+  /// **'System default'**
+  String get settingsLocaleSystem;
+
+  /// No description provided for @settingsLocaleEnglish.
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get settingsLocaleEnglish;
+
+  /// No description provided for @settingsLocaleFrench.
+  ///
+  /// In en, this message translates to:
+  /// **'French'**
+  String get settingsLocaleFrench;
 }
 
 class _AppLocalizationsDelegate

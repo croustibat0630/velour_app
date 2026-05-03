@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:velour_app/l10n/app_localizations.dart';
 
 import '../services/audio_handler.dart';
 import '../services/app_settings.dart';
@@ -19,6 +20,7 @@ class SettingsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
     final double sH = Responsive.heightScale(context);
     final double sT = Responsive.textScale(context);
     final Color accent = _gold;
@@ -135,19 +137,21 @@ class SettingsView extends StatelessWidget {
                           ),
                           SizedBox(height: 14 * sH),
                           _SectionCard(
-                            title: 'LANGUE',
+                            title: l10n.settingsSectionLanguage,
                             accent: accent,
                             children: [
-                              ValueListenableBuilder<AppLanguage>(
-                                valueListenable: AppSettings.instance.language,
-                                builder: (context, lang, _) {
+                              ValueListenableBuilder<AppLocalePreference>(
+                                valueListenable:
+                                    AppSettings.instance.localePreference,
+                                builder: (context, pref, _) {
                                   return _LanguageTile(
+                                    l10n: l10n,
                                     icon: Icons.language_rounded,
                                     accent: accent,
-                                    value: lang,
+                                    value: pref,
                                     onChanged: (v) {
                                       if (v == null) return;
-                                      AppSettings.instance.setLanguage(v);
+                                      AppSettings.instance.setLocalePreference(v);
                                     },
                                   );
                                 },
@@ -401,16 +405,18 @@ class _SettingsSwitchTile extends StatelessWidget {
 
 class _LanguageTile extends StatelessWidget {
   const _LanguageTile({
+    required this.l10n,
     required this.icon,
     required this.accent,
     required this.value,
     required this.onChanged,
   });
 
+  final AppLocalizations l10n;
   final IconData icon;
   final Color accent;
-  final AppLanguage value;
-  final ValueChanged<AppLanguage?> onChanged;
+  final AppLocalePreference value;
+  final ValueChanged<AppLocalePreference?> onChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -421,7 +427,7 @@ class _LanguageTile extends StatelessWidget {
         const SizedBox(width: 12),
         Expanded(
           child: Text(
-            'Langue',
+            l10n.settingsLanguageRowTitle,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   fontWeight: FontWeight.w600,
                   letterSpacing: 1.2,
@@ -431,7 +437,7 @@ class _LanguageTile extends StatelessWidget {
           ),
         ),
         DropdownButtonHideUnderline(
-          child: DropdownButton<AppLanguage>(
+          child: DropdownButton<AppLocalePreference>(
             value: value,
             onChanged: onChanged,
             dropdownColor: const Color(0xFF0A0C12),
@@ -439,14 +445,18 @@ class _LanguageTile extends StatelessWidget {
                   color: Colors.white.withValues(alpha: 0.78),
                   letterSpacing: 1.0,
                 ),
-            items: const [
+            items: [
               DropdownMenuItem(
-                value: AppLanguage.fr,
-                child: Text('Français'),
+                value: AppLocalePreference.system,
+                child: Text(l10n.settingsLocaleSystem),
               ),
               DropdownMenuItem(
-                value: AppLanguage.en,
-                child: Text('English'),
+                value: AppLocalePreference.en,
+                child: Text(l10n.settingsLocaleEnglish),
+              ),
+              DropdownMenuItem(
+                value: AppLocalePreference.fr,
+                child: Text(l10n.settingsLocaleFrench),
               ),
             ],
           ),

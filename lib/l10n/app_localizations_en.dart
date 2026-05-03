@@ -47,4 +47,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String luxHudPrefix(int highScore) {
     return 'HIGH SCORE  $highScore   •   LUX COINS';
   }
+
+  @override
+  String get settingsSectionLanguage => 'LANGUAGE';
+
+  @override
+  String get settingsLanguageRowTitle => 'Display language';
+
+  @override
+  String get settingsLocaleSystem => 'System default';
+
+  @override
+  String get settingsLocaleEnglish => 'English';
+
+  @override
+  String get settingsLocaleFrench => 'French';
 }

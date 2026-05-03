@@ -9,5 +9,10 @@
   "menuShop": "BOUTIQUE",
   "menuCareer": "CARRIÈRE",
   "menuSettings": "PARAMÈTRES",
-  "luxHudPrefix": "MEILLEUR SCORE  {highScore}   •   LUX"
+  "luxHudPrefix": "MEILLEUR SCORE  {highScore}   •   LUX",
+  "settingsSectionLanguage": "LANGUE",
+  "settingsLanguageRowTitle": "Langue d’affichage",
+  "settingsLocaleSystem": "Langue du système",
+  "settingsLocaleEnglish": "English",
+  "settingsLocaleFrench": "Français"
 }

@@ -49,5 +49,19 @@
         "type": "int"
       }
     }
-  }
+  },
+  "settingsSectionLanguage": "LANGUAGE",
+  "@settingsSectionLanguage": {
+    "description": "Settings: section title for locale."
+  },
+  "settingsLanguageRowTitle": "Display language",
+  "@settingsLanguageRowTitle": {
+    "description": "Settings: label next to the locale dropdown."
+  },
+  "settingsLocaleSystem": "System default",
+  "@settingsLocaleSystem": {
+    "description": "Settings: follow device language."
+  },
+  "settingsLocaleEnglish": "English",
+  "settingsLocaleFrench": "French"
 }

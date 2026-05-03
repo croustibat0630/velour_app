@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' show Locale;
 
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -6,7 +7,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'audio_handler.dart';
 import 'haptics_handler.dart';
 
-enum AppLanguage { fr, en }
+/// In-app locale: follow OS, or pin English / French.
+enum AppLocalePreference { system, en, fr }
 
 class AppSettings {
   AppSettings._();
@@ -18,9 +20,8 @@ class AppSettings {
   static const String _keyHapticsEnabled = 'velour_haptics_enabled';
   static const String _keyLanguage = 'velour_language';
 
-  final ValueNotifier<AppLanguage> language = ValueNotifier<AppLanguage>(
-    AppLanguage.fr,
-  );
+  final ValueNotifier<AppLocalePreference> localePreference =
+      ValueNotifier<AppLocalePreference>(AppLocalePreference.system);
 
   bool _loaded = false;
 
@@ -32,13 +33,20 @@ class AppSettings {
       final bool musicMuted = prefs.getBool(_keyMusicMuted) ?? false;
       final bool sfxMuted = prefs.getBool(_keySfxMuted) ?? false;
       final bool hapticsEnabled = prefs.getBool(_keyHapticsEnabled) ?? true;
-      final String lang = prefs.getString(_keyLanguage) ?? 'fr';
+      final String? langRaw = prefs.getString(_keyLanguage);
 
       // Apply (best-effort, no throw).
       unawaited(AudioHandler.instance.setMuted(musicMuted));
       AudioHandler.instance.sfxMuted.value = sfxMuted;
       HapticsHandler.instance.enabled.value = hapticsEnabled;
-      language.value = (lang == 'en') ? AppLanguage.en : AppLanguage.fr;
+      if (langRaw == null || langRaw == 'system') {
+        localePreference.value = AppLocalePreference.system;
+      } else if (langRaw == 'en') {
+        localePreference.value = AppLocalePreference.en;
+      } else {
+        // 'fr' or legacy unknown → French.
+        localePreference.value = AppLocalePreference.fr;
+      }
     } catch (_) {}
   }
 
@@ -66,12 +74,26 @@ class AppSettings {
     } catch (_) {}
   }
 
-  Future<void> setLanguage(AppLanguage v) async {
-    language.value = v;
+  Future<void> setLocalePreference(AppLocalePreference v) async {
+    localePreference.value = v;
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_keyLanguage, v == AppLanguage.en ? 'en' : 'fr');
+      final String code = switch (v) {
+        AppLocalePreference.system => 'system',
+        AppLocalePreference.en => 'en',
+        AppLocalePreference.fr => 'fr',
+      };
+      await prefs.setString(_keyLanguage, code);
     } catch (_) {}
+  }
+
+  /// Resolved [Locale] for [MaterialApp.locale] (`null` = OS resolution).
+  static Locale? materialLocaleFor(AppLocalePreference pref) {
+    return switch (pref) {
+      AppLocalePreference.system => null,
+      AppLocalePreference.en => const Locale('en'),
+      AppLocalePreference.fr => const Locale('fr'),
+    };
   }
 }
 

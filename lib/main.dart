@@ -1,7 +1,12 @@
+import 'dart:ui';
+
+import 'package:audio_session/audio_session.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:velour_app/l10n/app_localizations.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
@@ -22,7 +27,42 @@ import 'utils/velour_route_observer.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized(); // Indispensable
+  // iOS / Android : session « playback » (son audible même interrupteur silencieux iOS)
+  // + focus jeu sur Android — requis pour que audioplayers soit fiable hors debug.
+  if (!kIsWeb) {
+    try {
+      final AudioSession session = await AudioSession.instance;
+      await session.configure(
+        const AudioSessionConfiguration.music().copyWith(
+          avAudioSessionCategoryOptions:
+              AVAudioSessionCategoryOptions.mixWithOthers,
+          androidAudioAttributes: AndroidAudioAttributes(
+            contentType: AndroidAudioContentType.music,
+            usage: AndroidAudioUsage.game,
+          ),
+        ),
+      );
+    } catch (_) {}
+  }
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // Crashlytics : actif hors debug (release + profile, ex. TestFlight interne).
+  await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(
+    !kDebugMode,
+  );
+
+  // Erreurs synchrones du framework Flutter (build/layout, etc.).
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+    FirebaseCrashlytics.instance.recordFlutterFatalError(details);
+  };
+
+  // Erreurs asynchrones non capturées par le framework (Dart 3+).
+  PlatformDispatcher.instance.onError = (Object error, StackTrace stack) {
+    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+    return true;
+  };
+
   // Web stability: prefer long-polling over unstable websocket/QUIC paths.
   // These flags are no-ops on mobile/desktop, but help Chrome on flaky networks.
   FirebaseFirestore.instance.settings = const Settings(

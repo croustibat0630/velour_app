@@ -66,7 +66,8 @@ class AudioHandler {
       await _bgm.setReleaseMode(ReleaseMode.loop);
       await _bgm.setVolume(0.42);
     } catch (_) {
-      _disabled = true;
+      // Ne pas mettre [_disabled] : une erreur sur le player BGM ne doit pas
+      // couper tous les SFX (souvent le cas si la session n’était pas prête au cold start).
     }
   }
 
@@ -309,9 +310,9 @@ class AudioHandler {
       await _bgm.resume();
       _bgmStarted = true;
     } on AudioPlayerException {
-      _disabled = true;
+      _bgmStarted = false;
     } catch (_) {
-      _disabled = true;
+      _bgmStarted = false;
     }
   }
 
@@ -324,9 +325,9 @@ class AudioHandler {
       await _bgm.resume();
       _bgmStarted = true;
     } on AudioPlayerException {
-      _disabled = true;
+      _bgmStarted = false;
     } catch (_) {
-      _disabled = true;
+      _bgmStarted = false;
     }
   }
 

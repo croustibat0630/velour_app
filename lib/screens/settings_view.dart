@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
@@ -180,32 +181,37 @@ class SettingsView extends StatelessWidget {
                               ),
                             ],
                           ),
-                          SizedBox(height: 14 * sH),
-                          _SectionCard(
-                            title: l10n.settingsSectionDebug,
-                            accent: const Color(0xFFFF4D4D),
-                            children: [
-                              _ActionTile(
-                                icon: Icons.warning_amber_rounded,
-                                title: l10n.settingsResetTitle,
-                                subtitle: l10n.settingsResetSubtitle,
-                                accent: const Color(0xFFFF4D4D),
-                                onTap: () {
-                                  unawaited(() async {
-                                    await context
-                                        .read<GameState>()
-                                        .fullHardReset();
-                                    if (!context.mounted) return;
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(l10n.settingsResetSnack),
-                                      ),
-                                    );
-                                  }());
-                                },
-                              ),
-                            ],
-                          ),
+                          if (kDebugMode) ...[
+                            SizedBox(height: 14 * sH),
+                            _SectionCard(
+                              title: l10n.settingsSectionDebug,
+                              accent: const Color(0xFFFF4D4D),
+                              children: [
+                                _ActionTile(
+                                  icon: Icons.warning_amber_rounded,
+                                  title: l10n.settingsResetTitle,
+                                  subtitle: l10n.settingsResetSubtitle,
+                                  accent: const Color(0xFFFF4D4D),
+                                  onTap: () {
+                                    unawaited(() async {
+                                      await context
+                                          .read<GameState>()
+                                          .fullHardReset();
+                                      if (!context.mounted) return;
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            l10n.settingsResetSnack,
+                                          ),
+                                        ),
+                                      );
+                                    }());
+                                  },
+                                ),
+                              ],
+                            ),
+                          ],
                           SizedBox(height: (10 * sH).clamp(8.0, 16.0)),
                           Text(
                             l10n.settingsFooterTagline,

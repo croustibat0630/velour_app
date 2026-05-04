@@ -1,11 +1,18 @@
 import 'dart:async';
 
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart'
-    show ValueNotifier, visibleForTesting;
+    show
+        TargetPlatform,
+        ValueNotifier,
+        defaultTargetPlatform,
+        kIsWeb,
+        visibleForTesting;
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../providers/game_state.dart';
+import 'iap_cloud_grant_service.dart';
 
 /// Identifiants consommables — mêmes SKU sur App Store Connect et Google Play Console.
 abstract final class LuxIapProducts {
@@ -53,13 +60,42 @@ class LuxIapBuyOutcome {
   final String? errorDetail;
 }
 
+bool _looksLikeCompactJws(String s) {
+  final List<String> parts = s.split('.');
+  return parts.length == 3 &&
+      parts[0].isNotEmpty &&
+      parts[1].isNotEmpty &&
+      parts[2].isNotEmpty;
+}
+
+/// JWS de transaction StoreKit 2 : le plugin le met dans [PurchaseVerificationData.serverVerificationData].
+String? _iosTransactionJwsForCloud(PurchaseVerificationData vd) {
+  final String server = vd.serverVerificationData.trim();
+  if (_looksLikeCompactJws(server)) {
+    return server;
+  }
+  final String local = vd.localVerificationData.trim();
+  if (_looksLikeCompactJws(local)) {
+    return local;
+  }
+  return null;
+}
+
 /// Achats intégrés Coffre-fort (StoreKit sur iOS, Play Billing sur Android via [in_app_purchase]).
 ///
 /// Souscription au flux dès le binding [bindGameState] pour ne pas rater d’événements
 /// (recommandation Flutter).
+///
+/// **Anti-triche cloud** : après achat coffre-fort, [finalizeAfterLuxDelivered] et le
+/// chemin « orphelin » appellent [IapCloudGrantService.tryGrantVaultPurchase]
+/// (`velourGrantIapLux` — voir `functions/src/iap.ts`).
 class LuxIapService {
   LuxIapService._();
   static final LuxIapService instance = LuxIapService._();
+
+  /// Désactive la synchro Cloud Function (tests unitaires sans Firebase).
+  @visibleForTesting
+  static bool debugSkipCloudPurchaseSync = false;
 
   static const String _prefsConsumedKey = 'velour_iap_consumed_purchase_ids';
 
@@ -252,6 +288,7 @@ class LuxIapService {
     // Achat confirmé alors que l’UI n’attend plus (ex. app relancée) : créditer quand même.
     final GameState? gs = _gameState;
     if (gs != null) {
+      await _trySyncVaultPurchaseToCloud(p);
       gs.addLuxCoins(lux);
       await gs.flushLuxCoinsPersistence();
     }
@@ -264,8 +301,43 @@ class LuxIapService {
     final PurchaseDetails? p = _pendingAppleCompletion;
     if (p == null) return;
     _pendingAppleCompletion = null;
+    await _trySyncVaultPurchaseToCloud(p);
     await _markConsumed(p.purchaseID);
     await _completeIfNeeded(p);
+  }
+
+  /// Crédit LUX serveur (`velourGrantIapLux`) — best-effort, n’empêche pas [completePurchase].
+  Future<void> _trySyncVaultPurchaseToCloud(PurchaseDetails p) async {
+    if (debugSkipCloudPurchaseSync || kIsWeb) return;
+    try {
+      if (Firebase.apps.isEmpty) return;
+    } catch (_) {
+      return;
+    }
+    final TargetPlatform tp = defaultTargetPlatform;
+    final bool isApple =
+        tp == TargetPlatform.iOS || tp == TargetPlatform.macOS;
+    final String platform = isApple ? 'ios' : 'android';
+    final PurchaseVerificationData vd = p.verificationData;
+    final String? androidTok =
+        !isApple && vd.serverVerificationData.isNotEmpty
+            ? vd.serverVerificationData
+            : null;
+    // StoreKit 2 : le JWS signé est dans serverVerificationData (receiptData natif).
+    // StoreKit 1 : local/server = même reçu base64 — pas de JWS ; la callable iOS exige SK2.
+    final String? iosJws = isApple ? _iosTransactionJwsForCloud(vd) : null;
+    if (!isApple && (androidTok == null || androidTok.isEmpty)) {
+      return;
+    }
+    if (isApple && (iosJws == null || iosJws.isEmpty)) {
+      return;
+    }
+    await IapCloudGrantService.tryGrantVaultPurchase(
+      platform: platform,
+      productId: p.productID,
+      androidPurchaseToken: androidTok,
+      iosTransactionJws: iosJws,
+    );
   }
 
   /// Lance l’achat consommable [productId] (StoreKit / Play). Attend la confirmation ou l’échec.

@@ -97,3 +97,5 @@ export const velourApplyLuxDelta = onCall({ region: REGION }, async (request) =>
     appliedDelta,
   };
 });
+
+export { velourGrantIapLux } from "./iap";

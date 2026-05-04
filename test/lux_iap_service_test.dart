@@ -9,6 +9,7 @@ import 'package:velour_app/services/lux_iap_service.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  LuxIapService.debugSkipCloudPurchaseSync = true;
 
   group('LuxIapProducts', () {
     test('vaultIds and luxForProductId', () {
@@ -33,6 +34,7 @@ void main() {
     });
 
     tearDown(() {
+      LuxIapService.debugSkipCloudPurchaseSync = true;
       LuxIapService.instance.resetForTesting();
       LuxIapService.instance.dispose();
       debugDefaultTargetPlatformOverride = null;

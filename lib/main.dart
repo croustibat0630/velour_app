@@ -1,6 +1,5 @@
 import 'dart:ui';
 
-import 'package:audio_session/audio_session.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
@@ -11,6 +10,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 import 'services/app_settings.dart';
+import 'services/velour_audio_platform.dart';
 import 'providers/game_state.dart';
 import 'screens/game_screen.dart';
 import 'screens/leaderboard_view.dart';
@@ -27,23 +27,8 @@ import 'utils/velour_route_observer.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized(); // Indispensable
-  // iOS / Android : session « playback » (son audible même interrupteur silencieux iOS)
-  // + focus jeu sur Android — requis pour que audioplayers soit fiable hors debug.
-  if (!kIsWeb) {
-    try {
-      final AudioSession session = await AudioSession.instance;
-      await session.configure(
-        const AudioSessionConfiguration.music().copyWith(
-          avAudioSessionCategoryOptions:
-              AVAudioSessionCategoryOptions.mixWithOthers,
-          androidAudioAttributes: AndroidAudioAttributes(
-            contentType: AndroidAudioContentType.music,
-            usage: AndroidAudioUsage.game,
-          ),
-        ),
-      );
-    } catch (_) {}
-  }
+  // iOS / Android : AVAudioSession + contexte audioplayers (respectSilence: false).
+  await configureVelourAudioPipeline(activateSession: true);
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // Crashlytics : actif hors debug (release + profile, ex. TestFlight interne).

@@ -576,16 +576,7 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
                                           );
                                         case ForgePurchaseOutcome
                                             .purchasedChronoPulse:
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                sl10n
-                                                    .shopSnackForgeChronoPulsePurchased,
-                                              ),
-                                            ),
-                                          );
+                                          break;
                                         case ForgePurchaseOutcome
                                             .chronoPulseStackFull:
                                           ScaffoldMessenger.of(
@@ -642,16 +633,7 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
                                           );
                                         case ForgePurchaseOutcome
                                             .purchasedMercySalvage:
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                sl10n
-                                                    .shopSnackForgeMercySalvagePurchased,
-                                              ),
-                                            ),
-                                          );
+                                          break;
                                         case ForgePurchaseOutcome
                                             .mercySalvageStackFull:
                                           ScaffoldMessenger.of(
@@ -718,16 +700,7 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
                                           );
                                         case ForgePurchaseOutcome
                                             .purchasedInsurance:
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                sl10n
-                                                    .shopSnackForgeInsurancePurchased,
-                                              ),
-                                            ),
-                                          );
+                                          break;
                                         case ForgePurchaseOutcome
                                             .insuranceStackFull:
                                           ScaffoldMessenger.of(
@@ -782,16 +755,7 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
                                           );
                                         case ForgePurchaseOutcome
                                             .purchasedRoyalBounty:
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                sl10n
-                                                    .shopSnackForgeRoyalBountyPurchased,
-                                              ),
-                                            ),
-                                          );
+                                          break;
                                         case ForgePurchaseOutcome
                                             .royalBountyAlreadyActive:
                                           ScaffoldMessenger.of(

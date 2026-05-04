@@ -30,6 +30,7 @@ class _MainMenuViewState extends State<MainMenuView>
   late final AnimationController _pulse;
 
   bool _menuMusicStarted = false;
+  bool _menuBgmUnlockInFlight = false;
   int? _overrideInitialValue;
   bool _namingDialogOpen = false;
   int _streakDays = 0;
@@ -59,9 +60,18 @@ class _MainMenuViewState extends State<MainMenuView>
   }
 
   void _onFirstPointerDown() {
-    if (_menuMusicStarted) return;
-    _menuMusicStarted = true;
-    unawaited(AudioHandler.instance.resumeAudioThenStartMenuBgm());
+    if (_menuMusicStarted || _menuBgmUnlockInFlight) return;
+    _menuBgmUnlockInFlight = true;
+    unawaited(() async {
+      bool ok = false;
+      try {
+        ok = await AudioHandler.instance.resumeAudioThenStartMenuBgm();
+      } finally {
+        _menuBgmUnlockInFlight = false;
+      }
+      if (!mounted) return;
+      setState(() => _menuMusicStarted = ok);
+    }());
   }
 
   /// Dotation premier lancement (non bloquant) + déverrouillage audio, puis navigation.

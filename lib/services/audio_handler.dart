@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 
+import 'velour_audio_platform.dart';
+
 /// Audio centralisé : **aucune redirection** entre menu, sélection gemme et combo.
 ///
 /// - [playMenuClick] → uniquement `sfx_click.mp3`
@@ -87,14 +89,25 @@ class AudioHandler {
 
   /// Premier geste sur le menu principal : réveille l’AudioContext (Chrome)
   /// puis lance la BGM — ordre séquentiel pour respecter la politique navigateur.
-  Future<void> resumeAudioThenStartMenuBgm() async {
-    if (_disabled) return;
+  ///
+  /// Retourne `true` si la BGM est considérée comme lancée (ou musique coupée
+  /// volontairement dans les réglages), `false` si échec — pour permettre un
+  /// nouvel essai au prochain tap ([MainMenuView]).
+  Future<bool> resumeAudioThenStartMenuBgm() async {
+    if (_disabled) return false;
+    if (muted.value) {
+      return true;
+    }
+    try {
+      await configureVelourAudioPipeline(activateSession: true);
+    } catch (_) {}
     try {
       await unlockAudio();
     } catch (_) {}
     try {
       await playMusic('music_main.mp3');
     } catch (_) {}
+    return _bgmStarted;
   }
 
   Future<void> _warmUpSfxDecoder(AudioPlayer p) async {
@@ -218,6 +231,9 @@ class AudioHandler {
   Future<void> unlockAudio() async {
     if (_disabled) return;
     try {
+      await configureVelourAudioPipeline(activateSession: true);
+    } catch (_) {}
+    try {
       await configure();
       if (_disabled) return;
 
@@ -306,8 +322,11 @@ class AudioHandler {
     if (_bgmStarted) return;
     try {
       await configure();
-      await _bgm.setSource(_sourceFor(fileName));
-      await _bgm.resume();
+      await _bgm.play(
+        _sourceFor(fileName),
+        mode: PlayerMode.mediaPlayer,
+        volume: 0.42,
+      );
       _bgmStarted = true;
     } on AudioPlayerException {
       _bgmStarted = false;
@@ -321,8 +340,11 @@ class AudioHandler {
     if (muted.value) return;
     try {
       await configure();
-      await _bgm.setSource(_sourceFor(fileName));
-      await _bgm.resume();
+      await _bgm.play(
+        _sourceFor(fileName),
+        mode: PlayerMode.mediaPlayer,
+        volume: 0.42,
+      );
       _bgmStarted = true;
     } on AudioPlayerException {
       _bgmStarted = false;

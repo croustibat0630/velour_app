@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer' as developer;
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
@@ -9,15 +8,7 @@ import 'firestore_service.dart';
 import 'lux_credit_limits.dart';
 import 'velour_observability.dart';
 
-void _economyLog(String event, {Map<String, Object?> data = const {}}) {
-  final String payload = data.entries
-      .map((e) => '${e.key}=${e.value}')
-      .join(' ');
-  developer.log(
-    payload.isEmpty ? event : '$event $payload',
-    name: 'velour.economy',
-  );
-}
+void _economyLog(String event, {Map<String, Object?> data = const {}}) {}
 
 /// Persistance LUX / record + synchro cloud (debounce LUX).
 ///

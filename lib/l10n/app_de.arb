@@ -122,6 +122,7 @@
     }
   },
   "shopVaultLoading": "TRESOR WIRD KONTAKTIERT…",
+  "shopVaultPricePending": "—",
   "shopPurchaseSuccess": "ERFOLG",
   "shopPurchaseLuxAdded": "+{lux} LUX",
   "@shopPurchaseLuxAdded": {

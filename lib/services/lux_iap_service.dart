@@ -1,11 +1,13 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart'
+    show ValueNotifier, visibleForTesting;
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../providers/game_state.dart';
 
-/// Identifiants App Store Connect (consommables) — crédit LUX après validation Apple.
+/// Identifiants consommables — mêmes SKU sur App Store Connect et Google Play Console.
 abstract final class LuxIapProducts {
   static const String sparkReserve = 'com.velour.100lux';
   static const String oracleTreasure = 'com.velour.750lux';
@@ -61,7 +63,36 @@ class LuxIapService {
 
   static const String _prefsConsumedKey = 'velour_iap_consumed_purchase_ids';
 
-  final InAppPurchase _iap = InAppPurchase.instance;
+  InAppPurchase get _iap => InAppPurchase.instance;
+
+  /// Incrémenté après chaque [queryProductDetails] (prix / titres magasin).
+  final ValueNotifier<int> vaultStorePricesEpoch = ValueNotifier<int>(0);
+
+  /// Libellé prix tel que renvoyé par le store (`ProductDetails.price`, ex. « 0,99 € »), iOS comme Android.
+  String? storePriceLabelForProduct(String productId) {
+    if (!LuxIapProducts.vaultIds.contains(productId)) return null;
+    return _products[productId]?.price;
+  }
+
+  /// Réinitialise l’état entre tests (singleton + [InAppPurchasePlatform.instance] mocké).
+  @visibleForTesting
+  void resetForTesting() {
+    _subscription?.cancel();
+    _subscription = null;
+    final Completer<LuxIapBuyOutcome>? pending = _awaiting;
+    if (pending != null && !pending.isCompleted) {
+      pending.complete(const LuxIapBuyOutcome.error('test_reset'));
+    }
+    _awaiting = null;
+    _awaitingProductId = null;
+    _pendingAppleCompletion = null;
+    _initialized = false;
+    _storeAvailable = false;
+    _products.clear();
+    _buyInFlight = false;
+    _gameState = null;
+    vaultStorePricesEpoch.value = 0;
+  }
 
   GameState? _gameState;
   StreamSubscription<List<PurchaseDetails>>? _subscription;
@@ -114,6 +145,8 @@ class LuxIapService {
         ..addEntries(r.productDetails.map((ProductDetails d) => MapEntry(d.id, d)));
     } catch (_) {
       _products.clear();
+    } finally {
+      vaultStorePricesEpoch.value++;
     }
   }
 

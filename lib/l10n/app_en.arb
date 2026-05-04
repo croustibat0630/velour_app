@@ -118,6 +118,7 @@
     }
   },
   "shopVaultLoading": "CONTACTING THE VAULT…",
+  "shopVaultPricePending": "—",
   "shopPurchaseSuccess": "SUCCESS",
   "shopPurchaseLuxAdded": "+{lux} LUX",
   "@shopPurchaseLuxAdded": {

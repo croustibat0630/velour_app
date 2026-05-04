@@ -53,6 +53,7 @@
   "shopSkinOwned": "Possédé",
   "shopPriceLux": "{price} LUX",
   "shopVaultLoading": "COMMUNICATION AVEC LE COFFRE…",
+  "shopVaultPricePending": "—",
   "shopPurchaseSuccess": "SUCCÈS",
   "shopPurchaseLuxAdded": "+{lux} LUX",
   "shopBackToGame": "RETOUR AU JEU",

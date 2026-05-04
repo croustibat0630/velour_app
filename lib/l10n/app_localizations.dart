@@ -418,6 +418,12 @@ abstract class AppLocalizations {
   /// **'CONTACTING THE VAULT…'**
   String get shopVaultLoading;
 
+  /// No description provided for @shopVaultPricePending.
+  ///
+  /// In en, this message translates to:
+  /// **'—'**
+  String get shopVaultPricePending;
+
   /// No description provided for @shopPurchaseSuccess.
   ///
   /// In en, this message translates to:

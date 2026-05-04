@@ -185,6 +185,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shopVaultLoading => 'CONTACTING THE VAULT…';
 
   @override
+  String get shopVaultPricePending => '—';
+
+  @override
   String get shopPurchaseSuccess => 'SUCCESS';
 
   @override

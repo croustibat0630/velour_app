@@ -185,6 +185,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get shopVaultLoading => 'TRESOR WIRD KONTAKTIERT…';
 
   @override
+  String get shopVaultPricePending => '—';
+
+  @override
   String get shopPurchaseSuccess => 'ERFOLG';
 
   @override

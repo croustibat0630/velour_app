@@ -54,6 +54,9 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
       vsync: this,
       duration: const Duration(milliseconds: 420),
     );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(LuxIapService.instance.reloadProductsForDebug());
+    });
   }
 
   @override
@@ -303,141 +306,195 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
                       child: ListView(
                         physics: const BouncingScrollPhysics(),
                         children: [
-                          const SizedBox(height: 6),
-                          _EnterCard(
-                            controller: _enter,
-                            index: 0,
-                            child: Padding(
-                              // Laisse l'halo respirer (évite le clipping).
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 4,
-                                vertical: 6,
-                              ),
-                              child: AnimatedBuilder(
-                                animation: _highlight,
-                                builder: (context, _) {
-                                  final double ht = (_highlightLux == 100)
-                                      ? Curves.easeOutCubic.transform(
-                                          1 - (1 - _highlight.value),
-                                        )
-                                      : 0;
-                                  return _ShopProductCard(
-                                    accent: cyan,
-                                    title: l10n.shopProductSparkReserve,
-                                    lux: 100,
-                                    price: '0,99€',
-                                    badge: null,
-                                    intense: false,
-                                    highlightT: ht,
-                                    onTapDown: (TapDownDetails d) {
-                                      _lastPurchaseTapGlobal = d.globalPosition;
-                                    },
-                                    onTap: () {
-                                      AudioHandler.instance.playMatchCombo();
-                                      unawaited(
-                                        _purchaseVaultPackWithStore(
-                                          context: context,
-                                          productId: LuxIapProducts.sparkReserve,
-                                          luxAmount: 100,
-                                          startGlobal: _lastPurchaseTapGlobal,
-                                        ),
-                                      );
-                                    },
-                                  );
-                                },
-                              ),
-                            ),
+                          ValueListenableBuilder<int>(
+                            valueListenable:
+                                LuxIapService.instance.vaultStorePricesEpoch,
+                            builder: (BuildContext context, int _, Widget? child) {
+                              final LuxIapService iap = LuxIapService.instance;
+                              final String price100 =
+                                  iap.storePriceLabelForProduct(
+                                        LuxIapProducts.sparkReserve,
+                                      ) ??
+                                      l10n.shopVaultPricePending;
+                              final String price750 =
+                                  iap.storePriceLabelForProduct(
+                                        LuxIapProducts.oracleTreasure,
+                                      ) ??
+                                      l10n.shopVaultPricePending;
+                              final String price5000 =
+                                  iap.storePriceLabelForProduct(
+                                        LuxIapProducts.royalLegacy,
+                                      ) ??
+                                      l10n.shopVaultPricePending;
+                              return Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  const SizedBox(height: 6),
+                                  _EnterCard(
+                                    controller: _enter,
+                                    index: 0,
+                                    child: Padding(
+                                      // Laisse l'halo respirer (évite le clipping).
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 4,
+                                        vertical: 6,
+                                      ),
+                                      child: AnimatedBuilder(
+                                        animation: _highlight,
+                                        builder: (context, _) {
+                                          final double ht =
+                                              (_highlightLux == 100)
+                                              ? Curves.easeOutCubic.transform(
+                                                  1 - (1 - _highlight.value),
+                                                )
+                                              : 0;
+                                          return _ShopProductCard(
+                                            accent: cyan,
+                                            title: l10n.shopProductSparkReserve,
+                                            lux: 100,
+                                            price: price100,
+                                            badge: null,
+                                            intense: false,
+                                            highlightT: ht,
+                                            onTapDown: (TapDownDetails d) {
+                                              _lastPurchaseTapGlobal =
+                                                  d.globalPosition;
+                                            },
+                                            onTap: () {
+                                              AudioHandler.instance
+                                                  .playMatchCombo();
+                                              unawaited(
+                                                _purchaseVaultPackWithStore(
+                                                  context: context,
+                                                  productId:
+                                                      LuxIapProducts
+                                                          .sparkReserve,
+                                                  luxAmount: 100,
+                                                  startGlobal:
+                                                      _lastPurchaseTapGlobal,
+                                                ),
+                                              );
+                                            },
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    height: (25 * s).clamp(22.0, 30.0),
+                                  ),
+                                  _EnterCard(
+                                    controller: _enter,
+                                    index: 1,
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 4,
+                                        vertical: 6,
+                                      ),
+                                      child: AnimatedBuilder(
+                                        animation: _highlight,
+                                        builder: (context, _) {
+                                          final double ht =
+                                              (_highlightLux == 750)
+                                              ? Curves.easeOutCubic.transform(
+                                                  1 - (1 - _highlight.value),
+                                                )
+                                              : 0;
+                                          return _ShopProductCard(
+                                            accent: gold,
+                                            title: l10n
+                                                .shopProductOracleTreasure,
+                                            lux: 750,
+                                            price: price750,
+                                            badge: l10n.shopBadgeBestDeal,
+                                            intense: true,
+                                            highlightT: ht,
+                                            onTapDown: (TapDownDetails d) {
+                                              _lastPurchaseTapGlobal =
+                                                  d.globalPosition;
+                                            },
+                                            onTap: () {
+                                              AudioHandler.instance
+                                                  .playMatchCombo();
+                                              unawaited(
+                                                _purchaseVaultPackWithStore(
+                                                  context: context,
+                                                  productId:
+                                                      LuxIapProducts
+                                                          .oracleTreasure,
+                                                  luxAmount: 750,
+                                                  startGlobal:
+                                                      _lastPurchaseTapGlobal,
+                                                ),
+                                              );
+                                            },
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    height: (25 * s).clamp(22.0, 30.0),
+                                  ),
+                                  _EnterCard(
+                                    controller: _enter,
+                                    index: 2,
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 4,
+                                        vertical: 6,
+                                      ),
+                                      child: AnimatedBuilder(
+                                        animation: _highlight,
+                                        builder: (context, _) {
+                                          final double ht =
+                                              (_highlightLux == 5000)
+                                              ? Curves.easeOutCubic.transform(
+                                                  1 - (1 - _highlight.value),
+                                                )
+                                              : 0;
+                                          return _ShopProductCard(
+                                            accent: violet,
+                                            title: l10n
+                                                .shopProductRoyalLegacy,
+                                            lux: 5000,
+                                            price: price5000,
+                                            badge: null,
+                                            intense: true,
+                                            haloColor: violetNeon,
+                                            highlightT: ht,
+                                            onTapDown: (TapDownDetails d) {
+                                              _lastPurchaseTapGlobal =
+                                                  d.globalPosition;
+                                            },
+                                            onTap: () {
+                                              AudioHandler.instance
+                                                  .playMatchCombo();
+                                              unawaited(
+                                                _purchaseVaultPackWithStore(
+                                                  context: context,
+                                                  productId:
+                                                      LuxIapProducts
+                                                          .royalLegacy,
+                                                  luxAmount: 5000,
+                                                  startGlobal:
+                                                      _lastPurchaseTapGlobal,
+                                                ),
+                                              );
+                                            },
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    height: (22 * s).clamp(18.0, 28.0),
+                                  ),
+                                ],
+                              );
+                            },
                           ),
-                          SizedBox(height: (25 * s).clamp(22.0, 30.0)),
-                          _EnterCard(
-                            controller: _enter,
-                            index: 1,
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 4,
-                                vertical: 6,
-                              ),
-                              child: AnimatedBuilder(
-                                animation: _highlight,
-                                builder: (context, _) {
-                                  final double ht = (_highlightLux == 750)
-                                      ? Curves.easeOutCubic.transform(
-                                          1 - (1 - _highlight.value),
-                                        )
-                                      : 0;
-                                  return _ShopProductCard(
-                                    accent: gold,
-                                    title: l10n.shopProductOracleTreasure,
-                                    lux: 750,
-                                    price: '4,99€',
-                                    badge: l10n.shopBadgeBestDeal,
-                                    intense: true,
-                                    highlightT: ht,
-                                    onTapDown: (TapDownDetails d) {
-                                      _lastPurchaseTapGlobal = d.globalPosition;
-                                    },
-                                    onTap: () {
-                                      AudioHandler.instance.playMatchCombo();
-                                      unawaited(
-                                        _purchaseVaultPackWithStore(
-                                          context: context,
-                                          productId: LuxIapProducts.oracleTreasure,
-                                          luxAmount: 750,
-                                          startGlobal: _lastPurchaseTapGlobal,
-                                        ),
-                                      );
-                                    },
-                                  );
-                                },
-                              ),
-                            ),
-                          ),
-                          SizedBox(height: (25 * s).clamp(22.0, 30.0)),
-                          _EnterCard(
-                            controller: _enter,
-                            index: 2,
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 4,
-                                vertical: 6,
-                              ),
-                              child: AnimatedBuilder(
-                                animation: _highlight,
-                                builder: (context, _) {
-                                  final double ht = (_highlightLux == 5000)
-                                      ? Curves.easeOutCubic.transform(
-                                          1 - (1 - _highlight.value),
-                                        )
-                                      : 0;
-                                  return _ShopProductCard(
-                                    accent: violet,
-                                    title: l10n.shopProductRoyalLegacy,
-                                    lux: 5000,
-                                    price: '19,99€',
-                                    badge: null,
-                                    intense: true,
-                                    haloColor: violetNeon,
-                                    highlightT: ht,
-                                    onTapDown: (TapDownDetails d) {
-                                      _lastPurchaseTapGlobal = d.globalPosition;
-                                    },
-                                    onTap: () {
-                                      AudioHandler.instance.playMatchCombo();
-                                      unawaited(
-                                        _purchaseVaultPackWithStore(
-                                          context: context,
-                                          productId: LuxIapProducts.royalLegacy,
-                                          luxAmount: 5000,
-                                          startGlobal: _lastPurchaseTapGlobal,
-                                        ),
-                                      );
-                                    },
-                                  );
-                                },
-                              ),
-                            ),
-                          ),
-                          SizedBox(height: (22 * s).clamp(18.0, 28.0)),
                           // Forge de l'Oracle — boosts de session (sous le Coffre-Fort).
                           Builder(
                             builder: (context) {

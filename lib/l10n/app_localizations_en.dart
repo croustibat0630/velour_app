@@ -300,6 +300,22 @@ class AppLocalizationsEn extends AppLocalizations {
       'You already hold 2 mercy charges.';
 
   @override
+  String get shopIapUnavailable =>
+      'In-app purchases are not available on this device.';
+
+  @override
+  String get shopIapProductsUnavailable =>
+      'LUX packs are unavailable from the store right now.';
+
+  @override
+  String get shopIapCancelled => 'Purchase cancelled.';
+
+  @override
+  String shopIapError(String details) {
+    return 'Payment error: $details';
+  }
+
+  @override
   String get statsTitle => 'MY CAREER';
 
   @override

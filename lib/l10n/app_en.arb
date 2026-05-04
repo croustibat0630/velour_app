@@ -194,6 +194,15 @@
   "shopSnackForgeChronoPulseFull": "You already hold 2 chrono charges.",
   "shopSnackForgeMercySalvagePurchased": "Mercy salvage charge added.",
   "shopSnackForgeMercySalvageFull": "You already hold 2 mercy charges.",
+  "shopIapUnavailable": "In-app purchases are not available on this device.",
+  "shopIapProductsUnavailable": "LUX packs are unavailable from the store right now.",
+  "shopIapCancelled": "Purchase cancelled.",
+  "shopIapError": "Payment error: {details}",
+  "@shopIapError": {
+    "placeholders": {
+      "details": {"type": "String"}
+    }
+  },
   "statsTitle": "MY CAREER",
   "statsStreakSession": "{count, plural, one{STREAK · 1 DAY} other{STREAK · {count} DAYS}}",
   "@statsStreakSession": {

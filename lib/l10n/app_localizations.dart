@@ -597,6 +597,30 @@ abstract class AppLocalizations {
   /// **'You already hold 2 mercy charges.'**
   String get shopSnackForgeMercySalvageFull;
 
+  /// No description provided for @shopIapUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'In-app purchases are not available on this device.'**
+  String get shopIapUnavailable;
+
+  /// No description provided for @shopIapProductsUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'LUX packs are unavailable from the store right now.'**
+  String get shopIapProductsUnavailable;
+
+  /// No description provided for @shopIapCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase cancelled.'**
+  String get shopIapCancelled;
+
+  /// No description provided for @shopIapError.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment error: {details}'**
+  String shopIapError(String details);
+
   /// No description provided for @statsTitle.
   ///
   /// In en, this message translates to:

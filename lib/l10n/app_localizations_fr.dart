@@ -297,6 +297,22 @@ class AppLocalizationsFr extends AppLocalizations {
   String get shopSnackForgeMercySalvageFull => 'Tu as déjà 2 charges clémence.';
 
   @override
+  String get shopIapUnavailable =>
+      'Achats intégrés indisponibles sur cet appareil.';
+
+  @override
+  String get shopIapProductsUnavailable =>
+      'Packs LUX indisponibles pour le moment.';
+
+  @override
+  String get shopIapCancelled => 'Achat annulé.';
+
+  @override
+  String shopIapError(String details) {
+    return 'Erreur de paiement : $details';
+  }
+
+  @override
   String get statsTitle => 'MA CARRIÈRE';
 
   @override

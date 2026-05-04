@@ -8,6 +8,7 @@ import 'package:velour_app/l10n/app_localizations.dart';
 
 import '../providers/game_state.dart';
 import '../services/audio_handler.dart';
+import '../services/lux_iap_service.dart';
 import '../utils/responsive.dart';
 import '../widgets/ui/dark_matte_overlay.dart';
 
@@ -20,6 +21,7 @@ class ShopView extends StatefulWidget {
 
 class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
   bool _busy = false;
+  bool _vaultIapLoading = false;
   int? _successLux;
   int? _highlightLux;
 
@@ -111,6 +113,61 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
       _successLux = luxAmount;
     });
     _highlight.forward(from: 0);
+  }
+
+  Future<void> _purchaseVaultPackWithStore({
+    required BuildContext context,
+    required String productId,
+    required int luxAmount,
+    required Offset startGlobal,
+  }) async {
+    if (_busy || _vaultIapLoading) return;
+    _vaultIapLoading = true;
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
+    final ScaffoldMessengerState? messenger = ScaffoldMessenger.maybeOf(
+      context,
+    );
+    try {
+      final LuxIapBuyOutcome r =
+          await LuxIapService.instance.buyVaultConsumable(productId);
+      if (!mounted) return;
+      switch (r.kind) {
+        case LuxIapBuyKind.success:
+          final int grant = r.luxAmount > 0 ? r.luxAmount : luxAmount;
+          await _simulatePurchase(
+            luxAmount: grant,
+            startGlobal: startGlobal,
+          );
+          break;
+        case LuxIapBuyKind.cancelled:
+          messenger?.showSnackBar(
+            SnackBar(content: Text(l10n.shopIapCancelled)),
+          );
+          break;
+        case LuxIapBuyKind.unavailable:
+          messenger?.showSnackBar(
+            SnackBar(content: Text(l10n.shopIapUnavailable)),
+          );
+          break;
+        case LuxIapBuyKind.productsUnavailable:
+          messenger?.showSnackBar(
+            SnackBar(content: Text(l10n.shopIapProductsUnavailable)),
+          );
+          break;
+        case LuxIapBuyKind.busy:
+          break;
+        case LuxIapBuyKind.error:
+          messenger?.showSnackBar(
+            SnackBar(
+              content: Text(l10n.shopIapError(r.errorDetail ?? 'unknown')),
+            ),
+          );
+          break;
+      }
+    } finally {
+      await LuxIapService.instance.finalizeAfterLuxDelivered();
+      if (mounted) setState(() => _vaultIapLoading = false);
+    }
   }
 
   @override
@@ -278,7 +335,9 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
                                     onTap: () {
                                       AudioHandler.instance.playMatchCombo();
                                       unawaited(
-                                        _simulatePurchase(
+                                        _purchaseVaultPackWithStore(
+                                          context: context,
+                                          productId: LuxIapProducts.sparkReserve,
                                           luxAmount: 100,
                                           startGlobal: _lastPurchaseTapGlobal,
                                         ),
@@ -320,7 +379,9 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
                                     onTap: () {
                                       AudioHandler.instance.playMatchCombo();
                                       unawaited(
-                                        _simulatePurchase(
+                                        _purchaseVaultPackWithStore(
+                                          context: context,
+                                          productId: LuxIapProducts.oracleTreasure,
                                           luxAmount: 750,
                                           startGlobal: _lastPurchaseTapGlobal,
                                         ),
@@ -363,7 +424,9 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
                                     onTap: () {
                                       AudioHandler.instance.playMatchCombo();
                                       unawaited(
-                                        _simulatePurchase(
+                                        _purchaseVaultPackWithStore(
+                                          context: context,
+                                          productId: LuxIapProducts.royalLegacy,
                                           luxAmount: 5000,
                                           startGlobal: _lastPurchaseTapGlobal,
                                         ),
@@ -703,7 +766,7 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
               ],
             ),
           ),
-          if (_busy) const _VaultLoadingOverlay(),
+          if (_busy || _vaultIapLoading) const _VaultLoadingOverlay(),
           if (_flyStart != null && _flyEnd != null)
             Positioned.fill(
               child: IgnorePointer(

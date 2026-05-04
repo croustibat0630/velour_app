@@ -302,6 +302,22 @@ class AppLocalizationsDe extends AppLocalizations {
       'Du hast bereits 2 Gnaden-Ladungen.';
 
   @override
+  String get shopIapUnavailable =>
+      'In-App-Käufe sind auf diesem Gerät nicht verfügbar.';
+
+  @override
+  String get shopIapProductsUnavailable =>
+      'LUX-Pakete sind im Store derzeit nicht verfügbar.';
+
+  @override
+  String get shopIapCancelled => 'Kauf abgebrochen.';
+
+  @override
+  String shopIapError(String details) {
+    return 'Zahlungsfehler: $details';
+  }
+
+  @override
   String get statsTitle => 'MEINE KARRIERE';
 
   @override

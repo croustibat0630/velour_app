@@ -200,6 +200,15 @@
   "shopSnackForgeChronoPulseFull": "Du hast bereits 2 Chrono-Ladungen.",
   "shopSnackForgeMercySalvagePurchased": "Gnaden-Ladung hinzugefügt.",
   "shopSnackForgeMercySalvageFull": "Du hast bereits 2 Gnaden-Ladungen.",
+  "shopIapUnavailable": "In-App-Käufe sind auf diesem Gerät nicht verfügbar.",
+  "shopIapProductsUnavailable": "LUX-Pakete sind im Store derzeit nicht verfügbar.",
+  "shopIapCancelled": "Kauf abgebrochen.",
+  "shopIapError": "Zahlungsfehler: {details}",
+  "@shopIapError": {
+    "placeholders": {
+      "details": {"type": "String"}
+    }
+  },
   "statsTitle": "MEINE KARRIERE",
   "statsStreakSession": "{count, plural, one{SERIE · 1 TAG} other{SERIE · {count} TAGE}}",
   "@statsStreakSession": {

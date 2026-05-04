@@ -15,6 +15,7 @@ import 'screens/settings_view.dart';
 import 'screens/stats_view.dart';
 import 'screens/shop_view.dart';
 import 'theme/theme_engine.dart';
+import 'widgets/lux_iap_binding.dart';
 import 'widgets/ui/welcome_gift_global_layer.dart';
 import 'utils/route_transition_observer.dart';
 import 'utils/velour_route_observer.dart';
@@ -54,43 +55,46 @@ class VelourApp extends StatelessWidget {
           return ListenableBuilder(
             listenable: AppSettings.instance.localePreference,
             builder: (BuildContext context, Widget? _) {
-              return MaterialApp(
-                locale: AppSettings.materialLocaleFor(
-                  AppSettings.instance.localePreference.value,
-                ),
-                onGenerateTitle: (BuildContext context) =>
-                    AppLocalizations.of(context)?.appTitle ?? 'Velour',
-                localizationsDelegates: AppLocalizations.localizationsDelegates,
-                supportedLocales: AppLocalizations.supportedLocales,
-                debugShowCheckedModeBanner: false,
-                builder: (context, child) {
-                  return Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      child ?? const SizedBox.shrink(),
-                      const WelcomeGiftGlobalLayer(),
-                    ],
-                  );
-                },
-                theme: ThemeData.dark().copyWith(
-                  scaffoldBackgroundColor: const Color(0xFF0A0A0F),
-                  textTheme: GoogleFonts.montserratTextTheme(
-                    ThemeData.dark().textTheme,
+              return LuxIapBinding(
+                child: MaterialApp(
+                  locale: AppSettings.materialLocaleFor(
+                    AppSettings.instance.localePreference.value,
                   ),
+                  onGenerateTitle: (BuildContext context) =>
+                      AppLocalizations.of(context)?.appTitle ?? 'Velour',
+                  localizationsDelegates:
+                      AppLocalizations.localizationsDelegates,
+                  supportedLocales: AppLocalizations.supportedLocales,
+                  debugShowCheckedModeBanner: false,
+                  builder: (context, child) {
+                    return Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        child ?? const SizedBox.shrink(),
+                        const WelcomeGiftGlobalLayer(),
+                      ],
+                    );
+                  },
+                  theme: ThemeData.dark().copyWith(
+                    scaffoldBackgroundColor: const Color(0xFF0A0A0F),
+                    textTheme: GoogleFonts.montserratTextTheme(
+                      ThemeData.dark().textTheme,
+                    ),
+                  ),
+                  home: const SplashScreen(),
+                  navigatorObservers: [
+                    RouteTransitionObserver(),
+                    velourRouteObserver,
+                  ],
+                  routes: {
+                    '/main': (_) => const MainMenuView(),
+                    '/game': (_) => const GameScreen(),
+                    '/leaderboard': (_) => const LeaderboardView(),
+                    '/shop': (_) => const ShopView(),
+                    '/settings': (_) => const SettingsView(),
+                    '/stats': (_) => const StatsView(),
+                  },
                 ),
-                home: const SplashScreen(),
-                navigatorObservers: [
-                  RouteTransitionObserver(),
-                  velourRouteObserver,
-                ],
-                routes: {
-                  '/main': (_) => const MainMenuView(),
-                  '/game': (_) => const GameScreen(),
-                  '/leaderboard': (_) => const LeaderboardView(),
-                  '/shop': (_) => const ShopView(),
-                  '/settings': (_) => const SettingsView(),
-                  '/stats': (_) => const StatsView(),
-                },
               );
             },
           );

@@ -124,6 +124,15 @@
   "shopSnackForgeChronoPulseFull": "Tu as déjà 2 charges chrono.",
   "shopSnackForgeMercySalvagePurchased": "Charge clémence ajoutée.",
   "shopSnackForgeMercySalvageFull": "Tu as déjà 2 charges clémence.",
+  "shopIapUnavailable": "Achats intégrés indisponibles sur cet appareil.",
+  "shopIapProductsUnavailable": "Packs LUX indisponibles pour le moment.",
+  "shopIapCancelled": "Achat annulé.",
+  "shopIapError": "Erreur de paiement : {details}",
+  "@shopIapError": {
+    "placeholders": {
+      "details": {"type": "String"}
+    }
+  },
   "statsTitle": "MA CARRIÈRE",
   "statsStreakSession": "{count, plural, one{SÉRIE · 1 JOUR} other{SÉRIE · {count} JOURS}}",
   "statsLuxEarned": "LUX GAGNÉS",

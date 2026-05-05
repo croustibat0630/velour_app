@@ -39,5 +39,22 @@ end
 post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
+    # Xcode 16+ / iOS 18 SDK : headers StoreKit dépréciés dans in_app_purchase_storekit (objc) ;
+    # sans cela le module peut échouer au build simulateur/release.
+    if target.name == 'in_app_purchase_storekit'
+      target.build_configurations.each do |config|
+        extra = '-Wno-deprecated-declarations'
+        existing = config.build_settings['OTHER_CFLAGS']
+        config.build_settings['OTHER_CFLAGS'] = case existing
+        when nil, ''
+          "$(inherited) #{extra}"
+        when Array
+          existing.include?(extra) ? existing : (existing + [extra])
+        else
+          s = existing.to_s
+          s.include?('deprecated-declarations') ? s : "#{s} #{extra}".strip
+        end
+      end
+    end
   end
 end

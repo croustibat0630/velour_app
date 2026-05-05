@@ -117,4 +117,4 @@ Les règles restent un **filet** : la source de vérité LUX côté serveur rest
 1. Merger ce dépôt, vérifier CI verte.
 2. **Phase classement** : indexes → functions (trigger inclus) → backfill `leaderboardPublic` → **release app** → règles Firestore (voir §2).
 3. Staging / prod : surveiller logs du trigger `velourMirrorPlayerToLeaderboardPublic` et erreurs Crashlytics côté client.
-4. **App Check** : activer côté Firebase + client ; callable avec `VELOUR_ENFORCE_APP_CHECK=1` (`functions/.env.velour-6690f`).
+4. **App Check** : activer côté Firebase + client ; callable avec `VELOUR_ENFORCE_APP_CHECK=1` (`functions/.env.velour-6690f`). **iOS release** : le dépôt inclut `ios/Runner/Runner.entitlements` (App Attest `production`) ; dans [Apple Developer](https://developer.apple.com) → Identifiers → App ID `fr.grandjean.velour` → activer **App Attest** ; dans Firebase **App Check** → app iOS → fournisseur **App Attest** (et **Device Check** + Team ID si besoin). Jetons **debug** uniquement pour dev/profile (`!kReleaseMode`).

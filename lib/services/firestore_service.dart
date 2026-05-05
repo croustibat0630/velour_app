@@ -353,8 +353,6 @@ class FirestoreService {
           'highScore': highScore,
           'inventory': inventory,
           'activeSkinId': activeSkinId,
-          'lastSeen': FieldValue.serverTimestamp(),
-          'updatedAt': FieldValue.serverTimestamp(),
         }, SetOptions(merge: true));
       });
     } catch (e, st) {
@@ -376,8 +374,6 @@ class FirestoreService {
       await _firestoreRetry(() async {
         await ref.set(<String, dynamic>{
           'highScore': score,
-          'lastSeen': FieldValue.serverTimestamp(),
-          'updatedAt': FieldValue.serverTimestamp(),
         }, SetOptions(merge: true));
       });
     } catch (e, st) {
@@ -463,7 +459,6 @@ class FirestoreService {
       await _firestoreRetry(() async {
         await ref.set(<String, dynamic>{
           'pseudo': cleaned,
-          'lastSeen': FieldValue.serverTimestamp(),
         }, SetOptions(merge: true));
       });
       return true;
@@ -590,7 +585,6 @@ class FirestoreService {
       await _firestoreRetry(() async {
         await ref.set(<String, dynamic>{
           'activeSkinId': skinId,
-          'lastSeen': FieldValue.serverTimestamp(),
         }, SetOptions(merge: true));
       });
     } catch (e, st) {
@@ -611,7 +605,6 @@ class FirestoreService {
         await ref.set(<String, dynamic>{
           'inventory': FieldValue.arrayUnion(<String>[skinId]),
           'activeSkinId': skinId,
-          'lastSeen': FieldValue.serverTimestamp(),
         }, SetOptions(merge: true));
       });
     } catch (e, st) {

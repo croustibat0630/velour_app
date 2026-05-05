@@ -48,8 +48,6 @@ service cloud.firestore {
           'inventory',
           'activeSkinId',
           'pseudo',
-          'lastSeen',
-          'updatedAt',
         ]);
     }
 
@@ -67,6 +65,16 @@ service cloud.firestore {
         || (request.resource.data.activeSkinId is string
             && request.resource.data.activeSkinId.size() > 0
             && request.resource.data.activeSkinId.size() <= 64);
+    }
+
+    /// Empêche de référencer un skin non possédé.
+    function isActiveSkinIdOwnedIfPresent() {
+      let oldInv = resource.data.get('inventory', []);
+      let newInv = request.resource.data.get('inventory', oldInv);
+      let oldActive = resource.data.get('activeSkinId', '');
+      let newActive = request.resource.data.get('activeSkinId', oldActive);
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(['activeSkinId'])
+        || (newInv is list && newInv.hasAny([newActive]));
     }
 
     /// Profil complet : lecture **réservée au propriétaire** (LUX, inventaire, etc.).
@@ -104,7 +112,8 @@ service cloud.firestore {
         && isValidHighScore()
         && isInventoryMonotone()
         && isValidPseudoIfPresent()
-        && isValidActiveSkinIdIfPresent();
+        && isValidActiveSkinIdIfPresent()
+        && isActiveSkinIdOwnedIfPresent();
 
       allow delete: if false;
     }

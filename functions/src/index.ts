@@ -12,11 +12,20 @@ initializeApp();
 
 const REGION = "europe-west3";
 
+// Optional hardening: require Firebase App Check tokens in production.
+// Enable with: `firebase functions:config:set velour.enforce_app_check=1`
+// (or env var `VELOUR_ENFORCE_APP_CHECK=1` depending on your deploy pipeline).
+const ENFORCE_APP_CHECK = process.env.VELOUR_ENFORCE_APP_CHECK === "1";
+
 /** Plafond crédit LUX positif par appel (aligné `lib/services/lux_credit_limits.dart`). */
 const MAX_POSITIVE_LUX_DELTA = 10000;
 
 /** Plafond débit par appel (mises, shop, rafales) — borne l’abus si le client est compromis. */
 const MAX_NEGATIVE_LUX_MAGNITUDE = 500_000;
+
+// Anti-abuse: cap daily positive credits (does not block normal gameplay, but
+// limits scripted spam of callables on compromised clients).
+const MAX_DAILY_POSITIVE_LUX = 50_000;
 
 /** Ping authentifié — vérifie le déploiement Functions + droits d’appel. */
 export const velourHealth = onCall({ region: REGION }, async (request) => {
@@ -36,6 +45,9 @@ export const velourHealth = onCall({ region: REGION }, async (request) => {
 export const velourApplyLuxDelta = onCall({ region: REGION }, async (request) => {
   if (!request.auth?.uid) {
     throw new HttpsError("unauthenticated", "Auth required");
+  }
+  if (ENFORCE_APP_CHECK && !request.app) {
+    throw new HttpsError("failed-precondition", "App Check required");
   }
   const uid = request.auth.uid;
   const raw = request.data as { delta?: unknown };
@@ -65,36 +77,53 @@ export const velourApplyLuxDelta = onCall({ region: REGION }, async (request) =>
   const db = getFirestore();
   const ref = db.collection("players").doc(uid);
 
-  const { prevLux, newLux } = await db.runTransaction(async (tx) => {
+  const { prevLux, newLux, applied } = await db.runTransaction(async (tx) => {
     const snap = await tx.get(ref);
     const prev = snap.exists
       ? Math.max(0, Math.trunc((snap.get("totalLux") as number) || 0))
       : 0;
-    const next = Math.max(0, prev + appliedDelta);
+    // Daily cap (positive only).
+    const day =
+      Math.floor(Date.now() / (24 * 60 * 60 * 1000)) /* UTC-ish day index */;
+    const prevDay = snap.exists
+      ? Math.trunc((snap.get("dailyPositiveLuxDay") as number) || 0)
+      : 0;
+    const prevDaily = snap.exists
+      ? Math.max(0, Math.trunc((snap.get("dailyPositiveLux") as number) || 0))
+      : 0;
+    const daily = prevDay === day ? prevDaily : 0;
+    const budget =
+      appliedDelta > 0 ? Math.max(0, MAX_DAILY_POSITIVE_LUX - daily) : 0;
+    const clampedForDay =
+      appliedDelta > 0 ? Math.min(appliedDelta, budget) : appliedDelta;
+    const next = Math.max(0, prev + clampedForDay);
     tx.set(
       ref,
       {
         totalLux: next,
         lastSeen: FieldValue.serverTimestamp(),
         updatedAt: FieldValue.serverTimestamp(),
+        dailyPositiveLuxDay: day,
+        dailyPositiveLux:
+          clampedForDay > 0 ? daily + clampedForDay : daily,
       },
       { merge: true }
     );
-    return { prevLux: prev, newLux: next };
+    return { prevLux: prev, newLux: next, applied: clampedForDay };
   });
 
   logger.info("velourApplyLuxDelta", {
     uid,
     prevLux,
     newLux,
-    appliedDelta,
+    appliedDelta: applied,
   });
 
   return {
     ok: true as const,
     newLux,
     prevLux,
-    appliedDelta,
+    appliedDelta: applied,
   };
 });
 

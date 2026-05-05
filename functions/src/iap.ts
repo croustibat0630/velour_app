@@ -40,6 +40,8 @@ import { FieldValue, getFirestore } from "firebase-admin/firestore";
 
 const REGION = "europe-west3";
 
+const ENFORCE_APP_CHECK = process.env.VELOUR_ENFORCE_APP_CHECK === "1";
+
 const googlePlayServiceAccountJson = defineSecret(
   "GOOGLE_PLAY_SERVICE_ACCOUNT_JSON"
 );
@@ -294,6 +296,7 @@ export const velourGrantIapLux = onCall(
   {
     region: REGION,
     secrets: [googlePlayServiceAccountJson],
+    enforceAppCheck: ENFORCE_APP_CHECK,
   },
   async (request) => {
     if (!request.auth?.uid) {

@@ -377,7 +377,9 @@ class LuxIapService {
 
   /// Validation + crédit serveur (`velourGrantIapLux`) — **strict**: must succeed for paid packs.
   Future<bool> _tryGrantVaultPurchaseToCloudStrict(PurchaseDetails p) async {
-    if (debugSkipCloudPurchaseSync || kIsWeb) return false;
+    // Tests sans Firebase : traiter le grant cloud comme OK (ne pas court-circuiter en `false`).
+    if (debugSkipCloudPurchaseSync) return true;
+    if (kIsWeb) return false;
     try {
       if (Firebase.apps.isEmpty) return false;
     } catch (_) {

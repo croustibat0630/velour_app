@@ -49,6 +49,7 @@ dependencies:
   in_app_purchase: ^3.2.3
   firebase_crashlytics: ^5.2.0
   audio_session: ^0.2.3
+  firebase_app_check: ^0.4.3
 
 dev_dependencies:
   flutter_test:

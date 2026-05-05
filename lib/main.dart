@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
@@ -25,11 +26,69 @@ import 'widgets/ui/welcome_gift_global_layer.dart';
 import 'utils/route_transition_observer.dart';
 import 'utils/velour_route_observer.dart';
 
+/// Active App Check après [Firebase.initializeApp].
+///
+/// - **Web** : debug → [WebDebugProvider] ; release → `ReCaptchaEnterpriseProvider`
+///   si `VELOUR_APP_CHECK_WEB_SITE_KEY` est passé en `--dart-define`, sinon noop
+///   (évite un crash sans clé console).
+/// - **Mobile / desktop Apple** : debug → providers debug ; release → Play Integrity /
+///   App Attest avec repli Device Check.
+/// - **Windows** : uniquement debug provider ; jeton optionnel
+///   `VELOUR_APP_CHECK_WINDOWS_DEBUG_TOKEN` ou variable d’environnement SDK.
+Future<void> velourActivateAppCheck() async {
+  try {
+    if (kIsWeb) {
+      const webSiteKey = String.fromEnvironment(
+        'VELOUR_APP_CHECK_WEB_SITE_KEY',
+        defaultValue: '',
+      );
+      if (kDebugMode) {
+        await FirebaseAppCheck.instance.activate(
+          providerWeb: WebDebugProvider(),
+        );
+      } else if (webSiteKey.isNotEmpty) {
+        await FirebaseAppCheck.instance.activate(
+          providerWeb: ReCaptchaEnterpriseProvider(webSiteKey),
+        );
+      }
+      return;
+    }
+
+    if (defaultTargetPlatform == TargetPlatform.windows) {
+      const winToken = String.fromEnvironment(
+        'VELOUR_APP_CHECK_WINDOWS_DEBUG_TOKEN',
+        defaultValue: '',
+      );
+      await FirebaseAppCheck.instance.activate(
+        providerWindows: WindowsDebugProvider(
+          debugToken: winToken.isNotEmpty ? winToken : null,
+        ),
+      );
+      return;
+    }
+
+    await FirebaseAppCheck.instance.activate(
+      providerAndroid: kDebugMode
+          ? const AndroidDebugProvider()
+          : const AndroidPlayIntegrityProvider(),
+      providerApple: kDebugMode
+          ? const AppleDebugProvider()
+          : const AppleAppAttestWithDeviceCheckFallbackProvider(),
+    );
+  } catch (e, st) {
+    debugPrint('Firebase App Check activate failed: $e');
+    if (!kDebugMode) {
+      await FirebaseCrashlytics.instance.recordError(e, st, fatal: false);
+    }
+  }
+}
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized(); // Indispensable
   // iOS / Android : AVAudioSession + contexte audioplayers (respectSilence: false).
   await configureVelourAudioPipeline(activateSession: true);
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await velourActivateAppCheck();
 
   // Crashlytics : actif hors debug (release + profile, ex. TestFlight interne).
   await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(

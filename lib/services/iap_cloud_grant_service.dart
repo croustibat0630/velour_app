@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 
 import 'firestore_service.dart';
+import 'velour_observability.dart';
 
 /// Réponse de la callable [velourGrantIapLux] (`functions/src/iap.ts`).
 typedef IapCloudGrantResult = ({
@@ -33,9 +34,22 @@ class IapCloudGrantService {
     String? androidPurchaseToken,
     String? iosTransactionJws,
   }) async {
-    if (FirebaseAuth.instance.currentUser == null) {
+    try {
+      if (Firebase.apps.isEmpty) return null;
+    } catch (_) {
       return null;
     }
+
+    await FirestoreService.instance.ensureAnonymousAuthReady();
+
+    if (FirebaseAuth.instance.currentUser == null) {
+      VelourObservability.recordClientFailure(
+        'iap_cloud_grant.no_firebase_user',
+        StateError('anonymous auth not ready'),
+      );
+      return null;
+    }
+
     try {
       final FirebaseFunctions fns = FirebaseFunctions.instanceFor(
         app: Firebase.app(),
@@ -71,9 +85,25 @@ class IapCloudGrantService {
         luxGranted: luxGranted,
         newLux: newLux,
       );
-    } on FirebaseFunctionsException {
+    } on FirebaseFunctionsException catch (e, st) {
+      VelourObservability.logFirestoreFailure(
+        'velourGrantIapLux.callable',
+        error: e,
+        stackTrace: st,
+        context: <String, Object?>{
+          'code': e.code,
+          'details': e.details?.toString(),
+          'productId': productId,
+        },
+      );
       return null;
-    } catch (_) {
+    } catch (e, st) {
+      VelourObservability.logFirestoreFailure(
+        'velourGrantIapLux.unknown',
+        error: e,
+        stackTrace: st,
+        context: <String, Object?>{'productId': productId},
+      );
       return null;
     }
   }

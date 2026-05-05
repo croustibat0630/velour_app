@@ -264,7 +264,13 @@ class FirestoreService {
             'lastSeen': FieldValue.serverTimestamp(),
           }, SetOptions(merge: true));
         }
-      } catch (_) {}
+      } catch (e, st) {
+        VelourObservability.logFirestoreFailure(
+          'initializeAuthAndPullSkins.playerDocTouch',
+          error: e,
+          stackTrace: st,
+        );
+      }
 
       final PlayerCloudPull? skins = await _pullPlayerEconomySnapshot();
 
@@ -272,6 +278,19 @@ class FirestoreService {
     } finally {
       _authInitInProgress = false;
     }
+  }
+
+  /// Attend une init auth en cours puis garantit [isCloudReady] si possible
+  /// (callables IAP / deltas avant que le splash ait fini).
+  Future<void> ensureAnonymousAuthReady({
+    Duration timeout = const Duration(seconds: 12),
+  }) async {
+    final DateTime deadline = DateTime.now().add(timeout);
+    while (_authInitInProgress && DateTime.now().isBefore(deadline)) {
+      await Future<void>.delayed(const Duration(milliseconds: 40));
+    }
+    if (isCloudReady) return;
+    await initializeAuthAndPullSkins();
   }
 
   Future<PlayerCloudPull?> _pullPlayerEconomySnapshot() async {

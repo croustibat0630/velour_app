@@ -29,6 +29,7 @@ import '../services/narrative_tutorial_service.dart';
 import '../services/oracle_naming_service.dart';
 import '../services/trinity_tutorial_service.dart';
 import '../services/stats_service.dart';
+import '../services/velour_observability.dart';
 import '../utils/velour_debug_log.dart';
 import '../widgets/ui/premium_alert_view.dart';
 
@@ -84,7 +85,12 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
           activeSkinId: _activeSkinId,
         );
       }
-    } catch (_) {
+    } catch (e, st) {
+      VelourObservability.logFirestoreFailure(
+        'flushCloudSyncOnAppHidden',
+        error: e,
+        stackTrace: st,
+      );
     } finally {
       _cloudLifecycleFlushBusy = false;
     }
@@ -170,7 +176,13 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
         inventory: List<String>.from(_unlockedSkins),
         activeSkinId: _activeSkinId,
       );
-    } catch (_) {}
+    } catch (e, st) {
+      VelourObservability.logFirestoreFailure(
+        'bootstrapCloudAfterLocalLoad',
+        error: e,
+        stackTrace: st,
+      );
+    }
   }
 
   bool get shouldShowNamingDialog => _oracleNaming.shouldShowDialog;

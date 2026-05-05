@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart'
         ValueNotifier,
         defaultTargetPlatform,
         kIsWeb,
+        kReleaseMode,
         visibleForTesting;
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -14,6 +15,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/game_state.dart';
 import '../utils/velour_audit_log.dart';
 import 'iap_cloud_grant_service.dart';
+import 'velour_observability.dart';
 
 /// Identifiants consommables — mêmes SKU sur App Store Connect et Google Play Console.
 abstract final class LuxIapProducts {
@@ -246,7 +248,9 @@ class LuxIapService {
     if (!p.pendingCompletePurchase) return;
     try {
       await _iap.completePurchase(p);
-    } catch (_) {}
+    } catch (e, st) {
+      VelourObservability.recordClientFailure('iap.completePurchase', e, st);
+    }
   }
 
   void _completeAwaitingIfAny(LuxIapBuyOutcome outcome) {
@@ -377,8 +381,10 @@ class LuxIapService {
 
   /// Validation + crédit serveur (`velourGrantIapLux`) — **strict**: must succeed for paid packs.
   Future<bool> _tryGrantVaultPurchaseToCloudStrict(PurchaseDetails p) async {
-    // Tests sans Firebase : traiter le grant cloud comme OK (ne pas court-circuiter en `false`).
-    if (debugSkipCloudPurchaseSync) return true;
+    // Tests / debug : pas d’appel Functions. **Interdit en release** (pas de bypass cloud).
+    if (debugSkipCloudPurchaseSync) {
+      return !kReleaseMode;
+    }
     if (kIsWeb) return false;
     try {
       if (Firebase.apps.isEmpty) return false;

@@ -9,6 +9,7 @@ import '../utils/velour_debug_log.dart';
 import '../services/app_settings.dart';
 import '../services/audio_handler.dart';
 import '../services/stats_service.dart';
+import '../services/velour_observability.dart';
 import '../theme/theme_engine.dart';
 import 'main_menu_view.dart';
 
@@ -52,6 +53,11 @@ class _SplashScreenState extends State<SplashScreen>
       await context.read<GameState>().bootstrapCloudAfterLocalLoad();
     } catch (e, st) {
       velourDebug('bootstrapCloudAfterLocalLoad: $e\n$st');
+      VelourObservability.logFirestoreFailure(
+        'splash.bootstrapCloudAfterLocalLoad',
+        error: e,
+        stackTrace: st,
+      );
     }
 
     // Ne jamais bloquer la navigation sur l’audio (Chrome : AudioContext

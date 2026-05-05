@@ -25,7 +25,7 @@ Document de référence pour la mise à niveau « appli sérieuse » : sécurit�
 4. Vérifier dans la console Firebase **Functions** que `velourApplyLuxDelta` et `velourHealth` sont actives en `europe-west3`.
 5. Lancer l’app contre ce projet (même `google-services` / `firebase_options` que le staging) : jouer une partie, vérifier les logs Cloud et que le solde `totalLux` bouge.
 
-**Phase suivante (sécurité maximale) :** retirer l’écriture client directe sur `totalLux` dans `firestore.rules` une fois 100 % du parcours LUX passé par la callable + tests de charge OK.
+**État actuel (audit règles) :** l’écriture client sur `totalLux` est déjà **interdite sur mise à jour** (`totalLuxNotClientMutated`). La **création** du doc joueur impose désormais `totalLux == 0` et `highScore == 0` (pas de bootstrap « richesse factice »). Les crédits LUX passent par **`velourApplyLuxDelta`** et **`velourGrantIapLux`** (`functions/src/index.ts`, `iap.ts`).
 
 ## 2. Modèle de données `players` et lecture publique
 
@@ -60,12 +60,13 @@ Référence : `functions/scripts/exportLeaderboardTopAdmin.js`, `functions/scrip
 
 ## 3. Règles Firestore (invariants côté règles)
 
-- High score monotone, borné.
-- Inventaire monotone (pas de retrait arbitraire).
-- `totalLux` entier, borné.
-- **Clés autorisées** sur mise à jour (`diff().affectedKeys().hasOnly(...)`) pour éviter l’injection de champs arbitraires.
+Fichier : `firestore.rules`.
 
-Les règles restent un **filet** : elles ne remplacent pas la logique métier serveur pour LUX.
+- **Création** `players/{uid}` : champs initiaux stricts ; `totalLux` et `highScore` **forcés à 0** (aligné sur `FirestoreService.initializeAuthAndPullSkins`).
+- **Mise à jour** : `totalLux` **non modifiable** par le client ; high score **monotone**, borné ; inventaire **monotone** (pas de retrait) ; **clés allowlist** (`diff().affectedKeys().hasOnly(...)`).
+- **`iap_grants/{id}`** : `allow read, write: if false` — idempotence IAP réservée au backend (callable `velourGrantIapLux`).
+
+Les règles restent un **filet** : la source de vérité LUX côté serveur reste les **callables** (plafonds delta / validation Play ou JWS Apple).
 
 ## 4. Tests & CI
 
@@ -81,8 +82,8 @@ Les règles restent un **filet** : elles ne remplacent pas la logique métier se
 
 ## 6. Observabilité
 
-- **`VelourObservability`** : journalisation structurée (`developer.log`, `name: 'velour.firestore'`) pour les échecs après retry dans `FirestoreService`.
-- **Suite :** Crashlytics / Analytics événements agrégés (hors périmètre du dépôt si non activé sur le projet Firebase).
+- **`VelourObservability`** : en **release / profile** (hors debug), erreurs Firestore / IAP / client envoyées à **Firebase Crashlytics** (`recordError` non fatal ou `log` pour signaux économie).
+- **Analytics** : événements agrégés selon besoin produit (hors périmètre minimal du dépôt).
 
 ---
 

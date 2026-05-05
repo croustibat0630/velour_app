@@ -1,5 +1,8 @@
 rules_version = '2';
 
+// Économie : `totalLux` uniquement via Admin / Cloud Functions (callables).
+// Client : merge `highScore` / `inventory` / `activeSkinId` / `pseudo` / timestamps.
+// IAP idempotence : collection `iap_grants` — aucun accès client (écriture Functions).
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -83,11 +86,9 @@ service cloud.firestore {
           'updatedAt',
         ])
         && request.resource.data.highScore is int
-        && request.resource.data.highScore >= 0
-        && request.resource.data.highScore <= 100000000
+        && request.resource.data.highScore == 0
         && request.resource.data.totalLux is int
-        && request.resource.data.totalLux >= 0
-        && request.resource.data.totalLux <= 2000000000
+        && request.resource.data.totalLux == 0
         && request.resource.data.inventory is list
         && request.resource.data.inventory.size() > 0
         && request.resource.data.inventory.size() <= 200
@@ -107,6 +108,11 @@ service cloud.firestore {
         && isValidActiveSkinIdIfPresent();
 
       allow delete: if false;
+    }
+
+    /// Grants IAP (idempotence) — écrits uniquement par Cloud Functions (`velourGrantIapLux`).
+    match /iap_grants/{grantId} {
+      allow read, write: if false;
     }
   }
 }

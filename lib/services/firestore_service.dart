@@ -57,18 +57,21 @@ class FirestoreService {
   DocumentReference<Map<String, dynamic>>? get _playerRef =>
       _uid == null ? null : _db.collection('players').doc(_uid);
 
+  /// Collection miroir : champs publics uniquement (sync trigger Cloud Function).
+  static const String leaderboardPublicCollection = 'leaderboardPublic';
+
   /// Top 10 : [highScore] décroissant, puis [updatedAt] croissant (ex-aequo stables).
   /// Les docs sans [updatedAt] n’apparaissent pas dans ce snapshot — utiliser le
   /// script admin `functions/scripts/normalizePlayerPseudos.js` si besoin de backfill.
-  Query<Map<String, dynamic>> get _topTenQuery => _db
-      .collection('players')
+  Query<Map<String, dynamic>> get _leaderboardPublicTopTenQuery => _db
+      .collection(leaderboardPublicCollection)
       .orderBy('highScore', descending: true)
       .orderBy('updatedAt', descending: false)
       .limit(10);
 
   /// Un seul flux Firestore pour le Top 10 (partage entre écouteurs).
   late final Stream<QuerySnapshot<Map<String, dynamic>>>
-  leaderboardTopTenStream = _topTenQuery
+  leaderboardTopTenStream = _leaderboardPublicTopTenQuery
       .snapshots(includeMetadataChanges: true)
       .asBroadcastStream();
 
@@ -95,7 +98,11 @@ class FirestoreService {
 
   Future<MyDenseWorldRank> _denseWorldRankForHighScore(int myScore) async {
     try {
-      return await computeMyDenseWorldRankFromFirestore(_db, myScore);
+      return await computeMyDenseWorldRankFromFirestore(
+        _db,
+        myScore,
+        scoresCollection: leaderboardPublicCollection,
+      );
     } catch (_) {
       return (denseRank: 0, tiedWithOthersSameScore: false);
     }
@@ -487,7 +494,7 @@ class FirestoreService {
       if (!needsName) return false;
 
       final QuerySnapshot<Map<String, dynamic>> top = await _firestoreRetry(
-        () => _topTenQuery.get(),
+        () => _leaderboardPublicTopTenQuery.get(),
       );
       final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs = top.docs;
       final bool inTop = docs.length < 10

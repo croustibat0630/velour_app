@@ -3,6 +3,7 @@ rules_version = '2';
 // Économie : `totalLux` uniquement via Admin / Cloud Functions (callables).
 // Client : merge `highScore` / `inventory` / `activeSkinId` / `pseudo` / timestamps.
 // IAP idempotence : collection `iap_grants` — aucun accès client (écriture Functions).
+// Classement : `leaderboardPublic` (pseudo + score + updatedAt) — écriture Functions uniquement.
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -68,12 +69,10 @@ service cloud.firestore {
             && request.resource.data.activeSkinId.size() <= 64);
     }
 
-    /// Création profil (auth anonyme + doc initial).
-    /// Lecture : utilisateur Firebase connecté (y compris anonyme). Réduit le scraping
-    /// totalement non authentifié ; le top 10 lit toujours des docs complets — voir
-    /// docs/PRODUCTION_HARDENING.md (collection `leaderboardPublic` recommandée).
+    /// Profil complet : lecture **réservée au propriétaire** (LUX, inventaire, etc.).
+    /// Le classement lit `leaderboardPublic` (miroir via Cloud Function).
     match /players/{userId} {
-      allow read: if isSignedIn();
+      allow read: if isSignedIn() && isOwner(userId);
 
       allow create: if isSignedIn()
         && isOwner(userId)
@@ -113,6 +112,12 @@ service cloud.firestore {
     /// Grants IAP (idempotence) — écrits uniquement par Cloud Functions (`velourGrantIapLux`).
     match /iap_grants/{grantId} {
       allow read, write: if false;
+    }
+
+    /// Vue classement (champs publics). Écriture Admin / trigger uniquement.
+    match /leaderboardPublic/{userId} {
+      allow read: if isSignedIn();
+      allow write: if false;
     }
   }
 }

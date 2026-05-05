@@ -2,15 +2,22 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'dense_world_rank_logic.dart';
 
+/// Collection des scores exposés au classement (défaut : `leaderboardPublic`).
+const String kLeaderboardScoresCollection = 'leaderboardPublic';
+
 /// Rang dense mondial + indicateur d’ex-aequo sur le même [highScore],
 /// pour un [FirebaseFirestore] injectable (prod ou fake).
 Future<({int denseRank, bool tiedWithOthersSameScore})>
-computeMyDenseWorldRankFromFirestore(FirebaseFirestore db, int myScore) async {
+computeMyDenseWorldRankFromFirestore(
+  FirebaseFirestore db,
+  int myScore, {
+  String scoresCollection = kLeaderboardScoresCollection,
+}) async {
   final int dense = await computeDenseWorldRank1Based(
     myScore: myScore,
     readScoresAboveSortedAsc: (int cursor, int limit) async {
       final QuerySnapshot<Map<String, dynamic>> snap = await db
-          .collection('players')
+          .collection(scoresCollection)
           .where('highScore', isGreaterThan: cursor)
           .orderBy('highScore')
           .limit(limit)
@@ -24,7 +31,7 @@ computeMyDenseWorldRankFromFirestore(FirebaseFirestore db, int myScore) async {
     },
   );
   final AggregateQuerySnapshot sameAgg = await db
-      .collection('players')
+      .collection(scoresCollection)
       .where('highScore', isEqualTo: myScore)
       .count()
       .get();

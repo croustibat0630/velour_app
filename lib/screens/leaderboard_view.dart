@@ -382,8 +382,8 @@ class _LeaderboardViewState extends State<LeaderboardView> {
   }
 }
 
-/// Pied de page : doc joueur en direct + rang dense ([FirestoreService.getMyRankStream],
-/// recalcul sur chaque snapshot + rafraîchissement lent si le classement bouge sans ton doc).
+/// Pied de page : doc `players` (propriétaire) pour le score affiché + rang dense
+/// ([FirestoreService.getMyRankStream] sur `leaderboardPublic` pour le classement mondial).
 class _LeaderboardBottomBar extends StatefulWidget {
   const _LeaderboardBottomBar({
     required this.scaleH,

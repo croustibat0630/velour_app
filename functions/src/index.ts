@@ -99,3 +99,4 @@ export const velourApplyLuxDelta = onCall({ region: REGION }, async (request) =>
 });
 
 export { velourGrantIapLux } from "./iap";
+export { velourMirrorPlayerToLeaderboardPublic } from "./leaderboardPublic";

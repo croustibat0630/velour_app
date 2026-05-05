@@ -27,25 +27,35 @@ Document de référence pour la mise à niveau « appli sérieuse » : sécurit�
 
 **État actuel (audit règles) :** l’écriture client sur `totalLux` est déjà **interdite sur mise à jour** (`totalLuxNotClientMutated`). La **création** du doc joueur impose désormais `totalLux == 0` et `highScore == 0` (pas de bootstrap « richesse factice »). Les crédits LUX passent par **`velourApplyLuxDelta`** et **`velourGrantIapLux`** (`functions/src/index.ts`, `iap.ts`).
 
-## 2. Modèle de données `players` et lecture publique
+## 2. Modèle de données `players` + `leaderboardPublic` (phase 2 — en place dans le dépôt)
 
-**Constat actuel :** le classement mondial interroge `players` avec `orderBy('highScore')`. Toute règle `allow read` trop large expose **l’intégralité** des documents retournés (inventaire, `totalLux`, etc.) aux clients qui exécutent la même requête ou devinent un `uid`.
+**Objectif :** le classement ne lit plus les docs `players` (LUX, inventaire, etc.). Il lit **`leaderboardPublic/{uid}`** avec au plus `pseudo`, `highScore`, `updatedAt`.
 
-**Piste recommandée (phase 2) :**
+**Implémentation :**
 
-- Collection **`leaderboardPublic`** (ou `players/{id}/public/profile`) alimentée par trigger à partir de `players`, contenant uniquement `pseudo`, `highScore`, `updatedAt`, éventuellement `activeSkinId` public.
-- `players/{uid}` : `allow read: if isOwner(uid)` ; écritures métier via Functions ou règles très strictes.
+- **Trigger** `velourMirrorPlayerToLeaderboardPublic` (`functions/src/leaderboardPublic.ts`) : à chaque écriture / suppression de `players/{uid}`, recopie ou supprime le miroir public (Admin SDK, hors règles client).
+- **Client Flutter** : `FirestoreService.leaderboardTopTenStream` et le calcul de rang dense utilisent `leaderboardPublic` ; le pied de page « votre rang » continue de lire **votre** doc `players/{uid}` (lecture owner autorisée par les règles).
+- **Règles** : `players` → `allow read: if isOwner(userId)` ; `leaderboardPublic` → `allow read: if isSignedIn()`, `allow write: if false`.
 
-**Étape intermédiaire (déjà en place ou à déployer) :** `allow read: if isSignedIn()` au lieu de `true` — supprime la lecture totalement anonyme ; **ne supprime pas** l’exposition doc complète entre utilisateurs authentifiés (dont anonymes Firebase).
+### Ordre de déploiement production (important)
+
+1. `firebase deploy --only firestore:indexes` (composites `leaderboardPublic`).
+2. `firebase deploy --only functions` (inclut le trigger + callables existantes).
+3. **Backfill** une fois les index actifs :  
+   `cd functions && npm run admin:backfill-leaderboard-public -- --execute`  
+   (compte de service : `GOOGLE_APPLICATION_CREDENTIALS`).
+4. **Publier l’app** qui contient ce dépôt (requêtes `leaderboardPublic`).
+5. En dernier : `firebase deploy --only firestore:rules` (lecture `players` réservée au propriétaire).  
+   *Si les règles passent avant l’app à jour, l’ancien client casse le top 10.*
 
 ### Classement prod : retirer les profils de test
 
-Les entrées du top 10 viennent des documents `players/{uid}`. Pour un classement « propre » après des sessions de test, il faut **supprimer explicitement** les docs (et éventuellement les comptes Auth) des UID concernés — ce n’est pas automatique.
+Les entrées du top 10 viennent des documents **`leaderboardPublic/{uid}`** (et restent cohérentes avec `players` via le trigger). Pour un classement « propre » après des sessions de test, supprimer les docs concernés (le trigger supprime le miroir si tu supprimes `players/{uid}` avec l’Admin SDK).
 
 **Flux recommandé (machine avec la clé de service, jamais dans le dépôt) :**
 
 1. `cd functions` puis `export GOOGLE_APPLICATION_CREDENTIALS=/chemin/absolu/vers-service-account.json`
-2. `bash scripts/run-leaderboard-cleanup.sh` — génère un snapshot JSON dans `functions/scripts/.local/` (gitignoré) avec les ~30 premiers du classement (**même requête que l’app**).
+2. `bash scripts/run-leaderboard-cleanup.sh` — génère un snapshot JSON dans `functions/scripts/.local/` (gitignoré) avec les ~30 premiers du classement (requête **players** côté script admin ; l’app utilise **`leaderboardPublic`** pour l’UI).
 3. Copier `functions/scripts/uids-a-supprimer.example.txt` vers `uids-a-supprimer.txt` (gitignoré), y mettre **une ligne par UID** à retirer.
 4. `npm run admin:delete-players -- --uids-file=scripts/uids-a-supprimer.txt --verbose` puis la même commande avec `--execute`.
 5. Optionnel : `--with-auth` avec `--execute` pour supprimer aussi les comptes **Auth** (irréversible).
@@ -56,7 +66,7 @@ Export seul : `npm run admin:export-leaderboard-top -- --limit=50 --out=scripts/
 
 **Normalisation pseudos / `updatedAt`** : `npm run admin:normalize-pseudos -- --help` — utile pour données incohérentes, pas pour retirer un joueur du classement.
 
-Référence : `functions/scripts/exportLeaderboardTopAdmin.js`, `functions/scripts/deletePlayersAdmin.js`, `functions/scripts/normalizePlayerPseudos.js`.
+Référence : `functions/scripts/exportLeaderboardTopAdmin.js`, `functions/scripts/deletePlayersAdmin.js`, `functions/scripts/normalizePlayerPseudos.js`, `functions/scripts/backfillLeaderboardPublicAdmin.js` (`npm run admin:backfill-leaderboard-public`).
 
 ## 3. Règles Firestore (invariants côté règles)
 
@@ -65,6 +75,7 @@ Fichier : `firestore.rules`.
 - **Création** `players/{uid}` : champs initiaux stricts ; `totalLux` et `highScore` **forcés à 0** (aligné sur `FirestoreService.initializeAuthAndPullSkins`).
 - **Mise à jour** : `totalLux` **non modifiable** par le client ; high score **monotone**, borné ; inventaire **monotone** (pas de retrait) ; **clés allowlist** (`diff().affectedKeys().hasOnly(...)`).
 - **`iap_grants/{id}`** : `allow read, write: if false` — idempotence IAP réservée au backend (callable `velourGrantIapLux`).
+- **`leaderboardPublic/{uid}`** : lecture tout utilisateur connecté ; **aucune** écriture client (trigger + Admin).
 
 Les règles restent un **filet** : la source de vérité LUX côté serveur reste les **callables** (plafonds delta / validation Play ou JWS Apple).
 
@@ -90,7 +101,6 @@ Les règles restent un **filet** : la source de vérité LUX côté serveur rest
 ## Checklist déploiement
 
 1. Merger ce dépôt, vérifier CI verte.
-2. Staging : `firebase deploy --only firestore:rules` puis `firebase deploy --only functions` ; valider auth anonyme + sync LUX (callable + repli).
-3. Prod : mêmes commandes après recette ; surveiller les erreurs `velour.firestore` / logs Functions.
-4. Optionnel : App Check sur les callables ; puis resserrer les règles d’écriture client sur `totalLux`.
-5. Planifier migration `leaderboardPublic` + réduction `allow read` sur `players`.
+2. **Phase classement** : indexes → functions (trigger inclus) → backfill `leaderboardPublic` → **release app** → règles Firestore (voir §2).
+3. Staging / prod : surveiller logs du trigger `velourMirrorPlayerToLeaderboardPublic` et erreurs Crashlytics côté client.
+4. Optionnel : **App Check** sur les callables pour limiter le spam d’appels.

@@ -16,7 +16,9 @@
     "admin:export-leaderboard-top": "node scripts/exportLeaderboardTopAdmin.js",
     "admin:export-leaderboard-top-help": "node scripts/exportLeaderboardTopAdmin.js --help",
     "admin:purge-all-players": "node scripts/purgeAllPlayersAdmin.js",
-    "admin:purge-all-players-help": "node scripts/purgeAllPlayersAdmin.js --help"
+    "admin:purge-all-players-help": "node scripts/purgeAllPlayersAdmin.js --help",
+    "admin:backfill-leaderboard-public": "node scripts/backfillLeaderboardPublicAdmin.js",
+    "admin:backfill-leaderboard-public-help": "node scripts/backfillLeaderboardPublicAdmin.js --help"
   },
   "dependencies": {
     "@apple/app-store-server-library": "^1.6.0",

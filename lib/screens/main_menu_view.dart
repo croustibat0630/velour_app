@@ -105,14 +105,16 @@ class _MainMenuViewState extends State<MainMenuView>
     if (pending <= 0) return;
     _overrideInitialValue = (gs.luxCoins - pending).clamp(0, gs.luxCoins);
     setState(() {});
-    if (!juice.silent) {
-      try {
-        AudioHandler.instance.playCredit();
-        HapticFeedback.heavyImpact();
-      } catch (_) {}
-    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+      // Synchronise le son/haptique avec le **premier frame** où l’animation LUX démarre
+      // (réduit la sensation de “son en retard”).
+      if (!juice.silent) {
+        try {
+          AudioHandler.instance.playCredit();
+          HapticFeedback.heavyImpact();
+        } catch (_) {}
+      }
       // Important: keep the override only for the first frame.
       _overrideInitialValue = null;
     });

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 
+import '../utils/velour_audio_trace.dart';
 import 'velour_audio_platform.dart';
 
 /// Audio centralisé : **aucune redirection** entre menu, sélection gemme et combo.
@@ -25,8 +26,7 @@ class AudioHandler {
   /// Pool polyphonique pour les combos (overlap sans attendre la fin du son).
   static const int _matchPolyphony = 6;
   static const int _matchPolyphonyWeb = 1;
-
-  static const Duration _matchInterruptFade = Duration(milliseconds: 50);
+  static const int _matchPolyphonyApple = 1;
 
   final AudioPlayer _bgm = AudioPlayer(playerId: 'velour_bgm');
 
@@ -44,15 +44,20 @@ class AudioHandler {
   bool _creditReady = false;
 
   bool _matchPrimedThisRun = false;
+  bool _tapPrimedThisRun = false;
+  bool _tapChannelConfirmedThisRun = false;
+  bool _creditPrimedThisRun = false;
 
   final ValueNotifier<bool> muted = ValueNotifier<bool>(false);
   final ValueNotifier<bool> sfxMuted = ValueNotifier<bool>(false);
 
   bool _configured = false;
-  bool _disabled = false;
+  final bool _disabled = false;
   bool _bgmStarted = false;
 
-  String _assetKey(String fileName) => 'assets/audio/$fileName';
+  // audioplayers préfixe déjà les sources assets par `assets/`.
+  // Donc ici on fournit un chemin relatif à `assets/` pour éviter `assets/assets/...`.
+  String _assetKey(String fileName) => 'audio/$fileName';
 
   Source _sourceFor(String fileName) {
     final String key = _assetKey(fileName);
@@ -103,19 +108,35 @@ class AudioHandler {
   /// volontairement dans les réglages), `false` si échec — pour permettre un
   /// nouvel essai au prochain tap ([MainMenuView]).
   Future<bool> resumeAudioThenStartMenuBgm() async {
-    if (_disabled) return false;
+    if (_disabled) {
+      velourAudioTrace('resumeAudioThenStartMenuBgm: skipped (_disabled)');
+      return false;
+    }
     if (muted.value) {
+      velourAudioTrace(
+        'resumeAudioThenStartMenuBgm: music muted in settings → no BGM',
+      );
       return true;
     }
+    velourAudioTrace('resumeAudioThenStartMenuBgm: begin');
     try {
       await configureVelourAudioPipeline(activateSession: true);
-    } catch (_) {}
+    } catch (e) {
+      velourAudioTrace('resumeAudioThenStartMenuBgm: pipeline threw $e');
+    }
     try {
       await unlockAudio();
-    } catch (_) {}
+    } catch (e) {
+      velourAudioTrace('resumeAudioThenStartMenuBgm: unlockAudio threw $e');
+    }
     try {
       await playMusic('music_main.mp3');
-    } catch (_) {}
+    } catch (e) {
+      velourAudioTrace('resumeAudioThenStartMenuBgm: playMusic threw $e');
+    }
+    velourAudioTrace(
+      'resumeAudioThenStartMenuBgm: end bgmStarted=$_bgmStarted sfxMuted=${sfxMuted.value}',
+    );
     return _bgmStarted;
   }
 
@@ -136,45 +157,22 @@ class AudioHandler {
     }
   }
 
-  Future<void> _fadeOutAndStop(
-    AudioPlayer p, {
-    Duration duration = _matchInterruptFade,
-  }) async {
-    // Best-effort: on Web, some operations can be slower/unsupported depending on backend.
-    try {
-      const int steps = 3;
-      final int stepMs = (duration.inMilliseconds / steps).round().clamp(1, 50);
-      for (int i = 0; i < steps; i++) {
-        final double v = (1.0 - (i + 1) / steps).clamp(0.0, 1.0);
-        try {
-          await p.setVolume(v);
-        } catch (_) {}
-        await Future<void>.delayed(Duration(milliseconds: stepMs));
-      }
-      await p.stop();
-      // Reset default volume for the next play.
-      try {
-        await p.setVolume(1.0);
-      } catch (_) {}
-    } catch (_) {
-      try {
-        await p.stop();
-      } catch (_) {}
-    }
-  }
-
   Future<void> _interruptMatchAndPerfect() async {
     // Exclusive match policy: new match cuts previous sounds.
     // Web: we keep the pool tiny, but we still apply the same contract.
+    //
+    // IMPORTANT: Ne doit pas retarder le déclenchement du nouveau son.
+    // On coupe en best-effort, en arrière-plan.
     try {
       if (_sfxMatchPool.isNotEmpty) {
         for (final AudioPlayer p in _sfxMatchPool) {
-          await _fadeOutAndStop(p);
+          // Stop immédiat (meilleure synchro) ; on évite d'attendre le fade.
+          unawaited(p.stop());
         }
       }
     } catch (_) {}
     try {
-      await _fadeOutAndStop(_sfxPerfect);
+      unawaited(_sfxPerfect.stop());
     } catch (_) {}
   }
 
@@ -276,6 +274,44 @@ class AudioHandler {
   void playGemSelect() {
     if (_disabled) return;
     if (sfxMuted.value) return;
+    // iOS: le premier `resume()` d'un canal low-latency peut être silencieux même si
+    // la source est prête. On "prime" une seule fois avec un one-shot audible.
+    if (!_tapPrimedThisRun) {
+      _tapPrimedThisRun = true;
+      velourAudioTrace(
+        'tap trigger (prime one-shot) t=${DateTime.now().microsecondsSinceEpoch}',
+      );
+      unawaited(_playDisposableOneShot(_tapFile, volume: 0.8, holdMs: 220));
+      unawaited(_ensureTapReady());
+      return;
+    }
+    // iOS: le 1er `resume()` du canal low-latency peut encore être silencieux.
+    // On garantit au moins un tap audible avant de basculer 100% sur le canal.
+    if (!_tapChannelConfirmedThisRun) {
+      _tapChannelConfirmedThisRun = true;
+      velourAudioTrace(
+        'tap trigger (confirm channel + audible fallback) t=${DateTime.now().microsecondsSinceEpoch}',
+      );
+      unawaited(_playDisposableOneShot(_tapFile, volume: 0.8, holdMs: 220));
+      // Warm the dedicated channel in parallel (even if silent once).
+      unawaited(_playTapFromChannel(volume: 0.001));
+      unawaited(_ensureTapReady());
+      return;
+    }
+    // Sur device (surtout iOS), le tout premier tap peut arriver avant que le canal dédié
+    // (_sfxTap) ne soit prêt (préload async). Pour éviter un premier tap silencieux,
+    // on joue un one-shot immédiat si le canal n’est pas encore warm.
+    if (!_tapReady) {
+      velourAudioTrace(
+        'tap trigger (fallback one-shot) t=${DateTime.now().microsecondsSinceEpoch}',
+      );
+      unawaited(_playDisposableOneShot(_tapFile, volume: 0.8, holdMs: 220));
+      unawaited(_ensureTapReady());
+      return;
+    }
+    velourAudioTrace(
+      'tap trigger (channel) t=${DateTime.now().microsecondsSinceEpoch}',
+    );
     unawaited(_playTapFromChannel(volume: 0.8));
   }
 
@@ -283,6 +319,7 @@ class AudioHandler {
   void playMatchCombo() {
     if (_disabled) return;
     if (sfxMuted.value) return;
+    velourAudioTrace('match trigger t=${DateTime.now().microsecondsSinceEpoch}');
     unawaited(_playMatchExclusive(volume: 1.0));
   }
 
@@ -290,6 +327,7 @@ class AudioHandler {
   void playPerfectCombo() {
     if (_disabled) return;
     if (sfxMuted.value) return;
+    velourAudioTrace('perfect trigger t=${DateTime.now().microsecondsSinceEpoch}');
     unawaited(_playPerfectExclusive());
   }
 
@@ -305,6 +343,21 @@ class AudioHandler {
   void playCredit() {
     if (_disabled) return;
     if (sfxMuted.value) return;
+    // Comme pour le tap : sur device, le tout premier trigger peut arriver avant que
+    // le player dédié soit réellement chaud (préload async). On prime une fois avec un
+    // one-shot audible pour éviter un “crédit” en retard.
+    if (!_creditPrimedThisRun) {
+      _creditPrimedThisRun = true;
+      velourAudioTrace(
+        'credit trigger (prime one-shot) t=${DateTime.now().microsecondsSinceEpoch}',
+      );
+      unawaited(_playDisposableOneShot(_creditFile, volume: 1.0, holdMs: 450));
+      unawaited(_ensureCreditReady());
+      return;
+    }
+    velourAudioTrace(
+      'credit trigger (player) t=${DateTime.now().microsecondsSinceEpoch} ready=$_creditReady',
+    );
     unawaited(_playCreditSfx());
   }
 
@@ -355,6 +408,7 @@ class AudioHandler {
     try {
       await configureVelourAudioPipeline(activateSession: true);
       await configure();
+      velourAudioTrace('playMusic: starting $fileName');
       await _bgm.play(
         _sourceFor(fileName),
         mode: PlayerMode.mediaPlayer,
@@ -362,10 +416,15 @@ class AudioHandler {
         ctx: velourGameAudioContext(),
       );
       _bgmStarted = true;
-    } on AudioPlayerException {
+      velourAudioTrace('playMusic: _bgm.play completed');
+    } on AudioPlayerException catch (e, st) {
       _bgmStarted = false;
-    } catch (_) {
+      velourAudioTrace('playMusic: AudioPlayerException $e');
+      velourAudioTrace('$st');
+    } catch (e, st) {
       _bgmStarted = false;
+      velourAudioTrace('playMusic: error $e');
+      velourAudioTrace('$st');
     }
   }
 
@@ -402,6 +461,9 @@ class AudioHandler {
   void resetSelectAudioWake() {
     _matchPoolCursor = 0;
     _matchPrimedThisRun = false;
+    _tapPrimedThisRun = false;
+    _tapChannelConfirmedThisRun = false;
+    _creditPrimedThisRun = false;
   }
 
   Future<void> setMuted(bool v) async {
@@ -450,7 +512,11 @@ class AudioHandler {
     if (_disabled) return;
 
     if (_sfxMatchPool.isEmpty) {
-      final int n = kIsWeb ? _matchPolyphonyWeb : _matchPolyphony;
+      final bool apple = defaultTargetPlatform == TargetPlatform.iOS ||
+          defaultTargetPlatform == TargetPlatform.macOS;
+      final int n = kIsWeb
+          ? _matchPolyphonyWeb
+          : (apple ? _matchPolyphonyApple : _matchPolyphony);
       for (int i = 0; i < n; i++) {
         _sfxMatchPool.add(AudioPlayer(playerId: 'velour_sfx_match_$i'));
       }
@@ -513,7 +579,8 @@ class AudioHandler {
     try {
       await _ensureMatchPool();
       if (_disabled || !_matchPoolReady) return;
-      await _interruptMatchAndPerfect();
+      // Ne pas attendre : la coupure des sons précédents ne doit pas retarder celui-ci.
+      unawaited(_interruptMatchAndPerfect());
       final AudioPlayer p =
           _sfxMatchPool[_matchPoolCursor++ % _sfxMatchPool.length];
       await p.seek(Duration.zero);
@@ -528,7 +595,8 @@ class AudioHandler {
     try {
       await _ensurePerfectPool();
       if (_disabled || !_perfectPoolReady) return;
-      await _interruptMatchAndPerfect();
+      // Ne pas attendre : la coupure des sons précédents ne doit pas retarder celui-ci.
+      unawaited(_interruptMatchAndPerfect());
       await _sfxPerfect.seek(Duration.zero);
       await _sfxPerfect.setVolume(1.0);
       await _sfxPerfect.resume();

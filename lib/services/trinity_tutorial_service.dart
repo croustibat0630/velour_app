@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../providers/game_state_types.dart';
+import '../utils/velour_audit_log.dart';
 
 /// État du tutoriel « Trinité » (bannières shape / couleur / perfect).
 ///
@@ -59,6 +60,7 @@ class TrinityTutorialService extends ChangeNotifier {
     _phase = TrinityTutorialPhase.shape;
     _bannerId = TrinityBannerId.shapeIntro;
     _bannerTick++;
+    VelourAuditLog.event('tutorial.trinity.begin', data: <String, Object?>{'phase': _phase.toString()});
     notifyListeners();
   }
 
@@ -101,15 +103,18 @@ class TrinityTutorialService extends ChangeNotifier {
       case TrinityTutorialPhase.shape:
         _phase = TrinityTutorialPhase.color;
         _bannerId = TrinityBannerId.colorIntro;
+        VelourAuditLog.event('tutorial.trinity.phase', data: <String, Object?>{'phase': _phase.toString()});
         break;
       case TrinityTutorialPhase.color:
         _phase = TrinityTutorialPhase.perfect;
         _bannerId = TrinityBannerId.perfectIntro;
+        VelourAuditLog.event('tutorial.trinity.phase', data: <String, Object?>{'phase': _phase.toString()});
         break;
       case TrinityTutorialPhase.perfect:
         _complete = true;
         _phase = TrinityTutorialPhase.none;
         _bannerId = TrinityBannerId.none;
+        VelourAuditLog.event('tutorial.trinity.complete');
         unawaited(persistTrinityTutorialComplete());
         onClearSlotsAndBoard();
         _bannerTick++;

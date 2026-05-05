@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../providers/game_state_types.dart';
+import '../utils/velour_audit_log.dart';
 
 /// État et effets UI du tutoriel narratif « première partie ».
 ///
@@ -189,6 +190,7 @@ class NarrativeTutorialService extends ChangeNotifier {
     _luxIntroTick = 0;
     _tapProgress = 0;
     _tapOrder.clear();
+    VelourAuditLog.event('tutorial.narrative.begin', data: <String, Object?>{'phase': _phase.toString()});
   }
 
   void beginNarrativeStepSeeding() {
@@ -211,9 +213,11 @@ class NarrativeTutorialService extends ChangeNotifier {
         if (basis != RunBasis.shape) {
           return;
         }
+        VelourAuditLog.event('tutorial.narrative.step_done', data: <String, Object?>{'step': 'shape'});
         _uiReveal = 1;
         _luxIntroTick++;
         _phase = NarrativeTutorialPhase.step2Color;
+        VelourAuditLog.event('tutorial.narrative.phase', data: <String, Object?>{'phase': _phase.toString()});
         _onReseedAfterShape();
         notifyListeners();
         break;
@@ -221,9 +225,11 @@ class NarrativeTutorialService extends ChangeNotifier {
         if (basis != RunBasis.color) {
           return;
         }
+        VelourAuditLog.event('tutorial.narrative.step_done', data: <String, Object?>{'step': 'color'});
         _uiReveal = 2;
         _refundTimeBarPortion(timeRefundPortion);
         _phase = NarrativeTutorialPhase.step3Perfect;
+        VelourAuditLog.event('tutorial.narrative.phase', data: <String, Object?>{'phase': _phase.toString()});
         _onReseedAfterColor();
         notifyListeners();
         break;
@@ -231,10 +237,12 @@ class NarrativeTutorialService extends ChangeNotifier {
         if (basis != RunBasis.perfect) {
           return;
         }
+        VelourAuditLog.event('tutorial.narrative.step_done', data: <String, Object?>{'step': 'perfect'});
         _uiReveal = 3;
         _setTimeBarFull();
         _onExplosionShake();
         _phase = NarrativeTutorialPhase.celebration;
+        VelourAuditLog.event('tutorial.narrative.phase', data: <String, Object?>{'phase': _phase.toString()});
         _perfectBannerTick++;
         _onCelebrationStarted();
         cancelFinalizeTimer();
@@ -251,6 +259,7 @@ class NarrativeTutorialService extends ChangeNotifier {
   Future<void> completeTutorialFromTimer() async {
     cancelFinalizeTimer();
     _phase = NarrativeTutorialPhase.none;
+    VelourAuditLog.event('tutorial.narrative.complete');
     notifyListeners();
     await _onPersistTutorialComplete();
   }

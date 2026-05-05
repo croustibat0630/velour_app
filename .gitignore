@@ -60,3 +60,10 @@ app.*.map.json
 # Admin local : snapshots classement + liste d’UID à purger (ne pas committer)
 functions/scripts/.local/
 functions/scripts/uids-a-supprimer.txt
+
+# Capture locale flutter logs (script scripts/capture_velour_ios_logs.sh)
+velour_logs_capture.txt
+velour_profile_session.txt
+velour_ios_session.txt
+velour_ios_session_*.txt
+.audio_backup/

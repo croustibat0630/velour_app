@@ -12,6 +12,7 @@ import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../providers/game_state.dart';
+import '../utils/velour_audit_log.dart';
 import 'iap_cloud_grant_service.dart';
 
 /// Identifiants consommables — mêmes SKU sur App Store Connect et Google Play Console.
@@ -93,6 +94,9 @@ class LuxIapService {
   LuxIapService._();
   static final LuxIapService instance = LuxIapService._();
 
+  static const bool _forceOffline =
+      bool.fromEnvironment('VELOUR_FORCE_OFFLINE', defaultValue: false);
+
   /// Désactive la synchro Cloud Function (tests unitaires sans Firebase).
   @visibleForTesting
   static bool debugSkipCloudPurchaseSync = false;
@@ -150,16 +154,39 @@ class LuxIapService {
   Future<void> _ensureInitialized() async {
     if (_initialized) return;
     _initialized = true;
+    if (_forceOffline) {
+      _storeAvailable = false;
+      VelourAuditLog.event(
+        'iap.init',
+        data: <String, Object?>{
+          'available': false,
+          'platform': defaultTargetPlatform.toString(),
+          'forcedOffline': true,
+        },
+      );
+      return;
+    }
     try {
       _storeAvailable = await _iap.isAvailable();
     } catch (_) {
       _storeAvailable = false;
     }
+    VelourAuditLog.event(
+      'iap.init',
+      data: <String, Object?>{
+        'available': _storeAvailable,
+        'platform': defaultTargetPlatform.toString(),
+      },
+    );
     if (!_storeAvailable) return;
 
     _subscription = _iap.purchaseStream.listen(
       _onPurchaseUpdates,
       onError: (Object e, StackTrace st) {
+        VelourAuditLog.event(
+          'iap.stream_error',
+          data: <String, Object?>{'error': e.toString()},
+        );
         _completeAwaitingIfAny(LuxIapBuyOutcome.error(e.toString()));
       },
     );
@@ -179,8 +206,16 @@ class LuxIapService {
       _products
         ..clear()
         ..addEntries(r.productDetails.map((ProductDetails d) => MapEntry(d.id, d)));
+      VelourAuditLog.event(
+        'iap.products',
+        data: <String, Object?>{
+          'count': r.productDetails.length,
+          'notFound': r.notFoundIDs.length,
+        },
+      );
     } catch (_) {
       _products.clear();
+      VelourAuditLog.event('iap.products_error');
     } finally {
       vaultStorePricesEpoch.value++;
     }
@@ -225,6 +260,15 @@ class LuxIapService {
   Future<void> _onPurchaseUpdates(List<PurchaseDetails> purchases) async {
     for (final PurchaseDetails p in purchases) {
       if (!LuxIapProducts.vaultIds.contains(p.productID)) continue;
+      VelourAuditLog.event(
+        'iap.update',
+        data: <String, Object?>{
+          'productId': p.productID,
+          'status': p.status.toString(),
+          'pendingComplete': p.pendingCompletePurchase,
+          'hasError': p.error != null,
+        },
+      );
 
       switch (p.status) {
         case PurchaseStatus.pending:
@@ -246,8 +290,20 @@ class LuxIapService {
           await _completeIfNeeded(p);
           break;
         case PurchaseStatus.purchased:
-        case PurchaseStatus.restored:
           await _handlePurchasedOrRestored(p);
+          break;
+        case PurchaseStatus.restored:
+          // Consumables should not be restored. We complete them to clear the queue,
+          // but never grant LUX from a restore event.
+          VelourAuditLog.event(
+            'iap.restore_ignored',
+            data: <String, Object?>{'productId': p.productID},
+          );
+          if (_awaitingProductId == p.productID) {
+            _pendingAppleCompletion = null;
+            _completeAwaitingIfAny(const LuxIapBuyOutcome.error('restored_ignored'));
+          }
+          await _completeIfNeeded(p);
           break;
       }
     }
@@ -280,20 +336,34 @@ class LuxIapService {
     }
 
     if (hasAwaiting) {
+      // Security: validate/credit server-side first. Only then allow local LUX grant.
+      final bool ok = await _tryGrantVaultPurchaseToCloudStrict(p);
+      if (!ok) {
+        // Keep the purchase uncompleted so StoreKit/Play can re-deliver later.
+        _pendingAppleCompletion = null;
+        _completeAwaitingIfAny(const LuxIapBuyOutcome.error('server_verification_failed'));
+        return;
+      }
+      // UI can now animate and grant locally, then call finalizeAfterLuxDelivered()
+      // to complete/consume the transaction.
       _pendingAppleCompletion = p;
       _completeAwaitingIfAny(LuxIapBuyOutcome.success(lux));
       return;
     }
 
-    // Achat confirmé alors que l’UI n’attend plus (ex. app relancée) : créditer quand même.
+    // Achat confirmé alors que l’UI n’attend plus (ex. app relancée).
+    // We still require server-side verification before granting locally.
     final GameState? gs = _gameState;
     if (gs != null) {
-      await _trySyncVaultPurchaseToCloud(p);
-      gs.addLuxCoins(lux);
-      await gs.flushLuxCoinsPersistence();
+      final bool ok = await _tryGrantVaultPurchaseToCloudStrict(p);
+      if (ok) {
+        gs.addLuxCoins(lux);
+        await gs.flushLuxCoinsPersistence();
+        await _markConsumed(pid);
+        await _completeIfNeeded(p);
+      }
+      return;
     }
-    await _markConsumed(pid);
-    await _completeIfNeeded(p);
   }
 
   /// À appeler après [GameState.addLuxCoins] / persistance (ex. fin de l’animation boutique).
@@ -301,18 +371,17 @@ class LuxIapService {
     final PurchaseDetails? p = _pendingAppleCompletion;
     if (p == null) return;
     _pendingAppleCompletion = null;
-    await _trySyncVaultPurchaseToCloud(p);
     await _markConsumed(p.purchaseID);
     await _completeIfNeeded(p);
   }
 
-  /// Crédit LUX serveur (`velourGrantIapLux`) — best-effort, n’empêche pas [completePurchase].
-  Future<void> _trySyncVaultPurchaseToCloud(PurchaseDetails p) async {
-    if (debugSkipCloudPurchaseSync || kIsWeb) return;
+  /// Validation + crédit serveur (`velourGrantIapLux`) — **strict**: must succeed for paid packs.
+  Future<bool> _tryGrantVaultPurchaseToCloudStrict(PurchaseDetails p) async {
+    if (debugSkipCloudPurchaseSync || kIsWeb) return false;
     try {
-      if (Firebase.apps.isEmpty) return;
+      if (Firebase.apps.isEmpty) return false;
     } catch (_) {
-      return;
+      return false;
     }
     final TargetPlatform tp = defaultTargetPlatform;
     final bool isApple =
@@ -327,17 +396,27 @@ class LuxIapService {
     // StoreKit 1 : local/server = même reçu base64 — pas de JWS ; la callable iOS exige SK2.
     final String? iosJws = isApple ? _iosTransactionJwsForCloud(vd) : null;
     if (!isApple && (androidTok == null || androidTok.isEmpty)) {
-      return;
+      return false;
     }
     if (isApple && (iosJws == null || iosJws.isEmpty)) {
-      return;
+      return false;
     }
-    await IapCloudGrantService.tryGrantVaultPurchase(
+    final IapCloudGrantResult? r = await IapCloudGrantService.tryGrantVaultPurchase(
       platform: platform,
       productId: p.productID,
       androidPurchaseToken: androidTok,
       iosTransactionJws: iosJws,
     );
+    final bool ok = r != null && (r.ok || r.alreadyGranted);
+    VelourAuditLog.event(
+      'iap.cloud_grant',
+      data: <String, Object?>{
+        'ok': ok,
+        'already': r?.alreadyGranted,
+        'productId': p.productID,
+      },
+    );
+    return ok;
   }
 
   /// Lance l’achat consommable [productId] (StoreKit / Play). Attend la confirmation ou l’échec.
@@ -361,6 +440,7 @@ class LuxIapService {
     }
 
     _buyInFlight = true;
+    VelourAuditLog.event('iap.buy_start', data: <String, Object?>{'productId': productId});
     final Completer<LuxIapBuyOutcome> completer = Completer<LuxIapBuyOutcome>();
     _awaiting = completer;
     _awaitingProductId = productId;
@@ -372,9 +452,10 @@ class LuxIapService {
       if (!launched) {
         _pendingAppleCompletion = null;
         _completeAwaitingIfAny(const LuxIapBuyOutcome.error('launch_failed'));
+        VelourAuditLog.event('iap.buy_launch_failed', data: <String, Object?>{'productId': productId});
         return completer.future;
       }
-      return await completer.future.timeout(
+      final LuxIapBuyOutcome out = await completer.future.timeout(
         const Duration(minutes: 2),
         onTimeout: () {
           _pendingAppleCompletion = null;
@@ -382,6 +463,16 @@ class LuxIapService {
           return const LuxIapBuyOutcome.error('timeout');
         },
       );
+      VelourAuditLog.event(
+        'iap.buy_end',
+        data: <String, Object?>{
+          'productId': productId,
+          'kind': out.kind.toString(),
+          'lux': out.luxAmount,
+          'hasError': out.errorDetail != null,
+        },
+      );
+      return out;
     } finally {
       _buyInFlight = false;
     }

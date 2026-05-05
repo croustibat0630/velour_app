@@ -6,9 +6,12 @@ import 'package:flutter/foundation.dart';
 import '../providers/game_state_local_store.dart';
 import 'firestore_service.dart';
 import 'lux_credit_limits.dart';
+import '../utils/velour_audit_log.dart';
 import 'velour_observability.dart';
 
-void _economyLog(String event, {Map<String, Object?> data = const {}}) {}
+void _economyLog(String event, {Map<String, Object?> data = const {}}) {
+  VelourAuditLog.event('economy.$event', data: data);
+}
 
 /// Persistance LUX / record + synchro cloud (debounce LUX).
 ///
@@ -33,6 +36,11 @@ class EconomyService extends ChangeNotifier {
 
   /// Somme des deltas LUX depuis le dernier flush cloud réussi (callable ou absolu).
   int _pendingLuxDeltaForCloud = 0;
+
+  // Avoid log spam when offline: we only emit a fail log periodically,
+  // or when the pending amount changes.
+  int _lastLuxCloudFailLogMicros = 0;
+  int? _lastLuxCloudFailPending;
 
   int _luxCoins = 0;
   int get luxCoins => _luxCoins;
@@ -247,6 +255,8 @@ class EconomyService extends ChangeNotifier {
 
   /// Vide le tampon de deltas LUX via la callable (chunks côté serveur si plafond).
   Future<void> _drainPendingLuxCloudSync() async {
+    const bool forceOffline =
+        bool.fromEnvironment('VELOUR_FORCE_OFFLINE', defaultValue: false);
     while (_pendingLuxDeltaForCloud != 0) {
       final int d = _pendingLuxDeltaForCloud;
       final LuxDeltaApplyResult? r = await FirestoreService.instance
@@ -265,6 +275,21 @@ class EconomyService extends ChangeNotifier {
           data: {'requested': d, 'applied': applied, 'lux': _luxCoins},
         );
       } else {
+        final int now = DateTime.now().microsecondsSinceEpoch;
+        final bool pendingChanged = _lastLuxCloudFailPending != d;
+        final bool rateOk = (now - _lastLuxCloudFailLogMicros) > 5 * 1000 * 1000;
+        if (pendingChanged || rateOk) {
+          _lastLuxCloudFailLogMicros = now;
+          _lastLuxCloudFailPending = d;
+          _economyLog(
+            'lux_cloud_delta_fail',
+            data: <String, Object?>{
+              'requested': d,
+              'lux': _luxCoins,
+              if (forceOffline) 'forcedOffline': true,
+            },
+          );
+        }
         VelourObservability.logEconomySecurity(
           'lux_cloud_drain_failed',
           data: <String, Object?>{'pending': d, 'lux': _luxCoins},

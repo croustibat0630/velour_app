@@ -57,6 +57,12 @@ class AudioHandler {
   Source _sourceFor(String fileName) {
     final String key = _assetKey(fileName);
     if (kIsWeb) return UrlSource('assets/$key');
+    final bool apple = defaultTargetPlatform == TargetPlatform.iOS ||
+        defaultTargetPlatform == TargetPlatform.macOS;
+    // iOS 17+ : AVURLAsset sans MIME peut refuser certains MP3 en release.
+    if (apple) {
+      return AssetSource(key, mimeType: 'audio/mpeg');
+    }
     return AssetSource(key);
   }
 
@@ -64,6 +70,9 @@ class AudioHandler {
     if (_configured) return;
     _configured = true;
     try {
+      if (!kIsWeb) {
+        await _bgm.setAudioContext(velourGameAudioContext());
+      }
       await _bgm.setPlayerMode(PlayerMode.mediaPlayer);
       await _bgm.setReleaseMode(ReleaseMode.loop);
       await _bgm.setVolume(0.42);
@@ -173,6 +182,9 @@ class AudioHandler {
     required AudioPlayer player,
     required String fileName,
   }) async {
+    if (!kIsWeb) {
+      await player.setAudioContext(velourGameAudioContext());
+    }
     await player.setPlayerMode(PlayerMode.lowLatency);
     await player.setReleaseMode(ReleaseMode.stop);
     await player.setSource(_sourceFor(fileName));
@@ -321,11 +333,13 @@ class AudioHandler {
     if (muted.value) return;
     if (_bgmStarted) return;
     try {
+      await configureVelourAudioPipeline(activateSession: true);
       await configure();
       await _bgm.play(
         _sourceFor(fileName),
         mode: PlayerMode.mediaPlayer,
         volume: 0.42,
+        ctx: velourGameAudioContext(),
       );
       _bgmStarted = true;
     } on AudioPlayerException {
@@ -339,11 +353,13 @@ class AudioHandler {
     if (_disabled) return;
     if (muted.value) return;
     try {
+      await configureVelourAudioPipeline(activateSession: true);
       await configure();
       await _bgm.play(
         _sourceFor(fileName),
         mode: PlayerMode.mediaPlayer,
         volume: 0.42,
+        ctx: velourGameAudioContext(),
       );
       _bgmStarted = true;
     } on AudioPlayerException {
@@ -611,6 +627,9 @@ class AudioHandler {
 
       final AudioPlayer p = AudioPlayer();
       try {
+        if (!kIsWeb) {
+          await p.setAudioContext(velourGameAudioContext());
+        }
         await p.setPlayerMode(PlayerMode.lowLatency);
         await p.setReleaseMode(ReleaseMode.stop);
         await p.setSource(_sourceFor(fileName));

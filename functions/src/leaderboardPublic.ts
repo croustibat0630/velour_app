@@ -24,7 +24,8 @@ export const velourMirrorPlayerToLeaderboardPublic = onDocumentWritten(
       try {
         await pubRef.delete();
       } catch (e) {
-        logger.warn("leaderboard_public_delete_failed", {
+        logger.warn("VEL_LB_PUBLIC_DELETE_FAILED", {
+          code: "VEL_LB_PUBLIC_DELETE_FAILED",
           uid,
           err: String(e),
         });
@@ -54,7 +55,8 @@ export const velourMirrorPlayerToLeaderboardPublic = onDocumentWritten(
     try {
       await pubRef.set(payload, { merge: false });
     } catch (e) {
-      logger.error("leaderboard_public_mirror_failed", {
+      logger.error("VEL_LB_PUBLIC_MIRROR_FAILED", {
+        code: "VEL_LB_PUBLIC_MIRROR_FAILED",
         uid,
         err: String(e),
       });

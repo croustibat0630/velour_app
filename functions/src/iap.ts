@@ -428,7 +428,8 @@ export const velourGrantIapLux = onCall(
       };
     });
 
-    logger.info("velourGrantIapLux", {
+    logger.info("VEL_IAP_GRANT", {
+      code: out.alreadyGranted ? "VEL_IAP_GRANT_DUP" : "VEL_IAP_GRANT_NEW",
       uid,
       productId,
       platform,

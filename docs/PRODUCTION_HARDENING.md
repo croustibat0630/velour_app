@@ -94,7 +94,21 @@ Les règles restent un **filet** : la source de vérité LUX côté serveur rest
 ## 6. Observabilité
 
 - **`VelourObservability`** : en **release / profile** (hors debug), erreurs Firestore / IAP / client envoyées à **Firebase Crashlytics** (`recordError` non fatal ou `log` pour signaux économie).
+- **Codes client stables** (`lib/services/velour_obs_codes.dart`, préfixe `VEL_CLI_*`) : filtres dans Crashlytics (reason / logs préfixés `[VEL_OBS]`).
+- **Codes Cloud Functions** (préfixe `VEL_CF_*`, `VEL_IAP_*`, `VEL_LB_*`) : champs `code` dans les logs Cloud Logging pour IAP grant, apply LUX (clamp, cap journalier, rate limit), trigger classement.
+- **Anti-abus callable** : `velourApplyLuxDelta` applique aussi une limite **d’appels par minute** (`luxApplyMinuteEpoch` / `luxApplyMinuteCount` sur `players/{uid}`) en plus du plafond journalier des crédits positifs.
 - **Analytics** : événements agrégés selon besoin produit (hors périmètre minimal du dépôt).
+
+### Exemples de codes
+
+| Code | Où |
+|------|-----|
+| `VEL_CLI_IAP_PURCHASE_STREAM` | Flux IAP natif (`LuxIapService`) |
+| `VEL_CLI_IAP_CLOUD_GRANT_*` | Callable `velourGrantIapLux` (client) |
+| `VEL_CF_LUX_RATE_LIMIT` | Trop d’appels `velourApplyLuxDelta` / minute |
+| `VEL_CF_LUX_DAILY_CAP_*` | Cap journalier crédits positifs |
+| `VEL_IAP_GRANT_NEW` / `VEL_IAP_GRANT_DUP` | Grant IAP côté serveur |
+| `VEL_LB_PUBLIC_MIRROR_FAILED` | Miroir `leaderboardPublic` |
 
 ---
 
@@ -103,4 +117,4 @@ Les règles restent un **filet** : la source de vérité LUX côté serveur rest
 1. Merger ce dépôt, vérifier CI verte.
 2. **Phase classement** : indexes → functions (trigger inclus) → backfill `leaderboardPublic` → **release app** → règles Firestore (voir §2).
 3. Staging / prod : surveiller logs du trigger `velourMirrorPlayerToLeaderboardPublic` et erreurs Crashlytics côté client.
-4. Optionnel : **App Check** sur les callables pour limiter le spam d’appels.
+4. **App Check** : activer côté Firebase + client ; callable avec `VELOUR_ENFORCE_APP_CHECK=1` (`functions/.env.velour-6690f`).

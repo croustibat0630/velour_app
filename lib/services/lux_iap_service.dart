@@ -189,6 +189,11 @@ class LuxIapService {
           'iap.stream_error',
           data: <String, Object?>{'error': e.toString()},
         );
+        VelourObservability.recordClientFailure(
+          VelourObsCodes.iapPurchaseStream,
+          e,
+          st,
+        );
         _completeAwaitingIfAny(LuxIapBuyOutcome.error(e.toString()));
       },
     );
@@ -215,9 +220,14 @@ class LuxIapService {
           'notFound': r.notFoundIDs.length,
         },
       );
-    } catch (_) {
+    } catch (e, st) {
       _products.clear();
       VelourAuditLog.event('iap.products_error');
+      VelourObservability.recordClientFailure(
+        VelourObsCodes.iapQueryProducts,
+        e,
+        st,
+      );
     } finally {
       vaultStorePricesEpoch.value++;
     }
@@ -249,7 +259,11 @@ class LuxIapService {
     try {
       await _iap.completePurchase(p);
     } catch (e, st) {
-      VelourObservability.recordClientFailure('iap.completePurchase', e, st);
+      VelourObservability.recordClientFailure(
+        VelourObsCodes.iapCompletePurchase,
+        e,
+        st,
+      );
     }
   }
 
@@ -279,6 +293,17 @@ class LuxIapService {
           break;
         case PurchaseStatus.error:
           if (_awaitingProductId == p.productID) {
+            final Object err = p.error ?? StateError('iap_store_error');
+            VelourObservability.recordClientFailure(
+              VelourObsCodes.iapPurchaseStoreError,
+              err,
+              StackTrace.current,
+              <String, Object?>{
+                'productId': p.productID,
+                'code': p.error?.code,
+                'message': p.error?.message,
+              },
+            );
             _pendingAppleCompletion = null;
             _completeAwaitingIfAny(
               LuxIapBuyOutcome.error(p.error?.message ?? p.error?.code),

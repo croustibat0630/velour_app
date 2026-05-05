@@ -54,7 +54,7 @@ class _SplashScreenState extends State<SplashScreen>
     } catch (e, st) {
       velourDebug('bootstrapCloudAfterLocalLoad: $e\n$st');
       VelourObservability.logFirestoreFailure(
-        'splash.bootstrapCloudAfterLocalLoad',
+        VelourObsCodes.splashBootstrapCloud,
         error: e,
         stackTrace: st,
       );

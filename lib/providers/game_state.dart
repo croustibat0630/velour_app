@@ -695,7 +695,12 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
       await _hydrateForgeShopFromDisk();
       notifyListeners();
       return _economy.hasPendingWelcomeGift;
-    } catch (_) {
+    } catch (e, st) {
+      VelourObservability.recordClientFailure(
+        VelourObsCodes.economyLoadWelcomeDisk,
+        e,
+        st,
+      );
       return false;
     }
   }
@@ -721,7 +726,13 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
         0,
         forgeMercySalvageMaxCharges,
       );
-    } catch (_) {}
+    } catch (e, st) {
+      VelourObservability.recordClientFailure(
+        VelourObsCodes.forgeShopHydrateDisk,
+        e,
+        st,
+      );
+    }
   }
 
   Future<void> _persistForgeShopPrefs() async {

@@ -44,7 +44,7 @@ class IapCloudGrantService {
 
     if (FirebaseAuth.instance.currentUser == null) {
       VelourObservability.recordClientFailure(
-        'iap_cloud_grant.no_firebase_user',
+        VelourObsCodes.iapCloudGrantNoUser,
         StateError('anonymous auth not ready'),
       );
       return null;
@@ -87,7 +87,7 @@ class IapCloudGrantService {
       );
     } on FirebaseFunctionsException catch (e, st) {
       VelourObservability.logFirestoreFailure(
-        'velourGrantIapLux.callable',
+        VelourObsCodes.iapCloudGrantCallable,
         error: e,
         stackTrace: st,
         context: <String, Object?>{
@@ -99,7 +99,7 @@ class IapCloudGrantService {
       return null;
     } catch (e, st) {
       VelourObservability.logFirestoreFailure(
-        'velourGrantIapLux.unknown',
+        VelourObsCodes.iapCloudGrantUnknown,
         error: e,
         stackTrace: st,
         context: <String, Object?>{'productId': productId},

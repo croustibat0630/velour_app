@@ -56,6 +56,8 @@ app.*.map.json
 .env
 .env.*
 !.env.example
+# Firebase Functions : fichier projet documenté (non secret) pour variables déployées via CLI.
+!.env.velour-6690f
 
 # Admin local : snapshots classement + liste d’UID à purger (ne pas committer)
 functions/scripts/.local/

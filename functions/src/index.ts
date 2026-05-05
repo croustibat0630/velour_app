@@ -12,9 +12,9 @@ initializeApp();
 
 const REGION = "europe-west3";
 
-// Optional hardening: require Firebase App Check tokens in production.
-// Enable with: `firebase functions:config:set velour.enforce_app_check=1`
-// (or env var `VELOUR_ENFORCE_APP_CHECK=1` depending on your deploy pipeline).
+// Optional hardening: require Firebase App Check tokens on callable functions.
+// Enable by setting env var `VELOUR_ENFORCE_APP_CHECK=1` for deployed Functions v2
+// (via `functions/.env.<projectId>` consumed by Firebase CLI deploy, or Cloud Run env).
 const ENFORCE_APP_CHECK = process.env.VELOUR_ENFORCE_APP_CHECK === "1";
 
 /** Plafond crédit LUX positif par appel (aligné `lib/services/lux_credit_limits.dart`). */
@@ -28,13 +28,16 @@ const MAX_NEGATIVE_LUX_MAGNITUDE = 500_000;
 const MAX_DAILY_POSITIVE_LUX = 50_000;
 
 /** Ping authentifié — vérifie le déploiement Functions + droits d’appel. */
-export const velourHealth = onCall({ region: REGION }, async (request) => {
-  if (!request.auth?.uid) {
-    throw new HttpsError("unauthenticated", "Auth required");
-  }
-  logger.info("velourHealth", { uid: request.auth.uid });
-  return { ok: true as const, uid: request.auth.uid };
-});
+export const velourHealth = onCall(
+  { region: REGION, enforceAppCheck: ENFORCE_APP_CHECK },
+  async (request) => {
+    if (!request.auth?.uid) {
+      throw new HttpsError("unauthenticated", "Auth required");
+    }
+    logger.info("velourHealth", { uid: request.auth.uid });
+    return { ok: true as const, uid: request.auth.uid };
+  },
+);
 
 /**
  * Applique un delta LUX sur `players/{uid}` en **transaction** (source de vérité serveur).
@@ -42,90 +45,92 @@ export const velourHealth = onCall({ region: REGION }, async (request) => {
  * Réponse : `{ ok, newLux, prevLux, appliedDelta }` — `appliedDelta` peut différer du
  * paramètre si plafonné côté serveur.
  */
-export const velourApplyLuxDelta = onCall({ region: REGION }, async (request) => {
-  if (!request.auth?.uid) {
-    throw new HttpsError("unauthenticated", "Auth required");
-  }
-  if (ENFORCE_APP_CHECK && !request.app) {
-    throw new HttpsError("failed-precondition", "App Check required");
-  }
-  const uid = request.auth.uid;
-  const raw = request.data as { delta?: unknown };
-  const d0 =
-    typeof raw.delta === "number" && Number.isFinite(raw.delta)
-      ? Math.trunc(raw.delta)
-      : NaN;
-  if (!Number.isFinite(d0) || d0 === 0) {
-    throw new HttpsError(
-      "invalid-argument",
-      "delta must be a non-zero finite integer"
-    );
-  }
+export const velourApplyLuxDelta = onCall(
+  { region: REGION, enforceAppCheck: ENFORCE_APP_CHECK },
+  async (request) => {
+    if (!request.auth?.uid) {
+      throw new HttpsError("unauthenticated", "Auth required");
+    }
+    const uid = request.auth.uid;
+    const raw = request.data as { delta?: unknown };
+    const d0 =
+      typeof raw.delta === "number" && Number.isFinite(raw.delta)
+        ? Math.trunc(raw.delta)
+        : NaN;
+    if (!Number.isFinite(d0) || d0 === 0) {
+      throw new HttpsError(
+        "invalid-argument",
+        "delta must be a non-zero finite integer"
+      );
+    }
 
-  const appliedDelta = Math.min(
-    MAX_POSITIVE_LUX_DELTA,
-    Math.max(-MAX_NEGATIVE_LUX_MAGNITUDE, d0)
-  );
-  if (appliedDelta !== d0) {
-    logger.warn("velourApplyLuxDelta_clamped", {
+    const appliedDelta = Math.min(
+      MAX_POSITIVE_LUX_DELTA,
+      Math.max(-MAX_NEGATIVE_LUX_MAGNITUDE, d0)
+    );
+    if (appliedDelta !== d0) {
+      logger.warn("velourApplyLuxDelta_clamped", {
+        uid,
+        requested: d0,
+        appliedDelta,
+      });
+    }
+
+    const db = getFirestore();
+    const ref = db.collection("players").doc(uid);
+
+    const { prevLux, newLux, applied } = await db.runTransaction(
+      async (tx) => {
+        const snap = await tx.get(ref);
+        const prev = snap.exists
+          ? Math.max(0, Math.trunc((snap.get("totalLux") as number) || 0))
+          : 0;
+        // Daily cap (positive only).
+        const day =
+          Math.floor(Date.now() / (24 * 60 * 60 * 1000)) /* UTC-ish day index */;
+        const prevDay = snap.exists
+          ? Math.trunc((snap.get("dailyPositiveLuxDay") as number) || 0)
+          : 0;
+        const prevDaily = snap.exists
+          ? Math.max(0, Math.trunc((snap.get("dailyPositiveLux") as number) || 0))
+          : 0;
+        const daily = prevDay === day ? prevDaily : 0;
+        const budget =
+          appliedDelta > 0 ? Math.max(0, MAX_DAILY_POSITIVE_LUX - daily) : 0;
+        const clampedForDay =
+          appliedDelta > 0 ? Math.min(appliedDelta, budget) : appliedDelta;
+        const next = Math.max(0, prev + clampedForDay);
+        tx.set(
+          ref,
+          {
+            totalLux: next,
+            lastSeen: FieldValue.serverTimestamp(),
+            updatedAt: FieldValue.serverTimestamp(),
+            dailyPositiveLuxDay: day,
+            dailyPositiveLux:
+              clampedForDay > 0 ? daily + clampedForDay : daily,
+          },
+          { merge: true }
+        );
+        return { prevLux: prev, newLux: next, applied: clampedForDay };
+      }
+    );
+
+    logger.info("velourApplyLuxDelta", {
       uid,
-      requested: d0,
-      appliedDelta,
+      prevLux,
+      newLux,
+      appliedDelta: applied,
     });
-  }
 
-  const db = getFirestore();
-  const ref = db.collection("players").doc(uid);
-
-  const { prevLux, newLux, applied } = await db.runTransaction(async (tx) => {
-    const snap = await tx.get(ref);
-    const prev = snap.exists
-      ? Math.max(0, Math.trunc((snap.get("totalLux") as number) || 0))
-      : 0;
-    // Daily cap (positive only).
-    const day =
-      Math.floor(Date.now() / (24 * 60 * 60 * 1000)) /* UTC-ish day index */;
-    const prevDay = snap.exists
-      ? Math.trunc((snap.get("dailyPositiveLuxDay") as number) || 0)
-      : 0;
-    const prevDaily = snap.exists
-      ? Math.max(0, Math.trunc((snap.get("dailyPositiveLux") as number) || 0))
-      : 0;
-    const daily = prevDay === day ? prevDaily : 0;
-    const budget =
-      appliedDelta > 0 ? Math.max(0, MAX_DAILY_POSITIVE_LUX - daily) : 0;
-    const clampedForDay =
-      appliedDelta > 0 ? Math.min(appliedDelta, budget) : appliedDelta;
-    const next = Math.max(0, prev + clampedForDay);
-    tx.set(
-      ref,
-      {
-        totalLux: next,
-        lastSeen: FieldValue.serverTimestamp(),
-        updatedAt: FieldValue.serverTimestamp(),
-        dailyPositiveLuxDay: day,
-        dailyPositiveLux:
-          clampedForDay > 0 ? daily + clampedForDay : daily,
-      },
-      { merge: true }
-    );
-    return { prevLux: prev, newLux: next, applied: clampedForDay };
-  });
-
-  logger.info("velourApplyLuxDelta", {
-    uid,
-    prevLux,
-    newLux,
-    appliedDelta: applied,
-  });
-
-  return {
-    ok: true as const,
-    newLux,
-    prevLux,
-    appliedDelta: applied,
-  };
-});
+    return {
+      ok: true as const,
+      newLux,
+      prevLux,
+      appliedDelta: applied,
+    };
+  },
+);
 
 export { velourGrantIapLux } from "./iap";
 export { velourMirrorPlayerToLeaderboardPublic } from "./leaderboardPublic";

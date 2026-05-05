@@ -40,6 +40,7 @@ import { FieldValue, getFirestore } from "firebase-admin/firestore";
 
 const REGION = "europe-west3";
 
+/** Callable gateway rejects invalid App Check when `VELOUR_ENFORCE_APP_CHECK=1` at runtime. */
 const ENFORCE_APP_CHECK = process.env.VELOUR_ENFORCE_APP_CHECK === "1";
 
 const googlePlayServiceAccountJson = defineSecret(

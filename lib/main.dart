@@ -113,6 +113,12 @@ Future<void> main() async {
     persistenceEnabled: true,
     cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
   );
+
+  // Évite swap de police / micro-lag sur la première frame Material (thème Montserrat).
+  await GoogleFonts.pendingFonts(<dynamic>[
+    GoogleFonts.montserratTextTheme(ThemeData.dark().textTheme),
+  ]);
+
   runApp(const VelourApp());
 }
 

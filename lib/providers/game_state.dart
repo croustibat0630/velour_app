@@ -1164,7 +1164,9 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     _gameOverFlashTick = 0;
 
     _initBoardItems();
-    _startTimeLoop();
+    // Ne pas relancer le chrono ici : hors [GameScreen] (menu, splash) ça ferait
+    // tourner [Timer.periodic] 50 ms inutilement. Le timer repart via [startGame]
+    // / premier [setLayout] sur l’écran jeu.
     notifyListeners();
   }
 

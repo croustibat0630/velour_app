@@ -946,17 +946,19 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                                       gameState.narrativeUiReveal == 0
                                   ? 0.0
                                   : 1.0,
-                              child: NeonScoreBoard(
-                                gameLevel: gameState.gameLevel,
-                                lux: gameState.lux,
-                                comboFlashTick: gameState.luxComboFlashTick,
-                                luxIntroTick: gameState.narrativeLuxIntroTick,
-                                levelUpFlashTick: gameState.levelUpFlashTick,
-                                maxWidth: 500,
-                                levelOpacity: op.level,
-                                luxOpacity: op.lux,
-                                scoreColumnOpacity: op.score,
-                                timeColumnOpacity: op.time,
+                              child: RepaintBoundary(
+                                child: NeonScoreBoard(
+                                  gameLevel: gameState.gameLevel,
+                                  lux: gameState.lux,
+                                  comboFlashTick: gameState.luxComboFlashTick,
+                                  luxIntroTick: gameState.narrativeLuxIntroTick,
+                                  levelUpFlashTick: gameState.levelUpFlashTick,
+                                  maxWidth: 500,
+                                  levelOpacity: op.level,
+                                  luxOpacity: op.lux,
+                                  scoreColumnOpacity: op.score,
+                                  timeColumnOpacity: op.time,
+                                ),
                               ),
                             );
                           },

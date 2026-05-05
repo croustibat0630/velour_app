@@ -31,8 +31,10 @@ import 'utils/velour_route_observer.dart';
 /// - **Web** : debug → [WebDebugProvider] ; release → `ReCaptchaEnterpriseProvider`
 ///   si `VELOUR_APP_CHECK_WEB_SITE_KEY` est passé en `--dart-define`, sinon noop
 ///   (évite un crash sans clé console).
-/// - **Mobile / desktop Apple** : debug → providers debug ; release → Play Integrity /
-///   App Attest avec repli Device Check.
+/// - **Mobile / desktop Apple** : debug **et profile** (`!kReleaseMode`) → providers
+///   debug ; **release** uniquement → Play Integrity / App Attest avec repli Device Check.
+///   (Sans cela, `flutter run --profile` utiliserait App Attest « prod » et échouerait
+///   souvent en local tant que la console App Check n’est pas complète.)
 /// - **Windows** : uniquement debug provider ; jeton optionnel
 ///   `VELOUR_APP_CHECK_WINDOWS_DEBUG_TOKEN` ou variable d’environnement SDK.
 Future<void> velourActivateAppCheck() async {
@@ -67,11 +69,12 @@ Future<void> velourActivateAppCheck() async {
       return;
     }
 
+    final bool useDebugAppCheckProviders = !kReleaseMode;
     await FirebaseAppCheck.instance.activate(
-      providerAndroid: kDebugMode
+      providerAndroid: useDebugAppCheckProviders
           ? const AndroidDebugProvider()
           : const AndroidPlayIntegrityProvider(),
-      providerApple: kDebugMode
+      providerApple: useDebugAppCheckProviders
           ? const AppleDebugProvider()
           : const AppleAppAttestWithDeviceCheckFallbackProvider(),
     );

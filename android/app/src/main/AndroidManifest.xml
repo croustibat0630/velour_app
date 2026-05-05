@@ -1,4 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Réseau (Firebase, IAP, classement). Les manifests debug/profile le répètent ; explicite ici pour release. -->
+    <uses-permission android:name="android.permission.INTERNET" />
     <!-- Google Play Billing (IAP). Fusionné aussi via la dépendance billing, mais explicite pour la console. -->
     <uses-permission android:name="com.android.vending.BILLING" />
     <application

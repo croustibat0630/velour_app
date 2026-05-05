@@ -110,6 +110,51 @@ Les règles restent un **filet** : la source de vérité LUX côté serveur rest
 | `VEL_IAP_GRANT_NEW` / `VEL_IAP_GRANT_DUP` | Grant IAP côté serveur |
 | `VEL_LB_PUBLIC_MIRROR_FAILED` | Miroir `leaderboardPublic` |
 
+## 7. Android — App Check, Play Integrity, Crashlytics
+
+**Client Flutter** (`lib/main.dart`, `velourActivateAppCheck`) : en **release**, **`AndroidPlayIntegrityProvider`** ; en **debug / profile** (`!kReleaseMode`), **`AndroidDebugProvider`** — aligné sur iOS. Les jetons **debug** Android s’affichent dans **Logcat** au premier lancement ; les enregistrer dans Firebase comme pour iOS.
+
+### 7.1 Firebase — App Check (obligatoire si `VELOUR_ENFORCE_APP_CHECK` côté Functions)
+
+1. [Console Firebase](https://console.firebase.google.com) → projet **velour-6690f** → **Build** → **App Check**.
+2. Sélectionner l’app **Android** (`package` **`fr.grandjean.velour`**).
+3. Enregistrer le fournisseur **Play Integrity**.
+4. **Jetons de débogage** : pour `flutter run` / APK debug sur appareil ou émulateur, copier le jeton depuis Logcat (`FirebaseAppCheck` / message du SDK) → **App Check** → *Manage debug tokens* → ajouter le jeton pour l’app Android.
+5. Quand tout est validé, activer l’**application** des App Check sur les produits utilisés (**Firestore**, **Cloud Functions**, etc.) — même logique qu’iOS.
+
+### 7.2 Google Play Console — empreintes & intégrité
+
+1. [Play Console](https://play.google.com/console) → ton appli → **Configuration de l’application** (ou **Intégrité de l’application** selon l’UI).
+2. **Play Integrity** : lier le projet Google Cloud / Firebase si demandé.
+3. **Empreinte du certificat de signature de l’application** : Play affiche l’empreinte **SHA-256** du certificat **de distribution** (et parfois celle de **l’upload**). Les noter.
+4. **Firebase** (paramètres du projet → *Vos applications* → Android, ou App Check) : si Google demande les empreintes **SHA-256** pour Play Integrity / API, coller celles de **Play Console** (release + éventuellement clé d’upload), pas seulement celle du keystore local — surtout si **Play App Signing** est activé (empreinte « App signing » ≠ keystore upload parfois).
+
+Pour afficher les SHA depuis un keystore local (release) :
+
+```bash
+keytool -list -v -keystore /chemin/vers/ton.keystore -alias TON_ALIAS
+```
+
+(Rechercher la ligne **SHA256**.)
+
+### 7.3 Crashlytics & symboles Dart (Android)
+
+- Le plugin Gradle **`com.google.firebase.crashlytics`** est déjà dans `android/app/build.gradle.kts` : les builds **release** envoient en général les symboles natifs attendus.
+- Si tu buildes avec **`--obfuscate`** et **`--split-debug-info=<dossier>`**, il faut en plus uploader les symboles Flutter pour Android, par exemple :
+
+```bash
+firebase crashlytics:symbols:upload --app=1:822433624910:android:6fab3a38718e7a02f7a41f CHEMIN_VERS_DOSSIER_SPLIT_DEBUG_INFO
+```
+
+(`mobilesdk_app_id` dans `android/app/google-services.json` ; le même ID sert à la doc Firebase « upload symbols ».)
+
+Sans obfuscation, cette étape CLI n’est en principe **pas** nécessaire.
+
+### 7.4 Build release Android
+
+- Fichier **`android/key.properties`** + keystore (hors dépôt, voir `.gitignore`) pour une **AAB/APK signés** release.
+- Commande typique : `flutter build appbundle` (recommandé pour Play).
+
 ---
 
 ## Checklist déploiement
@@ -119,3 +164,6 @@ Les règles restent un **filet** : la source de vérité LUX côté serveur rest
 3. Staging / prod : surveiller logs du trigger `velourMirrorPlayerToLeaderboardPublic` et erreurs Crashlytics côté client.
 4. **App Check** : activer côté Firebase + client ; callable avec `VELOUR_ENFORCE_APP_CHECK=1` (`functions/.env.velour-6690f`). **iOS release** : le dépôt inclut `ios/Runner/Runner.entitlements` (App Attest `production`) ; dans [Apple Developer](https://developer.apple.com) → Identifiers → App ID `fr.grandjean.velour` → activer **App Attest** ; dans Firebase **App Check** → app iOS → fournisseur **App Attest** (et **Device Check** + Team ID si besoin). Jetons **debug** uniquement pour dev/profile (`!kReleaseMode`).
 5. **Crashlytics dSYM (iOS)** : le target **Runner** exécute en fin de build la phase **`[firebase_crashlytics] Crashlytics Run`** (`"${PODS_ROOT}/FirebaseCrashlytics/run"`) avec les chemins dSYM (Runner + `App.framework`) et `ios/firebase_app_id_file.json`. Après **chaque** archive / `flutter build ipa`, vérifier dans la console Crashlytics que les dSYM ne sont plus « manquants ». Pour une **ancienne** build déjà sur App Store Connect : *Xcode Organizer* → *Archives* → clic droit sur l’archive → **Distribute App** / **Show in Finder** → dossier `dSYMs` → zip → [Firebase Crashlytics → dSYM](https://console.firebase.google.com).
+6. **Android — App Check** : Firebase → App Check → app **Android** `fr.grandjean.velour` → **Play Integrity** ; jetons debug pour les builds locales ; appliquer App Check aux backends utilisés (voir §7.1).
+7. **Android — Play Console** : empreintes **SHA-256** (release / upload / App signing si concerné) alignées avec Firebase / Play Integrity (voir §7.2).
+8. **Android — Release** : `key.properties` + keystore ; `flutter build appbundle` ; smoke test IAP + callables sur une build **release** ou **internal testing** avec enforcement App Check si activé.

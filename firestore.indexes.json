@@ -15,11 +15,6 @@
         { "fieldPath": "highScore", "order": "DESCENDING" },
         { "fieldPath": "updatedAt", "order": "ASCENDING" }
       ]
-    },
-    {
-      "collectionGroup": "leaderboardPublic",
-      "queryScope": "COLLECTION",
-      "fields": [{ "fieldPath": "highScore", "order": "ASCENDING" }]
     }
   ],
   "fieldOverrides": []

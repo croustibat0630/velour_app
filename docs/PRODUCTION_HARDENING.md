@@ -84,6 +84,18 @@ Les règles restent un **filet** : la source de vérité LUX côté serveur rest
 - **CI :** `dart analyze --fatal-infos`, `flutter test`, `dart format --set-exit-if-changed`, build web, compilation TypeScript des **Cloud Functions** (`functions/`, job dédié).
 - **Tests métier :** règles de mise / fin de session extraites dans `lib/game/session_stake_resolution.dart` et couvertes par `test/session_stake_resolution_test.dart` (sans monter tout le plateau).
 
+**Smoke build local (avant release store)** — à lancer depuis la racine du dépôt :
+
+```bash
+dart analyze
+flutter test
+(cd functions && npm run build)
+flutter build ios --release --no-codesign
+flutter build appbundle --release
+```
+
+*(IPA signé : `flutter build ipa` ou archive Xcode ; AAB : fichier sous `build/app/outputs/bundle/release/`.)*
+
 Élargir ensuite : sync cloud (fakes), parcours `GameState` avec mocks ciblés.
 
 ## 5. Accessibilité & locales longues

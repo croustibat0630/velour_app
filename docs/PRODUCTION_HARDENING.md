@@ -17,6 +17,8 @@ Document de référence pour la mise à niveau « appli sérieuse » : sécurit�
 
 **Suite :** motifs métier (`welcome_grant`, `shop_skin`, `shop_forge_consumable`, `stake_ante`, `stake_reward`, `oracle_insurance_refund`, `vault_soft_credit`) + **tampons cloud séparés par motif** côté `EconomyService` (vidage ordonné). Plafonds **par motif** côté CF (ex. forge / mise plus stricts que le fallback `velour_client_sync`). Crédits **IAP** : `velourGrantIapLux` met déjà à jour `totalLux` — le client met à jour le portefeuille local avec **`recordCloudPending: false`** pour éviter un second passage par `velourApplyLuxDelta`.
 
+**Durcissement supplémentaire (CF) :** pour les motifs métier, **delta discret autorisé** (ex. mise `-50` / `-250`, forge `-200` / `-350` / `-175` / `-220`, rembourse assurance `30` / `150`, etc.) — sinon `invalid-argument` + `VEL_CF_LUX_MOTIF_DELTA_REJECTED`. **Caps journaliers positifs par motif** (`luxMotifDailyDay` + `luxMotifDailyPositive` sur `players/{uid}`), appliqués avant le cap journalier global.
+
 **Référence code :** `functions/src/index.ts` — callables **`velourHealth`** (ping) et **`velourApplyLuxDelta`** (transaction LUX sur `players/{uid}`, région `europe-west3`).
 
 **Client Flutter :** `EconomyService` envoie les variations LUX uniquement via `FirestoreService.tryApplyLuxDeltaViaCallable` ; les règles Firestore **interdisent** toute mise à jour client du champ `totalLux`. En cas d’échec callable : log `velour.economy.security` + `queuePendingLuxCloudHint` pour le prochain merge.
@@ -126,6 +128,8 @@ flutter build appbundle --release
 | `VEL_CF_LUX_MOTIF_INVALID` | Motif LUX absent ou inconnu (callable) |
 | `VEL_CF_LUX_DEDUP_HIT` | Rejeu idempotent — réponse issue du doc `luxDedup` |
 | `VEL_CF_LUX_LEDGER_WRITTEN` | Ligne `luxLedger` écrite pour un delta non nul |
+| `VEL_CF_LUX_MOTIF_DELTA_REJECTED` | Delta incompatible avec le motif (montant non autorisé) |
+| `VEL_CF_LUX_MOTIF_DAILY_CAP_*` | Cap journalier **par motif** (positifs) |
 | `VEL_IAP_GRANT_NEW` / `VEL_IAP_GRANT_DUP` | Grant IAP côté serveur |
 | `VEL_LB_PUBLIC_MIRROR_FAILED` | Miroir `leaderboardPublic` |
 

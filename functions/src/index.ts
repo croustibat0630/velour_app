@@ -41,6 +41,28 @@ const LUX_MOTIF_STAKE_ANTE = "stake_ante";
 const LUX_MOTIF_STAKE_REWARD = "stake_reward";
 const LUX_MOTIF_ORACLE_REFUND = "oracle_insurance_refund";
 const LUX_MOTIF_VAULT_SOFT = "vault_soft_credit";
+
+/** Aligné `GameState.highStakesAnteLux` / `SessionStakeConstants.royalAnteLux`. */
+const STAKE_ANTE_HIGH = 50;
+const STAKE_ANTE_ROYAL = 250;
+
+/** Aligné `GameState` forge (prix unitaires). */
+const FORGE_PRICE_ORACLE_INSURANCE = 200;
+const FORGE_PRICE_ROYAL_BOUNTY = 350;
+const FORGE_PRICE_CHRONO_PULSE = 175;
+const FORGE_PRICE_MERCY_SALVAGE = 220;
+
+/**
+ * Plafond journalier **par motif** (crédits positifs cumulés sur `luxMotifDailyDay`).
+ * Les motifs absents ne sont limités que par [MAX_DAILY_POSITIVE_LUX].
+ */
+const MOTIF_DAILY_POSITIVE_CAP: Partial<Record<string, number>> = {
+  [LUX_MOTIF_STAKE_REWARD]: 40_000,
+  [LUX_MOTIF_ORACLE_REFUND]: 4_000,
+  [LUX_MOTIF_WELCOME_GRANT]: 500,
+  [LUX_MOTIF_VAULT_SOFT]: 20_000,
+};
+
 const ALLOWED_LUX_MOTIFS = new Set<string>([
   LUX_MOTIF_CLIENT_SYNC,
   LUX_MOTIF_BOOTSTRAP_RECONCILE,
@@ -64,6 +86,9 @@ const CF_LUX_APPLY_OK = "VEL_CF_LUX_APPLY_OK";
 const CF_LUX_MOTIF_INVALID = "VEL_CF_LUX_MOTIF_INVALID";
 const CF_LUX_DEDUP_HIT = "VEL_CF_LUX_DEDUP_HIT";
 const CF_LUX_LEDGER_WRITTEN = "VEL_CF_LUX_LEDGER_WRITTEN";
+const CF_LUX_MOTIF_DELTA_REJECTED = "VEL_CF_LUX_MOTIF_DELTA_REJECTED";
+const CF_LUX_MOTIF_DAILY_CAP_PARTIAL = "VEL_CF_LUX_MOTIF_DAILY_CAP_PARTIAL";
+const CF_LUX_MOTIF_DAILY_CAP_BLOCK = "VEL_CF_LUX_MOTIF_DAILY_CAP_BLOCK";
 
 function luxMotifCaps(motif: string): {
   maxPositive: number;
@@ -105,6 +130,93 @@ function luxDedupDocId(uid: string, idempotencyKey: string): string {
   return createHash("sha256")
     .update(`${uid}\n${idempotencyKey}`, "utf8")
     .digest("hex");
+}
+
+function rejectMotifDelta(
+  motif: string,
+  d0: number,
+  message: string
+): never {
+  logger.warn(CF_LUX_MOTIF_DELTA_REJECTED, {
+    code: CF_LUX_MOTIF_DELTA_REJECTED,
+    motif,
+    delta: d0,
+    message,
+  });
+  throw new HttpsError("invalid-argument", message);
+}
+
+/** Montants discrets attendus par motif (hors bootstrap / client_sync). */
+function assertDeltaAllowedForMotif(motif: string, d0: number): void {
+  const oracleRefundHigh = Math.trunc((STAKE_ANTE_HIGH * 60) / 100);
+  const oracleRefundRoyal = Math.trunc((STAKE_ANTE_ROYAL * 60) / 100);
+
+  switch (motif) {
+    case LUX_MOTIF_STAKE_ANTE:
+      if (d0 !== -STAKE_ANTE_HIGH && d0 !== -STAKE_ANTE_ROYAL) {
+        rejectMotifDelta(
+          motif,
+          d0,
+          "stake_ante: delta must match a known ante (-50 or -250)"
+        );
+      }
+      break;
+    case LUX_MOTIF_SHOP_FORGE: {
+      const forgeOk = new Set([
+        -FORGE_PRICE_ORACLE_INSURANCE,
+        -FORGE_PRICE_ROYAL_BOUNTY,
+        -FORGE_PRICE_CHRONO_PULSE,
+        -FORGE_PRICE_MERCY_SALVAGE,
+      ]);
+      if (!forgeOk.has(d0)) {
+        rejectMotifDelta(
+          motif,
+          d0,
+          "shop_forge_consumable: delta must match a forge shop price"
+        );
+      }
+      break;
+    }
+    case LUX_MOTIF_ORACLE_REFUND:
+      if (d0 !== oracleRefundHigh && d0 !== oracleRefundRoyal) {
+        rejectMotifDelta(
+          motif,
+          d0,
+          "oracle_insurance_refund: delta must match configured refund amounts"
+        );
+      }
+      break;
+    case LUX_MOTIF_STAKE_REWARD:
+      if (d0 < 1 || d0 > 2600) {
+        rejectMotifDelta(motif, d0, "stake_reward: delta out of allowed range");
+      }
+      break;
+    case LUX_MOTIF_WELCOME_GRANT:
+      if (d0 < 1 || d0 > 300) {
+        rejectMotifDelta(motif, d0, "welcome_grant: delta out of allowed range");
+      }
+      break;
+    case LUX_MOTIF_VAULT_SOFT:
+      if (d0 < 1 || d0 > MAX_POSITIVE_LUX_DELTA) {
+        rejectMotifDelta(
+          motif,
+          d0,
+          "vault_soft_credit: delta out of allowed range"
+        );
+      }
+      break;
+    case LUX_MOTIF_SHOP_SKIN:
+      if (d0 >= 0) {
+        rejectMotifDelta(
+          motif,
+          d0,
+          "shop_skin: only negative purchase debits are allowed"
+        );
+      }
+      break;
+    default:
+      break;
+  }
 }
 
 /** Ping authentifié — vérifie le déploiement Functions + droits d’appel. */
@@ -185,6 +297,8 @@ export const velourApplyLuxDelta = onCall(
         "delta must be a non-zero finite integer"
       );
     }
+
+    assertDeltaAllowedForMotif(motif, d0);
 
     const caps = luxMotifCaps(motif);
     const appliedDelta = Math.min(
@@ -269,9 +383,64 @@ export const velourApplyLuxDelta = onCall(
         const prev = snap.exists
           ? Math.max(0, Math.trunc((snap.get("totalLux") as number) || 0))
           : 0;
-        // Daily cap (positive only).
         const day =
           Math.floor(Date.now() / (24 * 60 * 60 * 1000)) /* UTC-ish day index */;
+
+        const prevMotifDay = snap.exists
+          ? Math.trunc((snap.get("luxMotifDailyDay") as number) || 0)
+          : 0;
+        let motifDailyPos: Record<string, number> = {};
+        if (snap.exists) {
+          const rawMot = snap.get("luxMotifDailyPositive");
+          if (
+            rawMot != null &&
+            typeof rawMot === "object" &&
+            !Array.isArray(rawMot)
+          ) {
+            for (const [k, v] of Object.entries(
+              rawMot as Record<string, unknown>
+            )) {
+              if (typeof v === "number" && Number.isFinite(v)) {
+                motifDailyPos[k] = Math.max(0, Math.trunc(v));
+              }
+            }
+          }
+        }
+        if (prevMotifDay !== day) {
+          motifDailyPos = {};
+        }
+
+        let afterMotifDaily = appliedDelta;
+        const motifDailyCap = MOTIF_DAILY_POSITIVE_CAP[motif];
+        if (appliedDelta > 0 && typeof motifDailyCap === "number") {
+          const usedMotif = Math.max(0, Math.trunc(motifDailyPos[motif] || 0));
+          const budgetMotif = Math.max(0, motifDailyCap - usedMotif);
+          afterMotifDaily = Math.min(appliedDelta, budgetMotif);
+          if (afterMotifDaily === 0 && appliedDelta > 0) {
+            logger.warn(CF_LUX_MOTIF_DAILY_CAP_BLOCK, {
+              code: CF_LUX_MOTIF_DAILY_CAP_BLOCK,
+              uid,
+              motif,
+              day,
+              motifDailyUsed: usedMotif,
+              motifDailyCap,
+              requested: appliedDelta,
+            });
+          } else if (afterMotifDaily < appliedDelta) {
+            logger.warn(CF_LUX_MOTIF_DAILY_CAP_PARTIAL, {
+              code: CF_LUX_MOTIF_DAILY_CAP_PARTIAL,
+              uid,
+              motif,
+              day,
+              motifDailyUsed: usedMotif,
+              motifDailyCap,
+              requested: appliedDelta,
+              applied: afterMotifDaily,
+            });
+          }
+        }
+
+        // Daily cap global (positifs), après cap par motif.
         const prevDay = snap.exists
           ? Math.trunc((snap.get("dailyPositiveLuxDay") as number) || 0)
           : 0;
@@ -280,33 +449,44 @@ export const velourApplyLuxDelta = onCall(
           : 0;
         const daily = prevDay === day ? prevDaily : 0;
         const budget =
-          appliedDelta > 0 ? Math.max(0, MAX_DAILY_POSITIVE_LUX - daily) : 0;
+          afterMotifDaily > 0
+            ? Math.max(0, MAX_DAILY_POSITIVE_LUX - daily)
+            : 0;
         const clampedForDay =
-          appliedDelta > 0 ? Math.min(appliedDelta, budget) : appliedDelta;
+          afterMotifDaily > 0
+            ? Math.min(afterMotifDaily, budget)
+            : afterMotifDaily;
 
-        if (appliedDelta > 0 && clampedForDay === 0) {
+        if (afterMotifDaily > 0 && clampedForDay === 0) {
           logger.warn(CF_LUX_DAILY_CAP_BLOCK, {
             code: CF_LUX_DAILY_CAP_BLOCK,
             uid,
             motif,
             day,
             daily,
-            requested: appliedDelta,
+            requested: afterMotifDaily,
           });
-        } else if (appliedDelta > 0 && clampedForDay < appliedDelta) {
+        } else if (afterMotifDaily > 0 && clampedForDay < afterMotifDaily) {
           logger.warn(CF_LUX_DAILY_CAP_PARTIAL, {
             code: CF_LUX_DAILY_CAP_PARTIAL,
             uid,
             motif,
             day,
             daily,
-            requested: appliedDelta,
+            requested: afterMotifDaily,
             applied: clampedForDay,
           });
         }
 
         const appliedLocal = clampedForDay;
         const next = Math.max(0, prev + appliedLocal);
+
+        const nextMotifDailyPos: Record<string, number> = { ...motifDailyPos };
+        if (appliedLocal > 0 && typeof motifDailyCap === "number") {
+          const usedBefore = Math.max(0, Math.trunc(motifDailyPos[motif] || 0));
+          nextMotifDailyPos[motif] = usedBefore + appliedLocal;
+        }
+
         tx.set(
           ref,
           {
@@ -316,6 +496,8 @@ export const velourApplyLuxDelta = onCall(
             dailyPositiveLuxDay: day,
             dailyPositiveLux:
               appliedLocal > 0 ? daily + appliedLocal : daily,
+            luxMotifDailyDay: day,
+            luxMotifDailyPositive: nextMotifDailyPos,
             luxApplyMinuteEpoch: minuteEpoch,
             luxApplyMinuteCount: minuteCount,
           },

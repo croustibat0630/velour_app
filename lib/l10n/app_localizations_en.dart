@@ -364,6 +364,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shopIapCancelled => 'Purchase cancelled.';
 
   @override
+  String get shopIapOffline =>
+      'No internet connection. Please disable Airplane Mode and try again.';
+
+  @override
   String shopIapError(String details) {
     return 'Payment error: $details';
   }

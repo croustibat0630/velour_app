@@ -362,6 +362,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get shopIapCancelled => 'Achat annulé.';
 
   @override
+  String get shopIapOffline =>
+      'Pas de connexion Internet. Désactive le mode avion et réessaie.';
+
+  @override
   String shopIapError(String details) {
     return 'Erreur de paiement : $details';
   }

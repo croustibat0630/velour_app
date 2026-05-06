@@ -705,6 +705,12 @@ abstract class AppLocalizations {
   /// **'Purchase cancelled.'**
   String get shopIapCancelled;
 
+  /// No description provided for @shopIapOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'No internet connection. Please disable Airplane Mode and try again.'**
+  String get shopIapOffline;
+
   /// No description provided for @shopIapError.
   ///
   /// In en, this message translates to:

@@ -223,6 +223,7 @@
   "shopIapUnavailable": "In-App-Käufe sind auf diesem Gerät nicht verfügbar.",
   "shopIapProductsUnavailable": "LUX-Pakete sind im Store derzeit nicht verfügbar.",
   "shopIapCancelled": "Kauf abgebrochen.",
+  "shopIapOffline": "Keine Internetverbindung. Bitte Flugmodus deaktivieren und erneut versuchen.",
   "shopIapError": "Zahlungsfehler: {details}",
   "@shopIapError": {
     "placeholders": {

@@ -165,8 +165,17 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
           );
           break;
         case LuxIapBuyKind.busy:
+          messenger?.showSnackBar(
+            SnackBar(content: Text(l10n.shopIapError('busy'))),
+          );
           break;
         case LuxIapBuyKind.error:
+          if (r.errorDetail == 'offline') {
+            messenger?.showSnackBar(
+              SnackBar(content: Text(l10n.shopIapOffline)),
+            );
+            break;
+          }
           messenger?.showSnackBar(
             SnackBar(
               content: Text(l10n.shopIapError(r.errorDetail ?? 'unknown')),
@@ -370,7 +379,7 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
                                             },
                                             onTap: () {
                                               AudioHandler.instance
-                                                  .playMatchCombo();
+                                                  .playMenuClick();
                                               unawaited(
                                                 _purchaseVaultPackWithStore(
                                                   context: context,
@@ -420,7 +429,7 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
                                             },
                                             onTap: () {
                                               AudioHandler.instance
-                                                  .playMatchCombo();
+                                                  .playMenuClick();
                                               unawaited(
                                                 _purchaseVaultPackWithStore(
                                                   context: context,
@@ -470,7 +479,7 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
                                             },
                                             onTap: () {
                                               AudioHandler.instance
-                                                  .playMatchCombo();
+                                                  .playMenuClick();
                                               unawaited(
                                                 _purchaseVaultPackWithStore(
                                                   context: context,

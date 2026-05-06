@@ -147,6 +147,7 @@
   "shopIapUnavailable": "Achats intégrés indisponibles sur cet appareil.",
   "shopIapProductsUnavailable": "Packs LUX indisponibles pour le moment.",
   "shopIapCancelled": "Achat annulé.",
+  "shopIapOffline": "Pas de connexion Internet. Désactive le mode avion et réessaie.",
   "shopIapError": "Erreur de paiement : {details}",
   "@shopIapError": {
     "placeholders": {

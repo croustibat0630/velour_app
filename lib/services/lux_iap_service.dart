@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io' show InternetAddress;
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart'
@@ -501,6 +502,15 @@ class LuxIapService {
     _awaiting = completer;
     _awaitingProductId = productId;
     try {
+      if (!kIsWeb) {
+        final bool online = await _hasInternetQuick();
+        if (!online) {
+          _pendingAppleCompletion = null;
+          _completeAwaitingIfAny(const LuxIapBuyOutcome.error('offline'));
+          return const LuxIapBuyOutcome.error('offline');
+        }
+      }
+
       // On iOS (StoreKit), consumables must be auto-consumed by the plugin.
       // Using autoConsume: false triggers an assertion and crashes in debug.
       final bool autoConsume = defaultTargetPlatform == TargetPlatform.iOS;
@@ -537,6 +547,17 @@ class LuxIapService {
       return out;
     } finally {
       _buyInFlight = false;
+    }
+  }
+
+  Future<bool> _hasInternetQuick() async {
+    try {
+      final List<InternetAddress> r = await InternetAddress.lookup(
+        'firebase.google.com',
+      ).timeout(const Duration(milliseconds: 1200));
+      return r.isNotEmpty;
+    } catch (_) {
+      return false;
     }
   }
 

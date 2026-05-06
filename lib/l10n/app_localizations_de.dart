@@ -367,6 +367,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get shopIapCancelled => 'Kauf abgebrochen.';
 
   @override
+  String get shopIapOffline =>
+      'Keine Internetverbindung. Bitte Flugmodus deaktivieren und erneut versuchen.';
+
+  @override
   String shopIapError(String details) {
     return 'Zahlungsfehler: $details';
   }

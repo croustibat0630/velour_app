@@ -81,7 +81,7 @@ Les règles restent un **filet** : la source de vérité LUX côté serveur rest
 
 ## 4. Tests & CI
 
-- **CI :** `dart analyze --fatal-infos`, `flutter test`, `dart format --set-exit-if-changed`, build web, compilation TypeScript des **Cloud Functions** (`functions/`, job dédié).
+- **CI :** `dart analyze --fatal-infos`, `flutter test`, `dart format --set-exit-if-changed`, build web, **`flutter build apk --release`** (smoke Android), compilation TypeScript des **Cloud Functions** (`functions/`, job dédié) — voir `.github/workflows/flutter_ci.yml`.
 - **Tests métier :** règles de mise / fin de session extraites dans `lib/game/session_stake_resolution.dart` et couvertes par `test/session_stake_resolution_test.dart` (sans monter tout le plateau).
 
 **Smoke build local (avant release store)** — à lancer depuis la racine du dépôt :

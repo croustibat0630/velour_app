@@ -622,7 +622,12 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
   static const int forgeMercySalvageMaxCharges = 2;
 
   /// Espacement entre cascades (lisibilité vs dynamisme).
-  static const Duration cascadeStepDelay = Duration(milliseconds: 200);
+  static final Duration cascadeStepDelay = Duration(
+    milliseconds: int.fromEnvironment(
+      'VELOUR_CASCADE_DELAY_MS',
+      defaultValue: 200,
+    ).clamp(120, 420),
+  );
 
   void addLuxCoins(
     int delta, {

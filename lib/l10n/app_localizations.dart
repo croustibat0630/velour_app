@@ -337,7 +337,7 @@ abstract class AppLocalizations {
   /// No description provided for @luxCloudRejectedUpdateRequired.
   ///
   /// In en, this message translates to:
-  /// **'LUX sync rejected. Please update the app.'**
+  /// **'LUX sync rejected. Please update the app. If it persists, copy your player ID in Settings → Info.'**
   String get luxCloudRejectedUpdateRequired;
 
   /// No description provided for @luxCloudRejectedTryLater.

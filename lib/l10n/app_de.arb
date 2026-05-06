@@ -99,7 +99,7 @@
   "settingsPingServerSubtitle": "Backend anpingen (velourHealth)",
   "settingsPingServerOk": "Server OK.",
   "settingsPingServerFail": "Server nicht erreichbar (Netz / App Check).",
-  "luxCloudRejectedUpdateRequired": "LUX-Sync abgelehnt. Bitte App aktualisieren.",
+  "luxCloudRejectedUpdateRequired": "LUX-Sync abgelehnt. Bitte App aktualisieren. Wenn es weiter passiert, kopiere deine Spieler-ID in Einstellungen → Info.",
   "luxCloudRejectedTryLater": "LUX-Sync abgelehnt. Bitte später erneut versuchen.",
   "luxCloudRejectedGeneric": "LUX-Sync fehlgeschlagen. Netzwerk prüfen und erneut versuchen.",
   "settingsCreditsTitle": "Mitwirkende",

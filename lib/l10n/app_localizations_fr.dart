@@ -142,7 +142,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get luxCloudRejectedUpdateRequired =>
-      'Sync LUX refusée. Mets l’app à jour.';
+      'Sync LUX refusée. Mets l’app à jour. Si ça persiste, copie ton ID joueur dans Paramètres → Infos.';
 
   @override
   String get luxCloudRejectedTryLater =>

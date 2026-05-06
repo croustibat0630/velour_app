@@ -99,7 +99,7 @@
   "settingsPingServerSubtitle": "Ping backend (velourHealth)",
   "settingsPingServerOk": "Server OK.",
   "settingsPingServerFail": "Server unreachable (check network / App Check).",
-  "luxCloudRejectedUpdateRequired": "LUX sync rejected. Please update the app.",
+  "luxCloudRejectedUpdateRequired": "LUX sync rejected. Please update the app. If it persists, copy your player ID in Settings → Info.",
   "luxCloudRejectedTryLater": "LUX sync rejected. Please try again later.",
   "luxCloudRejectedGeneric": "LUX sync failed. Check network and try again.",
   "settingsCreditsTitle": "Credits",

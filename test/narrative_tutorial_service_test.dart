@@ -122,7 +122,10 @@ void main() {
       onCelebrationStarted: () {},
     );
     s.beginCasualFirstRunBoardInit();
-    expect(s.floatingKeyForMatch(RunBasis.shape), NarrativeFloatingKey.shapeBonus);
+    expect(
+      s.floatingKeyForMatch(RunBasis.shape),
+      NarrativeFloatingKey.shapeBonus,
+    );
     expect(s.floatingKeyForMatch(RunBasis.color), isNull);
   });
 }

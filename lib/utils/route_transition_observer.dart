@@ -53,7 +53,9 @@ class RouteTransitionObserver extends NavigatorObserver {
       'nav.push',
       data: <String, Object?>{
         'route': route.settings.name ?? route.runtimeType.toString(),
-        'prev': previousRoute?.settings.name ?? previousRoute?.runtimeType.toString(),
+        'prev':
+            previousRoute?.settings.name ??
+            previousRoute?.runtimeType.toString(),
       },
     );
     _track(route);
@@ -70,7 +72,9 @@ class RouteTransitionObserver extends NavigatorObserver {
       'nav.pop',
       data: <String, Object?>{
         'route': route.settings.name ?? route.runtimeType.toString(),
-        'prev': previousRoute?.settings.name ?? previousRoute?.runtimeType.toString(),
+        'prev':
+            previousRoute?.settings.name ??
+            previousRoute?.runtimeType.toString(),
       },
     );
     // Pop animates the route being popped.

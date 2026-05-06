@@ -65,9 +65,7 @@ abstract final class BoardSpawnLogic {
     required double roll01,
     ({int typeId, int colorId})? pair,
   }) {
-    if (biasMayApply &&
-        roll01 < spawnCompletionBiasChance &&
-        pair != null) {
+    if (biasMayApply && roll01 < spawnCompletionBiasChance && pair != null) {
       return (typeId: pair.typeId, colorId: pair.colorId);
     }
     return (typeId: typeId, colorId: colorId);
@@ -99,4 +97,3 @@ abstract final class BoardSpawnLogic {
     return (typeId: typeId, colorId: colorId);
   }
 }
-

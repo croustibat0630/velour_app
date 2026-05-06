@@ -85,5 +85,4 @@ class DefaultFirebaseOptions {
     storageBucket: 'velour-6690f.firebasestorage.app',
     measurementId: 'G-4F1JC7WZJY',
   );
-
 }

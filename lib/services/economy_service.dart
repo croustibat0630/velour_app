@@ -255,8 +255,10 @@ class EconomyService extends ChangeNotifier {
 
   /// Vide le tampon de deltas LUX via la callable (chunks côté serveur si plafond).
   Future<void> _drainPendingLuxCloudSync() async {
-    const bool forceOffline =
-        bool.fromEnvironment('VELOUR_FORCE_OFFLINE', defaultValue: false);
+    const bool forceOffline = bool.fromEnvironment(
+      'VELOUR_FORCE_OFFLINE',
+      defaultValue: false,
+    );
     while (_pendingLuxDeltaForCloud != 0) {
       final int d = _pendingLuxDeltaForCloud;
       final LuxDeltaApplyResult? r = await FirestoreService.instance
@@ -277,7 +279,8 @@ class EconomyService extends ChangeNotifier {
       } else {
         final int now = DateTime.now().microsecondsSinceEpoch;
         final bool pendingChanged = _lastLuxCloudFailPending != d;
-        final bool rateOk = (now - _lastLuxCloudFailLogMicros) > 5 * 1000 * 1000;
+        final bool rateOk =
+            (now - _lastLuxCloudFailLogMicros) > 5 * 1000 * 1000;
         if (pendingChanged || rateOk) {
           _lastLuxCloudFailLogMicros = now;
           _lastLuxCloudFailPending = d;

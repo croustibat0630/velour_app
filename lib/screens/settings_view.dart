@@ -198,8 +198,9 @@ class SettingsView extends StatelessWidget {
                                           .read<GameState>()
                                           .fullHardReset();
                                       if (!context.mounted) return;
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
                                         SnackBar(
                                           content: Text(
                                             l10n.settingsResetSnack,

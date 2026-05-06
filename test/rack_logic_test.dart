@@ -3,12 +3,8 @@ import 'package:velour_app/game/match_types.dart';
 import 'package:velour_app/game/rack_logic.dart';
 import 'package:velour_app/models/game_item.dart';
 
-GameItem _g(String id, int typeId, int colorId) => GameItem(
-      id: id,
-      typeId: typeId,
-      colorId: colorId,
-      position: Offset.zero,
-    );
+GameItem _g(String id, int typeId, int colorId) =>
+    GameItem(id: id, typeId: typeId, colorId: colorId, position: Offset.zero);
 
 void main() {
   group('RackLogic.findBestRun', () {
@@ -92,7 +88,10 @@ void main() {
     });
 
     test('golden: moins de trois pièces → null', () {
-      expect(RackLogic.findBestRun(<GameItem>[_g('a', 1, 1), _g('b', 1, 1)]), isNull);
+      expect(
+        RackLogic.findBestRun(<GameItem>[_g('a', 1, 1), _g('b', 1, 1)]),
+        isNull,
+      );
     });
 
     test('golden: quatre même forme → boosted', () {
@@ -147,31 +146,35 @@ void main() {
 
   group('RackLogic.computeStrategicSlotInsertIndex', () {
     test('golden: rack vide → 0', () {
-      expect(RackLogic.computeStrategicSlotInsertIndex(_g('x', 1, 1), <GameItem>[]), 0);
+      expect(
+        RackLogic.computeStrategicSlotInsertIndex(_g('x', 1, 1), <GameItem>[]),
+        0,
+      );
     });
 
     test('golden: duo identique + 3e identique → après la paire (index 2)', () {
       final List<GameItem> others = <GameItem>[_g('a', 2, 3), _g('b', 2, 3)];
-      expect(RackLogic.computeStrategicSlotInsertIndex(_g('c', 2, 3), others), 2);
+      expect(
+        RackLogic.computeStrategicSlotInsertIndex(_g('c', 2, 3), others),
+        2,
+      );
     });
 
     test('golden: sans règle spéciale → fin du rack', () {
-      final List<GameItem> others = <GameItem>[
-        _g('a', 1, 1),
-        _g('b', 2, 2),
-      ];
-      expect(RackLogic.computeStrategicSlotInsertIndex(_g('c', 3, 3), others), 2);
+      final List<GameItem> others = <GameItem>[_g('a', 1, 1), _g('b', 2, 2)];
+      expect(
+        RackLogic.computeStrategicSlotInsertIndex(_g('c', 3, 3), others),
+        2,
+      );
     });
   });
 
   group('RackLogic.slotPairNeedingThirdCopy', () {
     test('golden: paire identique détectée', () {
-      final List<GameItem> slots = <GameItem>[
-        _g('a', 1, 2),
-        _g('b', 1, 2),
-      ];
-      final ({int typeId, int colorId})? p =
-          RackLogic.slotPairNeedingThirdCopy(slots);
+      final List<GameItem> slots = <GameItem>[_g('a', 1, 2), _g('b', 1, 2)];
+      final ({int typeId, int colorId})? p = RackLogic.slotPairNeedingThirdCopy(
+        slots,
+      );
       expect(p, isNotNull);
       expect(p!.typeId, 1);
       expect(p.colorId, 2);

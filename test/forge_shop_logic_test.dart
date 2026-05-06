@@ -43,7 +43,10 @@ void main() {
 
   group('isPremiumStakeFailure', () {
     test('detects fail footers', () {
-      expect(isPremiumStakeFailure(SessionStakeFooterLine.highStakesFail), true);
+      expect(
+        isPremiumStakeFailure(SessionStakeFooterLine.highStakesFail),
+        true,
+      );
       expect(isPremiumStakeFailure(SessionStakeFooterLine.royalFail), true);
       expect(isPremiumStakeFailure(SessionStakeFooterLine.none), false);
       expect(

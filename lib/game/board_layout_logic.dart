@@ -8,7 +8,8 @@ import 'package:flutter/material.dart';
 abstract final class BoardLayoutLogic {
   BoardLayoutLogic._();
 
-  static double cellPitch(double itemSize, double gridGap) => itemSize + gridGap;
+  static double cellPitch(double itemSize, double gridGap) =>
+      itemSize + gridGap;
 
   static Rect boardSpawnRect({
     required Rect playZone,
@@ -144,22 +145,22 @@ abstract final class BoardLayoutLogic {
       final int col = rng.nextInt(mc + 1);
       final int row = rng.nextInt(mr + 1);
       if (!cellValid(
-            col: col,
-            row: row,
-            spawnRect: sb,
-            luxSafeRect: luxSafeRect,
-            itemSize: itemSize,
-            pitch: pitch,
-          )) {
+        col: col,
+        row: row,
+        spawnRect: sb,
+        luxSafeRect: luxSafeRect,
+        itemSize: itemSize,
+        pitch: pitch,
+      )) {
         continue;
       }
       if (cellOccupied(
-            col: col,
-            row: row,
-            spawnRect: sb,
-            pitch: pitch,
-            boardGemTopLefts: boardGemTopLefts,
-          )) {
+        col: col,
+        row: row,
+        spawnRect: sb,
+        pitch: pitch,
+        boardGemTopLefts: boardGemTopLefts,
+      )) {
         continue;
       }
       return topLeftForCell(sb, pitch, col, row);

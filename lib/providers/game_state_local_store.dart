@@ -115,12 +115,14 @@ class GameStateLocalStore {
   }
 
   Future<
-      ({
-        int insuranceCharges,
-        bool royalBounty,
-        int chronoPulseCharges,
-        int mercySalvageCharges,
-      })> loadForgeShop() async {
+    ({
+      int insuranceCharges,
+      bool royalBounty,
+      int chronoPulseCharges,
+      int mercySalvageCharges,
+    })
+  >
+  loadForgeShop() async {
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       final int charges =

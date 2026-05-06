@@ -15,17 +15,20 @@ void main() {
     expect(GameState.royalTargetLevel, SessionStakeConstants.royalTargetLevel);
   });
 
-  test('resolveSessionStakeOnGameOver utilise les gains constants par défaut', () {
-    final SessionStakeResolution hs = resolveSessionStakeOnGameOver(
-      sessionStake: SessionStakeKind.highStakes,
-      gameLevel: SessionStakeConstants.highStakesTargetLevel,
-    );
-    expect(hs.rewardLuxCoins, SessionStakeConstants.highStakesWinLux);
+  test(
+    'resolveSessionStakeOnGameOver utilise les gains constants par défaut',
+    () {
+      final SessionStakeResolution hs = resolveSessionStakeOnGameOver(
+        sessionStake: SessionStakeKind.highStakes,
+        gameLevel: SessionStakeConstants.highStakesTargetLevel,
+      );
+      expect(hs.rewardLuxCoins, SessionStakeConstants.highStakesWinLux);
 
-    final SessionStakeResolution ry = resolveSessionStakeOnGameOver(
-      sessionStake: SessionStakeKind.royal,
-      gameLevel: SessionStakeConstants.royalTargetLevel,
-    );
-    expect(ry.rewardLuxCoins, SessionStakeConstants.royalWinLux);
-  });
+      final SessionStakeResolution ry = resolveSessionStakeOnGameOver(
+        sessionStake: SessionStakeKind.royal,
+        gameLevel: SessionStakeConstants.royalTargetLevel,
+      );
+      expect(ry.rewardLuxCoins, SessionStakeConstants.royalWinLux);
+    },
+  );
 }

@@ -16,7 +16,10 @@ void main() {
       expect(LuxIapProducts.vaultIds, hasLength(3));
       expect(LuxIapProducts.vaultIds, contains(LuxIapProducts.sparkReserve));
       expect(LuxIapProducts.luxForProductId(LuxIapProducts.sparkReserve), 100);
-      expect(LuxIapProducts.luxForProductId(LuxIapProducts.oracleTreasure), 750);
+      expect(
+        LuxIapProducts.luxForProductId(LuxIapProducts.oracleTreasure),
+        750,
+      );
       expect(LuxIapProducts.luxForProductId(LuxIapProducts.royalLegacy), 5000);
       expect(LuxIapProducts.luxForProductId('unknown'), 0);
     });
@@ -44,73 +47,79 @@ void main() {
     });
 
     test('invalid product id', () async {
-      final LuxIapBuyOutcome r =
-          await LuxIapService.instance.buyVaultConsumable('com.unknown');
+      final LuxIapBuyOutcome r = await LuxIapService.instance
+          .buyVaultConsumable('com.unknown');
       expect(r.kind, LuxIapBuyKind.error);
       expect(r.errorDetail, 'invalid_product');
     });
 
     test('store unavailable', () async {
       fake.storeAvailable = false;
-      final LuxIapBuyOutcome r =
-          await LuxIapService.instance.buyVaultConsumable(LuxIapProducts.sparkReserve);
+      final LuxIapBuyOutcome r = await LuxIapService.instance
+          .buyVaultConsumable(LuxIapProducts.sparkReserve);
       expect(r.kind, LuxIapBuyKind.unavailable);
     });
 
     test('products unavailable when query returns empty', () async {
       fake.returnEmptyProducts = true;
-      final LuxIapBuyOutcome r =
-          await LuxIapService.instance.buyVaultConsumable(LuxIapProducts.sparkReserve);
+      final LuxIapBuyOutcome r = await LuxIapService.instance
+          .buyVaultConsumable(LuxIapProducts.sparkReserve);
       expect(r.kind, LuxIapBuyKind.productsUnavailable);
     });
 
     test('buyConsumable uses autoConsume false', () async {
       fake.emitKind = LuxIapTestEmitKind.purchased;
-      final LuxIapBuyOutcome r =
-          await LuxIapService.instance.buyVaultConsumable(LuxIapProducts.sparkReserve);
+      final LuxIapBuyOutcome r = await LuxIapService.instance
+          .buyVaultConsumable(LuxIapProducts.sparkReserve);
       expect(r.kind, LuxIapBuyKind.success);
       expect(fake.lastAutoConsume, isFalse);
     });
 
-    test('success then finalizeAfterLuxDelivered calls completePurchase', () async {
-      fake.emitKind = LuxIapTestEmitKind.purchased;
-      final LuxIapBuyOutcome r =
-          await LuxIapService.instance.buyVaultConsumable(LuxIapProducts.oracleTreasure);
-      expect(r.kind, LuxIapBuyKind.success);
-      expect(r.luxAmount, 750);
+    test(
+      'success then finalizeAfterLuxDelivered calls completePurchase',
+      () async {
+        fake.emitKind = LuxIapTestEmitKind.purchased;
+        final LuxIapBuyOutcome r = await LuxIapService.instance
+            .buyVaultConsumable(LuxIapProducts.oracleTreasure);
+        expect(r.kind, LuxIapBuyKind.success);
+        expect(r.luxAmount, 750);
 
-      await LuxIapService.instance.finalizeAfterLuxDelivered();
+        await LuxIapService.instance.finalizeAfterLuxDelivered();
 
-      expect(fake.completedPurchaseIds, isNotEmpty);
-      expect(fake.completedPurchaseIds.length, 1);
-    });
+        expect(fake.completedPurchaseIds, isNotEmpty);
+        expect(fake.completedPurchaseIds.length, 1);
+      },
+    );
 
-    test('duplicate purchaseId while awaiting yields duplicate_transaction', () async {
-      fake.emitKind = LuxIapTestEmitKind.purchased;
-      fake.purchaseIdFor = (_) => 'shared-tx';
+    test(
+      'duplicate purchaseId while awaiting yields duplicate_transaction',
+      () async {
+        fake.emitKind = LuxIapTestEmitKind.purchased;
+        fake.purchaseIdFor = (_) => 'shared-tx';
 
-      final LuxIapBuyOutcome first =
-          await LuxIapService.instance.buyVaultConsumable(LuxIapProducts.sparkReserve);
-      expect(first.kind, LuxIapBuyKind.success);
-      await LuxIapService.instance.finalizeAfterLuxDelivered();
+        final LuxIapBuyOutcome first = await LuxIapService.instance
+            .buyVaultConsumable(LuxIapProducts.sparkReserve);
+        expect(first.kind, LuxIapBuyKind.success);
+        await LuxIapService.instance.finalizeAfterLuxDelivered();
 
-      final LuxIapBuyOutcome second =
-          await LuxIapService.instance.buyVaultConsumable(LuxIapProducts.sparkReserve);
-      expect(second.kind, LuxIapBuyKind.error);
-      expect(second.errorDetail, 'duplicate_transaction');
-    });
+        final LuxIapBuyOutcome second = await LuxIapService.instance
+            .buyVaultConsumable(LuxIapProducts.sparkReserve);
+        expect(second.kind, LuxIapBuyKind.error);
+        expect(second.errorDetail, 'duplicate_transaction');
+      },
+    );
 
     test('cancelled purchase', () async {
       fake.emitKind = LuxIapTestEmitKind.canceled;
-      final LuxIapBuyOutcome r =
-          await LuxIapService.instance.buyVaultConsumable(LuxIapProducts.sparkReserve);
+      final LuxIapBuyOutcome r = await LuxIapService.instance
+          .buyVaultConsumable(LuxIapProducts.sparkReserve);
       expect(r.kind, LuxIapBuyKind.cancelled);
     });
 
     test('launch_failed when buyConsumable returns false', () async {
       fake.launchReturnsTrue = false;
-      final LuxIapBuyOutcome r =
-          await LuxIapService.instance.buyVaultConsumable(LuxIapProducts.sparkReserve);
+      final LuxIapBuyOutcome r = await LuxIapService.instance
+          .buyVaultConsumable(LuxIapProducts.sparkReserve);
       expect(r.kind, LuxIapBuyKind.error);
       expect(r.errorDetail, 'launch_failed');
     });
@@ -216,16 +225,17 @@ class FakeLuxIapPurchasePlatform extends Fake
         )..pendingCompletePurchase = true;
       case LuxIapTestEmitKind.error:
         return PurchaseDetails(
-          purchaseID: pid,
-          productID: productId,
-          verificationData: PurchaseVerificationData(
-            localVerificationData: 'l',
-            serverVerificationData: 's',
-            source: 'test',
-          ),
-          transactionDate: null,
-          status: PurchaseStatus.error,
-        )..error = IAPError(source: 'test', code: 'e1', message: 'oops')
+            purchaseID: pid,
+            productID: productId,
+            verificationData: PurchaseVerificationData(
+              localVerificationData: 'l',
+              serverVerificationData: 's',
+              source: 'test',
+            ),
+            transactionDate: null,
+            status: PurchaseStatus.error,
+          )
+          ..error = IAPError(source: 'test', code: 'e1', message: 'oops')
           ..pendingCompletePurchase = true;
     }
   }
@@ -243,7 +253,8 @@ class FakeLuxIapPurchasePlatform extends Fake
       Future<bool>.value(true);
 
   @override
-  Future<void> restorePurchases({String? applicationUserName}) => Future<void>.value();
+  Future<void> restorePurchases({String? applicationUserName}) =>
+      Future<void>.value();
 
   @override
   Future<String> countryCode() => Future<String>.value('FRA');

@@ -62,7 +62,8 @@ class AudioHandler {
   Source _sourceFor(String fileName) {
     final String key = _assetKey(fileName);
     if (kIsWeb) return UrlSource('assets/$key');
-    final bool apple = defaultTargetPlatform == TargetPlatform.iOS ||
+    final bool apple =
+        defaultTargetPlatform == TargetPlatform.iOS ||
         defaultTargetPlatform == TargetPlatform.macOS;
     // iOS 17+ : AVURLAsset sans MIME peut refuser certains MP3 en release.
     if (apple) {
@@ -319,7 +320,9 @@ class AudioHandler {
   void playMatchCombo() {
     if (_disabled) return;
     if (sfxMuted.value) return;
-    velourAudioTrace('match trigger t=${DateTime.now().microsecondsSinceEpoch}');
+    velourAudioTrace(
+      'match trigger t=${DateTime.now().microsecondsSinceEpoch}',
+    );
     unawaited(_playMatchExclusive(volume: 1.0));
   }
 
@@ -327,7 +330,9 @@ class AudioHandler {
   void playPerfectCombo() {
     if (_disabled) return;
     if (sfxMuted.value) return;
-    velourAudioTrace('perfect trigger t=${DateTime.now().microsecondsSinceEpoch}');
+    velourAudioTrace(
+      'perfect trigger t=${DateTime.now().microsecondsSinceEpoch}',
+    );
     unawaited(_playPerfectExclusive());
   }
 
@@ -512,7 +517,8 @@ class AudioHandler {
     if (_disabled) return;
 
     if (_sfxMatchPool.isEmpty) {
-      final bool apple = defaultTargetPlatform == TargetPlatform.iOS ||
+      final bool apple =
+          defaultTargetPlatform == TargetPlatform.iOS ||
           defaultTargetPlatform == TargetPlatform.macOS;
       final int n = kIsWeb
           ? _matchPolyphonyWeb

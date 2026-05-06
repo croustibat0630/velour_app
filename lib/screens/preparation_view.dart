@@ -239,8 +239,7 @@ class _PreparationViewState extends State<PreparationView> with RouteAware {
                           final double availH = cons.maxHeight;
                           final int cardCount = widget.casualStakeOnly ? 1 : 3;
                           final int gapCount = math.max(0, cardCount - 1);
-                          double cardH =
-                              (availH - gap * gapCount) / cardCount;
+                          double cardH = (availH - gap * gapCount) / cardCount;
                           final double minCardH = 148.0;
                           final double maxCardH = 280.0;
                           if (widget.casualStakeOnly) {
@@ -351,8 +350,7 @@ class _PreparationViewState extends State<PreparationView> with RouteAware {
                                 enabled: true,
                                 errorText:
                                     _stakeBeginError &&
-                                        _selectedStake ==
-                                            SessionStakeKind.royal
+                                        _selectedStake == SessionStakeKind.royal
                                     ? l10n.prepInsufficientLux
                                     : null,
                                 onSelect: () =>

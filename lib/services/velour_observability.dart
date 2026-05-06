@@ -24,7 +24,9 @@ abstract final class VelourObservability {
   }) {
     if (!_canReport()) return;
     try {
-      FirebaseCrashlytics.instance.log('[VEL_OBS] economy_security $event data=$data');
+      FirebaseCrashlytics.instance.log(
+        '[VEL_OBS] economy_security $event data=$data',
+      );
     } catch (_) {}
   }
 

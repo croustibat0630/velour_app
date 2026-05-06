@@ -283,7 +283,10 @@ class _MainMenuViewState extends State<MainMenuView>
                                     stops: const [0.0, 0.22, 0.5, 0.78, 1.0],
                                   ),
                                 ),
-                                child: const SizedBox(height: 1, width: double.infinity),
+                                child: const SizedBox(
+                                  height: 1,
+                                  width: double.infinity,
+                                ),
                               ),
                             ),
                             SizedBox(height: 30 * scaleH),

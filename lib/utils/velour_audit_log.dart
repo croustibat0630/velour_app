@@ -11,8 +11,10 @@ class VelourAuditLog {
 
   // Allow enabling audit logs in `--release` for field sessions:
   // `flutter run --release --dart-define=VELOUR_AUDIT=1`
-  static const bool _forceEnabledInRelease =
-      bool.fromEnvironment('VELOUR_AUDIT', defaultValue: false);
+  static const bool _forceEnabledInRelease = bool.fromEnvironment(
+    'VELOUR_AUDIT',
+    defaultValue: false,
+  );
 
   static final String sessionId = () {
     final int r = math.Random().nextInt(1 << 32);
@@ -21,7 +23,8 @@ class VelourAuditLog {
 
   static int _seq = 0;
 
-  static bool get enabled => _forceEnabledInRelease || kDebugMode || kProfileMode;
+  static bool get enabled =>
+      _forceEnabledInRelease || kDebugMode || kProfileMode;
 
   static void event(
     String name, {
@@ -34,4 +37,3 @@ class VelourAuditLog {
     print('[VelourAudit] sid=$sessionId seq=$s t=$t $name data=$data');
   }
 }
-

@@ -22,6 +22,9 @@ void main() {
       TrinityTutorialBoardSpecs.gemsFor(TrinityTutorialPhase.perfect)!.length,
       3,
     );
-    expect(TrinityTutorialBoardSpecs.gemsFor(TrinityTutorialPhase.none), isNull);
+    expect(
+      TrinityTutorialBoardSpecs.gemsFor(TrinityTutorialPhase.none),
+      isNull,
+    );
   });
 }

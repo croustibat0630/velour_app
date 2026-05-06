@@ -6,10 +6,10 @@ abstract final class MatchScoring {
   MatchScoring._();
 
   static int baseLuxForBasis(RunBasis basis) => switch (basis) {
-        RunBasis.shape => 100,
-        RunBasis.color => 150,
-        RunBasis.perfect => 500,
-      };
+    RunBasis.shape => 100,
+    RunBasis.color => 150,
+    RunBasis.perfect => 500,
+  };
 
   /// Longueur de run ≥ 3 : gain = base × (runCount − 2).
   static int rawLuxGain(RunBasis basis, int runCount) =>
@@ -24,8 +24,7 @@ abstract final class MatchScoring {
     return switch (stake) {
       SessionStakeKind.highStakes =>
         gameLevel >= highStakesTargetLevel ? 1.5 : 1.0,
-      SessionStakeKind.royal =>
-        gameLevel >= royalTargetLevel ? 3.0 : 1.0,
+      SessionStakeKind.royal => gameLevel >= royalTargetLevel ? 3.0 : 1.0,
       _ => 1.0,
     };
   }
@@ -34,6 +33,5 @@ abstract final class MatchScoring {
     int rawGain,
     double sessionMult,
     double chainMult,
-  ) =>
-      (rawGain * sessionMult * chainMult).round();
+  ) => (rawGain * sessionMult * chainMult).round();
 }

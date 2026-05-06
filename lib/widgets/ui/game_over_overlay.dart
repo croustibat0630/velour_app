@@ -379,7 +379,9 @@ class _GameOverOverlayState extends State<GameOverOverlay>
                                       textAlign: TextAlign.center,
                                       style: labelSmall,
                                     ),
-                                    SizedBox(height: (10 * sH).clamp(8.0, 14.0)),
+                                    SizedBox(
+                                      height: (10 * sH).clamp(8.0, 14.0),
+                                    ),
                                     Text(
                                       '${widget.finalLux}',
                                       textAlign: TextAlign.center,

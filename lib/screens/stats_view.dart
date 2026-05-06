@@ -106,8 +106,10 @@ class _StatsViewState extends State<StatsView> {
                             builder: (context, c) {
                               final bool wide = c.maxWidth >= 520;
                               final double heroRowH = wide
-                                  ? (((c.maxWidth - 12) / 2) / 1.22)
-                                        .clamp(102.0, 136.0)
+                                  ? (((c.maxWidth - 12) / 2) / 1.22).clamp(
+                                      102.0,
+                                      136.0,
+                                    )
                                   : 0;
                               final double heroStackH = !wide
                                   ? (c.maxWidth / 1.12).clamp(92.0, 118.0)
@@ -179,8 +181,7 @@ class _StatsViewState extends State<StatsView> {
                                       ),
                                       _StatCard(
                                         title: l10n.statsMatches,
-                                        value:
-                                            '${_stats.totalMatchesPlayed}',
+                                        value: '${_stats.totalMatchesPlayed}',
                                         accent: _gold,
                                         icon: Icons.done_all_rounded,
                                         subdued: true,
@@ -454,8 +455,10 @@ class _StatCard extends StatelessWidget {
     final double valueShadowA = subdued ? 0.08 : 0.18;
     final double valueBlur = subdued ? 6 : 10;
     final double iconSize = hero ? 19.0 : 16.0;
-    final double valueSize =
-        ((hero ? 24 : 22) * sT).clamp(hero ? 20.0 : 18.0, hero ? 30.0 : 28.0);
+    final double valueSize = ((hero ? 24 : 22) * sT).clamp(
+      hero ? 20.0 : 18.0,
+      hero ? 30.0 : 28.0,
+    );
 
     return Container(
       decoration: BoxDecoration(

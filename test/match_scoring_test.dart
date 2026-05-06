@@ -24,14 +24,8 @@ void main() {
       MatchScoring.sessionScoreMultiplier(SessionStakeKind.highStakes, 3),
       1.5,
     );
-    expect(
-      MatchScoring.sessionScoreMultiplier(SessionStakeKind.royal, 4),
-      1.0,
-    );
-    expect(
-      MatchScoring.sessionScoreMultiplier(SessionStakeKind.royal, 5),
-      3.0,
-    );
+    expect(MatchScoring.sessionScoreMultiplier(SessionStakeKind.royal, 4), 1.0);
+    expect(MatchScoring.sessionScoreMultiplier(SessionStakeKind.royal, 5), 3.0);
   });
 
   test('roundChainedLux', () {

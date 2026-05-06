@@ -58,12 +58,12 @@ void main() {
     test('golden: biais actif + roll bas + paire → reprend la paire', () {
       final ({int typeId, int colorId}) r =
           BoardSpawnLogic.maybeApplySlotCompletionBias(
-        typeId: 9,
-        colorId: 9,
-        biasMayApply: true,
-        roll01: 0.1,
-        pair: (typeId: 2, colorId: 3),
-      );
+            typeId: 9,
+            colorId: 9,
+            biasMayApply: true,
+            roll01: 0.1,
+            pair: (typeId: 2, colorId: 3),
+          );
       expect(r.typeId, 2);
       expect(r.colorId, 3);
     });
@@ -71,12 +71,12 @@ void main() {
     test('golden: roll au-dessus du seuil → inchangé', () {
       final ({int typeId, int colorId}) r =
           BoardSpawnLogic.maybeApplySlotCompletionBias(
-        typeId: 1,
-        colorId: 2,
-        biasMayApply: true,
-        roll01: BoardSpawnLogic.spawnCompletionBiasChance + 0.01,
-        pair: (typeId: 9, colorId: 9),
-      );
+            typeId: 1,
+            colorId: 2,
+            biasMayApply: true,
+            roll01: BoardSpawnLogic.spawnCompletionBiasChance + 0.01,
+            pair: (typeId: 9, colorId: 9),
+          );
       expect(r.typeId, 1);
       expect(r.colorId, 2);
     });
@@ -84,12 +84,12 @@ void main() {
     test('golden: biais désactivé → jamais la paire', () {
       final ({int typeId, int colorId}) r =
           BoardSpawnLogic.maybeApplySlotCompletionBias(
-        typeId: 1,
-        colorId: 2,
-        biasMayApply: false,
-        roll01: 0.0,
-        pair: (typeId: 9, colorId: 9),
-      );
+            typeId: 1,
+            colorId: 2,
+            biasMayApply: false,
+            roll01: 0.0,
+            pair: (typeId: 9, colorId: 9),
+          );
       expect(r.typeId, 1);
       expect(r.colorId, 2);
     });
@@ -97,12 +97,12 @@ void main() {
     test('golden: pas de paire → inchangé même si roll bas', () {
       final ({int typeId, int colorId}) r =
           BoardSpawnLogic.maybeApplySlotCompletionBias(
-        typeId: 4,
-        colorId: 4,
-        biasMayApply: true,
-        roll01: 0.0,
-        pair: null,
-      );
+            typeId: 4,
+            colorId: 4,
+            biasMayApply: true,
+            roll01: 0.0,
+            pair: null,
+          );
       expect(r.typeId, 4);
       expect(r.colorId, 4);
     });
@@ -131,6 +131,5 @@ void main() {
         expect(v, lessThanOrEqualTo(2));
       }
     });
-
   });
 }

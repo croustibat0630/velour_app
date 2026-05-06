@@ -22,8 +22,7 @@ abstract final class RunTimerLogic {
   static double difficultySpeedMultiplier({
     required SessionStakeKind stake,
     required int gameLevel,
-  }) =>
-      modeBaseSpeedMultiplier(stake) * levelSpeedMultiplier(gameLevel);
+  }) => modeBaseSpeedMultiplier(stake) * levelSpeedMultiplier(gameLevel);
 
   /// Vidage de la jauge temps par seconde (niveau 1 casual ≈ 33 s pour vider 1.0).
   static double timeDrainPerSecond({
@@ -38,16 +37,14 @@ abstract final class RunTimerLogic {
   static double matchTimeRefund({
     required double baseMatchTimeRefund,
     required int gameLevel,
-  }) =>
-      baseMatchTimeRefund * math.pow(0.95, gameLevel - 1);
+  }) => baseMatchTimeRefund * math.pow(0.95, gameLevel - 1);
 
   /// Prochaine valeur de la jauge après un tick de `dtSeconds`.
   static double nextTimeBarAfterTick({
     required double currentValue,
     required double timeDrainPerSecond,
     required double dtSeconds,
-  }) =>
-      (currentValue - timeDrainPerSecond * dtSeconds).clamp(0.0, 1.0);
+  }) => (currentValue - timeDrainPerSecond * dtSeconds).clamp(0.0, 1.0);
 
   /// Délai avant résolution d’un match : resserre avec la difficulté ; Royal −20 %.
   static Duration effectiveMatchDelay({

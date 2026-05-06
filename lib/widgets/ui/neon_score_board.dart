@@ -240,11 +240,13 @@ class _NeonLuxCaptionState extends State<NeonLuxCaption>
                               (effGlowA * (1 - whiteMix) + 0.95 * whiteMix) *
                               zeroDim,
                         ),
-                        blurRadius: (6 + 8 * whiteMix) * (idleZero ? 0.55 : 1.0),
+                        blurRadius:
+                            (6 + 8 * whiteMix) * (idleZero ? 0.55 : 1.0),
                       ),
                       Shadow(
                         color: const Color(0xFF00FFFF).withValues(
-                          alpha: (effGlowA * 0.72) *
+                          alpha:
+                              (effGlowA * 0.72) *
                               (1 - 0.85 * whiteMix) *
                               zeroDim,
                         ),
@@ -566,10 +568,12 @@ class _ForgeSurvivalHudState extends State<_ForgeSurvivalHud>
         final double mercyPulse = gs.isForgeMercySalvagePrewarn
             ? (1.0 + 0.14 * math.sin(t * 2 * math.pi + 1.1))
             : 1.0;
-        final double chronoGlow =
-            gs.isForgeChronoSalvagePrewarn ? (0.35 + 0.45 * t) : 0.0;
-        final double mercyGlow =
-            gs.isForgeMercySalvagePrewarn ? (0.35 + 0.45 * t) : 0.0;
+        final double chronoGlow = gs.isForgeChronoSalvagePrewarn
+            ? (0.35 + 0.45 * t)
+            : 0.0;
+        final double mercyGlow = gs.isForgeMercySalvagePrewarn
+            ? (0.35 + 0.45 * t)
+            : 0.0;
 
         return Opacity(
           opacity: dimmed ? 0.42 : 1.0,

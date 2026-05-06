@@ -513,8 +513,10 @@ class FirestoreService {
   /// Retourne `null` si l’appel est impossible (pas d’auth, hors ligne, fonction non
   /// déployée).
   Future<LuxDeltaApplyResult?> tryApplyLuxDeltaViaCallable(int delta) async {
-    const bool forceOffline =
-        bool.fromEnvironment('VELOUR_FORCE_OFFLINE', defaultValue: false);
+    const bool forceOffline = bool.fromEnvironment(
+      'VELOUR_FORCE_OFFLINE',
+      defaultValue: false,
+    );
     if (delta == 0) {
       return (ok: true, newLux: null, prevLux: null, appliedDelta: 0);
     }

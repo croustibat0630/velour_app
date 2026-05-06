@@ -131,16 +131,13 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
       context,
     );
     try {
-      final LuxIapBuyOutcome r =
-          await LuxIapService.instance.buyVaultConsumable(productId);
+      final LuxIapBuyOutcome r = await LuxIapService.instance
+          .buyVaultConsumable(productId);
       if (!mounted) return;
       switch (r.kind) {
         case LuxIapBuyKind.success:
           final int grant = r.luxAmount > 0 ? r.luxAmount : luxAmount;
-          await _simulatePurchase(
-            luxAmount: grant,
-            startGlobal: startGlobal,
-          );
+          await _simulatePurchase(luxAmount: grant, startGlobal: startGlobal);
           break;
         case LuxIapBuyKind.cancelled:
           messenger?.showSnackBar(
@@ -313,19 +310,19 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
                               final LuxIapService iap = LuxIapService.instance;
                               final String price100 =
                                   iap.storePriceLabelForProduct(
-                                        LuxIapProducts.sparkReserve,
-                                      ) ??
-                                      l10n.shopVaultPricePending;
+                                    LuxIapProducts.sparkReserve,
+                                  ) ??
+                                  l10n.shopVaultPricePending;
                               final String price750 =
                                   iap.storePriceLabelForProduct(
-                                        LuxIapProducts.oracleTreasure,
-                                      ) ??
-                                      l10n.shopVaultPricePending;
+                                    LuxIapProducts.oracleTreasure,
+                                  ) ??
+                                  l10n.shopVaultPricePending;
                               final String price5000 =
                                   iap.storePriceLabelForProduct(
-                                        LuxIapProducts.royalLegacy,
-                                      ) ??
-                                      l10n.shopVaultPricePending;
+                                    LuxIapProducts.royalLegacy,
+                                  ) ??
+                                  l10n.shopVaultPricePending;
                               return Column(
                                 mainAxisSize: MainAxisSize.min,
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -367,9 +364,8 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
                                               unawaited(
                                                 _purchaseVaultPackWithStore(
                                                   context: context,
-                                                  productId:
-                                                      LuxIapProducts
-                                                          .sparkReserve,
+                                                  productId: LuxIapProducts
+                                                      .sparkReserve,
                                                   luxAmount: 100,
                                                   startGlobal:
                                                       _lastPurchaseTapGlobal,
@@ -381,9 +377,7 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
                                       ),
                                     ),
                                   ),
-                                  SizedBox(
-                                    height: (25 * s).clamp(22.0, 30.0),
-                                  ),
+                                  SizedBox(height: (25 * s).clamp(22.0, 30.0)),
                                   _EnterCard(
                                     controller: _enter,
                                     index: 1,
@@ -403,8 +397,8 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
                                               : 0;
                                           return _ShopProductCard(
                                             accent: gold,
-                                            title: l10n
-                                                .shopProductOracleTreasure,
+                                            title:
+                                                l10n.shopProductOracleTreasure,
                                             lux: 750,
                                             price: price750,
                                             badge: l10n.shopBadgeBestDeal,
@@ -420,9 +414,8 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
                                               unawaited(
                                                 _purchaseVaultPackWithStore(
                                                   context: context,
-                                                  productId:
-                                                      LuxIapProducts
-                                                          .oracleTreasure,
+                                                  productId: LuxIapProducts
+                                                      .oracleTreasure,
                                                   luxAmount: 750,
                                                   startGlobal:
                                                       _lastPurchaseTapGlobal,
@@ -434,9 +427,7 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
                                       ),
                                     ),
                                   ),
-                                  SizedBox(
-                                    height: (25 * s).clamp(22.0, 30.0),
-                                  ),
+                                  SizedBox(height: (25 * s).clamp(22.0, 30.0)),
                                   _EnterCard(
                                     controller: _enter,
                                     index: 2,
@@ -456,8 +447,7 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
                                               : 0;
                                           return _ShopProductCard(
                                             accent: violet,
-                                            title: l10n
-                                                .shopProductRoyalLegacy,
+                                            title: l10n.shopProductRoyalLegacy,
                                             lux: 5000,
                                             price: price5000,
                                             badge: null,
@@ -474,9 +464,8 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
                                               unawaited(
                                                 _purchaseVaultPackWithStore(
                                                   context: context,
-                                                  productId:
-                                                      LuxIapProducts
-                                                          .royalLegacy,
+                                                  productId: LuxIapProducts
+                                                      .royalLegacy,
                                                   luxAmount: 5000,
                                                   startGlobal:
                                                       _lastPurchaseTapGlobal,
@@ -488,9 +477,7 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
                                       ),
                                     ),
                                   ),
-                                  SizedBox(
-                                    height: (22 * s).clamp(18.0, 28.0),
-                                  ),
+                                  SizedBox(height: (22 * s).clamp(18.0, 28.0)),
                                 ],
                               );
                             },

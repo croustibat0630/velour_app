@@ -130,12 +130,14 @@ abstract final class RackLogic {
         j++;
       }
       if (j - i >= 3) {
-        consider(RackRun(
-          start: i,
-          endExclusive: j,
-          kind: MatchKind.perfect,
-          basis: RunBasis.perfect,
-        ));
+        consider(
+          RackRun(
+            start: i,
+            endExclusive: j,
+            kind: MatchKind.perfect,
+            basis: RunBasis.perfect,
+          ),
+        );
       }
       i = j;
     }
@@ -148,12 +150,14 @@ abstract final class RackLogic {
       }
       final int n = j - i;
       if (n >= 3) {
-        consider(RackRun(
-          start: i,
-          endExclusive: j,
-          kind: kindForCount(n),
-          basis: RunBasis.shape,
-        ));
+        consider(
+          RackRun(
+            start: i,
+            endExclusive: j,
+            kind: kindForCount(n),
+            basis: RunBasis.shape,
+          ),
+        );
       }
       i = j;
     }
@@ -166,12 +170,14 @@ abstract final class RackLogic {
       }
       final int n = j - i;
       if (n >= 3) {
-        consider(RackRun(
-          start: i,
-          endExclusive: j,
-          kind: kindForCount(n),
-          basis: RunBasis.color,
-        ));
+        consider(
+          RackRun(
+            start: i,
+            endExclusive: j,
+            kind: kindForCount(n),
+            basis: RunBasis.color,
+          ),
+        );
       }
       i = j;
     }

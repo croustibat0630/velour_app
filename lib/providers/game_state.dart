@@ -192,7 +192,8 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
   /// Enregistre le pseudo Oracle sur Firestore. Ne propage **jamais** d’exception
   /// (évite un dialogue bloqué avec bouton « busy » infini).
   /// `true` si la cérémonie peut se fermer (succès cloud ou fermeture locale hors-ligne).
-  Future<bool> updateOracleName(String newName) => _oracleNaming.submitName(newName);
+  Future<bool> updateOracleName(String newName) =>
+      _oracleNaming.submitName(newName);
 
   /// Stream classement mondial (Top 10) — best-effort. En cas d'erreur cloud,
   /// le StreamBuilder côté UI affichera un état vide.
@@ -270,8 +271,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
 
   /// Narrative active : uniquement une run casual lancée depuis le menu Tutoriel.
   bool get _narrativeRunEngaged =>
-      _narrativeReplayThisRun &&
-      _sessionStake == SessionStakeKind.casual;
+      _narrativeReplayThisRun && _sessionStake == SessionStakeKind.casual;
 
   NarrativeTutorialPhase get narrativePhase => _narrativeTutorial.phase;
 
@@ -359,23 +359,23 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
       );
 
   double get _timeDrainPerSecond => RunTimerLogic.timeDrainPerSecond(
-        baseTimeDrainPerSecond: _baseTimeDrainPerSecond,
-        stake: _sessionStake,
-        gameLevel: _gameLevel,
-      );
+    baseTimeDrainPerSecond: _baseTimeDrainPerSecond,
+    stake: _sessionStake,
+    gameLevel: _gameLevel,
+  );
 
   Duration get _effectiveMatchDelay => RunTimerLogic.effectiveMatchDelay(
-        baseMatchDelay: _baseMatchDelay,
-        difficultySpeedMultiplier: _difficultySpeedMultiplier,
-        isRoyalSession: isRoyalSession,
-      );
+    baseMatchDelay: _baseMatchDelay,
+    difficultySpeedMultiplier: _difficultySpeedMultiplier,
+    isRoyalSession: isRoyalSession,
+  );
 
   /// Time bar refill per match at level 1; shrinks ~5% per level.
   static const double _baseMatchTimeRefund = 0.20;
   double get _matchTimeRefund => RunTimerLogic.matchTimeRefund(
-        baseMatchTimeRefund: _baseMatchTimeRefund,
-        gameLevel: _gameLevel,
-      );
+    baseMatchTimeRefund: _baseMatchTimeRefund,
+    gameLevel: _gameLevel,
+  );
 
   final ValueNotifier<double> timeBar = ValueNotifier<double>(1.0);
   double get timerValue => timeBar.value;
@@ -712,7 +712,8 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
         bool royalBounty,
         int chronoPulseCharges,
         int mercySalvageCharges,
-      }) r = await _localDisk.loadForgeShop();
+      })
+      r = await _localDisk.loadForgeShop();
       _oracleInsuranceCharges = r.insuranceCharges.clamp(
         0,
         forgeOracleInsuranceMaxCharges,
@@ -1502,27 +1503,26 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
       if (isInitialSeed) {
         final ({int typeId, int colorId}) rolled =
             BoardSpawnLogic.rollInitialSeedGem(
-          maxShapeId: maxShapeId,
-          shapeCounts: shapeCounts,
-          colorCounts: colorCounts,
-          rng: _rng,
-          nextColorId: _pickColorId,
-        );
+              maxShapeId: maxShapeId,
+              shapeCounts: shapeCounts,
+              colorCounts: colorCounts,
+              rng: _rng,
+              nextColorId: _pickColorId,
+            );
         typeId = rolled.typeId;
         colorId = rolled.colorId;
       } else {
         final int t0 = 1 + _rng.nextInt(maxShapeId);
         final int c0 = _pickColorId();
-        final bool spawnBiasActive =
-            _gameLevel > 1 && timeBar.value < 0.8;
+        final bool spawnBiasActive = _gameLevel > 1 && timeBar.value < 0.8;
         final ({int typeId, int colorId}) biased =
             BoardSpawnLogic.maybeApplySlotCompletionBias(
-          typeId: t0,
-          colorId: c0,
-          biasMayApply: spawnBiasActive,
-          roll01: _rng.nextDouble(),
-          pair: RackLogic.slotPairNeedingThirdCopy(_slotItems),
-        );
+              typeId: t0,
+              colorId: c0,
+              biasMayApply: spawnBiasActive,
+              roll01: _rng.nextDouble(),
+              pair: RackLogic.slotPairNeedingThirdCopy(_slotItems),
+            );
         if (biased.typeId != t0 || biased.colorId != c0) {
           velourDebug(
             '[Velour][Spawn] biais complétion 30% → type=${biased.typeId} color=${biased.colorId}',
@@ -1557,8 +1557,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     );
   }
 
-  double get _cellPitch =>
-      BoardLayoutLogic.cellPitch(itemSize, _gridGap);
+  double get _cellPitch => BoardLayoutLogic.cellPitch(itemSize, _gridGap);
 
   Rect _boardSpawnRect() {
     final Rect? pz = _playZoneRect;
@@ -1804,8 +1803,10 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     required double chainScoreMult,
     required bool isCascade,
   }) async {
-    final List<GameItem> matched =
-        _slotItems.sublist(runStart, runEndExclusive);
+    final List<GameItem> matched = _slotItems.sublist(
+      runStart,
+      runEndExclusive,
+    );
     final int typeId = matched.first.typeId;
     final Offset center =
         matched
@@ -1886,8 +1887,8 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
       (false, true) => '+$gain LUX ×${chainScoreMult.toStringAsFixed(1)}',
       (false, false) => '+$gain LUX',
     };
-    final NarrativeFloatingKey? narrativeFloatKey =
-        _narrativeTutorial.floatingKeyForMatch(basis);
+    final NarrativeFloatingKey? narrativeFloatKey = _narrativeTutorial
+        .floatingKeyForMatch(basis);
     final RuntimeLuxFloatKind? runtimeLuxKind = narrativeFloatKey != null
         ? null
         : switch ((basis == RunBasis.perfect, isCascade)) {

@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:io' show InternetAddress;
+import 'dart:io' show InternetAddress, Socket;
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart'
@@ -386,8 +386,11 @@ class LuxIapService {
       if (!ok) {
         // Keep the purchase uncompleted so StoreKit/Play can re-deliver later.
         _pendingAppleCompletion = null;
+        final bool online = kIsWeb ? false : await _hasInternetQuick();
         _completeAwaitingIfAny(
-          const LuxIapBuyOutcome.error('server_verification_failed'),
+          LuxIapBuyOutcome.error(
+            online ? 'server_verification_failed' : 'offline',
+          ),
         );
         return;
       }
@@ -552,10 +555,15 @@ class LuxIapService {
 
   Future<bool> _hasInternetQuick() async {
     try {
-      final List<InternetAddress> r = await InternetAddress.lookup(
-        'firebase.google.com',
-      ).timeout(const Duration(milliseconds: 1200));
-      return r.isNotEmpty;
+      // DNS can be served from cache even in airplane mode.
+      // A short TCP connect is a better signal for “real” connectivity.
+      final Socket s = await Socket.connect(
+        InternetAddress('1.1.1.1'),
+        53,
+        timeout: const Duration(milliseconds: 1200),
+      );
+      s.destroy();
+      return true;
     } catch (_) {
       return false;
     }

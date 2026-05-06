@@ -253,6 +253,11 @@
       "details": {"type": "String"}
     }
   },
+  "shopIapErrorBusy": "Another purchase is already in progress. Please wait.",
+  "shopIapErrorUnknown": "Something went wrong with the payment. Please try again.",
+  "shopIapErrorServerVerificationFailed": "We could not verify this purchase with the server. Check your connection and try again.",
+  "shopIapErrorDuplicateTransaction": "This purchase was already processed.",
+  "shopIapErrorRestoredIgnored": "Restored purchases do not grant LUX for consumable packs.",
   "statsTitle": "MY CAREER",
   "statsStreakSession": "{count, plural, one{STREAK · 1 DAY} other{STREAK · {count} DAYS}}",
   "@statsStreakSession": {

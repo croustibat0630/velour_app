@@ -165,6 +165,11 @@
       "details": {"type": "String"}
     }
   },
+  "shopIapErrorBusy": "Un autre achat est déjà en cours. Patiente un instant.",
+  "shopIapErrorUnknown": "Le paiement a échoué. Réessaie dans un moment.",
+  "shopIapErrorServerVerificationFailed": "Impossible de vérifier cet achat avec le serveur. Vérifie ta connexion et réessaie.",
+  "shopIapErrorDuplicateTransaction": "Cet achat a déjà été traité.",
+  "shopIapErrorRestoredIgnored": "Les restaurations n’octroient pas de LUX pour les packs consommables.",
   "statsTitle": "MA CARRIÈRE",
   "statsStreakSession": "{count, plural, one{SÉRIE · 1 JOUR} other{SÉRIE · {count} JOURS}}",
   "statsLuxEarned": "LUX GAGNÉS",

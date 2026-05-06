@@ -288,8 +288,14 @@ class EconomyService extends ChangeNotifier {
     required int? pendingLux,
     required int? pendingHigh,
   }) async {
+    final Map<String, List<int>> preserved = <String, List<int>>{};
+    for (final MapEntry<String, List<int>> e
+        in _pendingLuxByMotifForCloud.entries) {
+      if (e.value.isEmpty) continue;
+      preserved[e.key] = List<int>.from(e.value);
+    }
     _pendingLuxByMotifForCloud.clear();
-    _schedulePersistPendingLuxByMotif();
+
     final int mergedLux = math.max(
       math.max(_luxCoins, pulled.cloudLuxCoins),
       pendingLux ?? 0,
@@ -300,9 +306,20 @@ class EconomyService extends ChangeNotifier {
     );
     _luxCoins = mergedLux;
     _highScore = mergedHs;
+
+    for (final MapEntry<String, List<int>> e in preserved.entries) {
+      _pendingLuxByMotifForCloud[e.key] = List<int>.from(e.value);
+    }
+    await _local.persistPendingLuxByMotifForCloud(_pendingLuxByMotifForCloud);
+    _schedulePersistPendingLuxByMotif();
+
     _economyLog(
       'bootstrap_merge',
-      data: {'lux': mergedLux, 'highScore': mergedHs},
+      data: <String, Object?>{
+        'lux': mergedLux,
+        'highScore': mergedHs,
+        'pendingMotifsPreserved': preserved.length,
+      },
     );
     notifyListeners();
   }
@@ -415,8 +432,14 @@ class EconomyService extends ChangeNotifier {
       final int step = FirestoreService.chunkLuxDeltaForCallable(d0);
       if (step == 0) break;
 
+      final String idempotencyKey =
+          '$motif|drain|d0=$d0|${DateTime.now().microsecondsSinceEpoch}|${math.Random().nextInt(0x7fffffff)}';
       final LuxDeltaApplyResult? r = await FirestoreService.instance
-          .tryApplyLuxDeltaViaCallable(step, motif: motif);
+          .tryApplyLuxDeltaViaCallable(
+        step,
+        motif: motif,
+        idempotencyKey: idempotencyKey,
+      );
       if (r != null && r.ok) {
         final int applied = r.appliedDelta ?? step;
         if (applied == 0 && d0 != 0) {

@@ -398,6 +398,26 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get shopIapErrorBusy =>
+      'Ein anderer Kauf läuft bereits. Bitte kurz warten.';
+
+  @override
+  String get shopIapErrorUnknown =>
+      'Die Zahlung ist fehlgeschlagen. Bitte später erneut versuchen.';
+
+  @override
+  String get shopIapErrorServerVerificationFailed =>
+      'Der Kauf konnte nicht mit dem Server verifiziert werden. Verbindung prüfen und erneut versuchen.';
+
+  @override
+  String get shopIapErrorDuplicateTransaction =>
+      'Dieser Kauf wurde bereits verarbeitet.';
+
+  @override
+  String get shopIapErrorRestoredIgnored =>
+      'Wiederhergestellte Käufe gewähren keine LUX für Verbrauchspakete.';
+
+  @override
   String get statsTitle => 'MEINE KARRIERE';
 
   @override

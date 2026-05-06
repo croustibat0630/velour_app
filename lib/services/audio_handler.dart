@@ -24,7 +24,7 @@ class AudioHandler {
   static const String _creditFile = 'sfx_credit.mp3';
 
   /// Pool polyphonique pour les combos (overlap sans attendre la fin du son).
-  static const int _matchPolyphony = 6;
+  static const int _matchPolyphony = 10;
   static const int _matchPolyphonyWeb = 1;
   static const int _matchPolyphonyApple = 1;
 

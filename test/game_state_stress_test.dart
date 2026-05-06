@@ -1,5 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:velour_app/providers/game_state.dart';
 
 void _layoutMinimal(GameState gs) {
@@ -24,6 +25,10 @@ void _layoutMinimal(GameState gs) {
 /// Stress léger sur [GameState] uniquement (pas d’AudioHandler : pas de plugin en test VM).
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUp(() async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+  });
 
   setUpAll(() {
     final TestDefaultBinaryMessengerBinding b =

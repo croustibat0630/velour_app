@@ -13,6 +13,35 @@ import '../services/lux_iap_service.dart';
 import '../utils/responsive.dart';
 import '../widgets/ui/dark_matte_overlay.dart';
 
+String _luxIapErrorSnack(AppLocalizations l10n, LuxIapBuyOutcome r) {
+  switch (r.kind) {
+    case LuxIapBuyKind.busy:
+      return l10n.shopIapErrorBusy;
+    case LuxIapBuyKind.error:
+      final String? d = r.errorDetail;
+      if (d == null || d.isEmpty) {
+        return l10n.shopIapErrorUnknown;
+      }
+      switch (d) {
+        case 'offline':
+          return l10n.shopIapOffline;
+        case 'server_verification_failed':
+          return l10n.shopIapErrorServerVerificationFailed;
+        case 'duplicate_transaction':
+          return l10n.shopIapErrorDuplicateTransaction;
+        case 'restored_ignored':
+          return l10n.shopIapErrorRestoredIgnored;
+        default:
+          return l10n.shopIapError(d);
+      }
+    case LuxIapBuyKind.success:
+    case LuxIapBuyKind.cancelled:
+    case LuxIapBuyKind.unavailable:
+    case LuxIapBuyKind.productsUnavailable:
+      return '';
+  }
+}
+
 class ShopView extends StatefulWidget {
   const ShopView({super.key});
 
@@ -166,20 +195,12 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
           break;
         case LuxIapBuyKind.busy:
           messenger?.showSnackBar(
-            SnackBar(content: Text(l10n.shopIapError('busy'))),
+            SnackBar(content: Text(_luxIapErrorSnack(l10n, r))),
           );
           break;
         case LuxIapBuyKind.error:
-          if (r.errorDetail == 'offline') {
-            messenger?.showSnackBar(
-              SnackBar(content: Text(l10n.shopIapOffline)),
-            );
-            break;
-          }
           messenger?.showSnackBar(
-            SnackBar(
-              content: Text(l10n.shopIapError(r.errorDetail ?? 'unknown')),
-            ),
+            SnackBar(content: Text(_luxIapErrorSnack(l10n, r))),
           );
           break;
       }
@@ -881,7 +902,9 @@ class _ShopProductCard extends StatelessWidget {
         onTapDown: onTapDown,
         onTap: onTap,
         borderRadius: BorderRadius.circular(28),
-        child: Container(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+          child: Container(
           padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(28),
@@ -952,6 +975,7 @@ class _ShopProductCard extends StatelessWidget {
               ),
             ],
           ),
+        ),
         ),
       ),
     );
@@ -1110,9 +1134,11 @@ class _ForgeBoostCard extends StatelessWidget {
         child: InkWell(
           onTap: enabled ? onTap : null,
           borderRadius: BorderRadius.circular(16),
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
               Container(
                 padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
                 decoration: BoxDecoration(
@@ -1213,7 +1239,8 @@ class _ForgeBoostCard extends StatelessWidget {
                     ],
                   ),
                 ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

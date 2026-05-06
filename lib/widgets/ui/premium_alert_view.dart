@@ -163,6 +163,7 @@ class PremiumAlertView extends StatelessWidget {
                               onPressed: () => Navigator.of(context).pop(false),
                               style: FilledButton.styleFrom(
                                 elevation: 0,
+                                minimumSize: const Size(48, 48),
                                 backgroundColor: _cyanActive.withValues(
                                   alpha: 0.18,
                                 ),
@@ -194,6 +195,7 @@ class PremiumAlertView extends StatelessWidget {
                             child: OutlinedButton(
                               onPressed: () => Navigator.of(context).pop(true),
                               style: OutlinedButton.styleFrom(
+                                minimumSize: const Size(48, 48),
                                 foregroundColor: _silver.withValues(
                                   alpha: 0.92,
                                 ),

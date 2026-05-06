@@ -392,6 +392,25 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get shopIapErrorBusy =>
+      'Un autre achat est déjà en cours. Patiente un instant.';
+
+  @override
+  String get shopIapErrorUnknown =>
+      'Le paiement a échoué. Réessaie dans un moment.';
+
+  @override
+  String get shopIapErrorServerVerificationFailed =>
+      'Impossible de vérifier cet achat avec le serveur. Vérifie ta connexion et réessaie.';
+
+  @override
+  String get shopIapErrorDuplicateTransaction => 'Cet achat a déjà été traité.';
+
+  @override
+  String get shopIapErrorRestoredIgnored =>
+      'Les restaurations n’octroient pas de LUX pour les packs consommables.';
+
+  @override
   String get statsTitle => 'MA CARRIÈRE';
 
   @override

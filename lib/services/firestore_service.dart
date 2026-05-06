@@ -518,11 +518,17 @@ class FirestoreService {
     }
   }
 
+  /// Clé d'idempotence pour [luxDedup] ; toujours non vide à l'envoi.
+  static String _resolvedLuxApplyIdempotencyKey(String motif, String? rawKey) {
+    final String t = rawKey?.trim() ?? '';
+    if (t.isNotEmpty) return t;
+    return '$motif|auto|${DateTime.now().microsecondsSinceEpoch}|${math.Random().nextInt(0x7fffffff)}';
+  }
+
   /// Applique un delta LUX en transaction serveur ([velourApplyLuxDelta]).
   ///
   /// [motif] doit être une valeur reconnue par la Cloud Function (voir [LuxApplyMotifs]).
-  /// [idempotencyKey] optionnel : rejouer la même clé renvoie le même résultat sans
-  /// double crédit.
+  /// [idempotencyKey] : si absent ou vide, une clé unique auto est générée ([luxDedup]).
   ///
   /// Retourne `null` si l’appel est impossible (pas d’auth, hors ligne, fonction non
   /// déployée).
@@ -550,6 +556,8 @@ class FirestoreService {
     if (forceOffline) {
       return null;
     }
+    final String resolvedKey =
+        _resolvedLuxApplyIdempotencyKey(motif, idempotencyKey);
     try {
       final FirebaseFunctions fns = FirebaseFunctions.instanceFor(
         app: Firebase.app(),
@@ -562,8 +570,7 @@ class FirestoreService {
       final HttpsCallableResult res = await callable.call(<String, dynamic>{
         'delta': delta,
         'motif': motif,
-        if (idempotencyKey != null && idempotencyKey.isNotEmpty)
-          'idempotencyKey': idempotencyKey,
+        'idempotencyKey': resolvedKey,
       });
       final Object? data = res.data;
       if (data is! Map) {

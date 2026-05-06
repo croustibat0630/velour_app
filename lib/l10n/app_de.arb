@@ -259,6 +259,11 @@
       "details": {"type": "String"}
     }
   },
+  "shopIapErrorBusy": "Ein anderer Kauf läuft bereits. Bitte kurz warten.",
+  "shopIapErrorUnknown": "Die Zahlung ist fehlgeschlagen. Bitte später erneut versuchen.",
+  "shopIapErrorServerVerificationFailed": "Der Kauf konnte nicht mit dem Server verifiziert werden. Verbindung prüfen und erneut versuchen.",
+  "shopIapErrorDuplicateTransaction": "Dieser Kauf wurde bereits verarbeitet.",
+  "shopIapErrorRestoredIgnored": "Wiederhergestellte Käufe gewähren keine LUX für Verbrauchspakete.",
   "statsTitle": "MEINE KARRIERE",
   "statsStreakSession": "{count, plural, one{SERIE · 1 TAG} other{SERIE · {count} TAGE}}",
   "@statsStreakSession": {

@@ -394,6 +394,26 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get shopIapErrorBusy =>
+      'Another purchase is already in progress. Please wait.';
+
+  @override
+  String get shopIapErrorUnknown =>
+      'Something went wrong with the payment. Please try again.';
+
+  @override
+  String get shopIapErrorServerVerificationFailed =>
+      'We could not verify this purchase with the server. Check your connection and try again.';
+
+  @override
+  String get shopIapErrorDuplicateTransaction =>
+      'This purchase was already processed.';
+
+  @override
+  String get shopIapErrorRestoredIgnored =>
+      'Restored purchases do not grant LUX for consumable packs.';
+
+  @override
   String get statsTitle => 'MY CAREER';
 
   @override

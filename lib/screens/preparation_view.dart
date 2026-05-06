@@ -995,7 +995,10 @@ class _LuxuryModeCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(18),
           splashColor: titleColor.withValues(alpha: lit ? 0.18 : 0.10),
           highlightColor: titleColor.withValues(alpha: lit ? 0.10 : 0.05),
-          child: cardBody,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+            child: cardBody,
+          ),
         ),
       ),
     );

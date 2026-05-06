@@ -753,6 +753,36 @@ abstract class AppLocalizations {
   /// **'Payment error: {details}'**
   String shopIapError(String details);
 
+  /// No description provided for @shopIapErrorBusy.
+  ///
+  /// In en, this message translates to:
+  /// **'Another purchase is already in progress. Please wait.'**
+  String get shopIapErrorBusy;
+
+  /// No description provided for @shopIapErrorUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong with the payment. Please try again.'**
+  String get shopIapErrorUnknown;
+
+  /// No description provided for @shopIapErrorServerVerificationFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'We could not verify this purchase with the server. Check your connection and try again.'**
+  String get shopIapErrorServerVerificationFailed;
+
+  /// No description provided for @shopIapErrorDuplicateTransaction.
+  ///
+  /// In en, this message translates to:
+  /// **'This purchase was already processed.'**
+  String get shopIapErrorDuplicateTransaction;
+
+  /// No description provided for @shopIapErrorRestoredIgnored.
+  ///
+  /// In en, this message translates to:
+  /// **'Restored purchases do not grant LUX for consumable packs.'**
+  String get shopIapErrorRestoredIgnored;
+
   /// No description provided for @statsTitle.
   ///
   /// In en, this message translates to:

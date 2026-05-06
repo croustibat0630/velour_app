@@ -85,7 +85,7 @@ class _MenuTextButtonState extends State<MenuTextButton>
             final double a = _hover ? 0.98 : widget.baseAlpha.clamp(0.0, 1.0);
             final double scale = (_down ? 1.05 : 1.0) * widget.scale;
             return ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: 48),
+              constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
               child: Center(
                 child: Padding(
                   padding: EdgeInsets.symmetric(vertical: 10 * widget.scale),

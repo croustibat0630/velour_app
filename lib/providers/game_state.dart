@@ -1604,6 +1604,23 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     _lastTimeTickAt = null;
   }
 
+  /// Stats carrière : une seule fois par run ([_runStartedAt] consommé → null).
+  Future<void> _recordRunStatsIfNeeded() async {
+    final DateTime? started = _runStartedAt;
+    if (started == null) return;
+    _runStartedAt = null;
+    final Duration playTime = DateTime.now().difference(started);
+    await StatsService.instance.recordGame(
+      scoreLux: _lux,
+      luxGained: _lux,
+      levelReached: _gameLevel,
+      shapes: _shapesPlacedThisRun,
+      matches: _matchesResolvedThisRun,
+      playTime: playTime,
+      stake: _sessionStake,
+    );
+  }
+
   void gameOver() {
     if (_criticalFailure) return;
     if (_isProcessingMatch || _awaitingScheduledMatch) {
@@ -1618,21 +1635,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     _criticalFailure = true;
     _cancelMatchScheduling();
     _stopTimeLoop();
-    final DateTime now = DateTime.now();
-    final DateTime started = _runStartedAt ?? now;
-    final Duration playTime = now.difference(started);
-    _runStartedAt = null;
-    unawaited(
-      StatsService.instance.recordGame(
-        scoreLux: _lux,
-        luxGained: _lux,
-        levelReached: _gameLevel,
-        shapes: _shapesPlacedThisRun,
-        matches: _matchesResolvedThisRun,
-        playTime: playTime,
-        stake: _sessionStake,
-      ),
-    );
+    unawaited(_recordRunStatsIfNeeded());
     _lastGameWasPersonalBest = _lux > _economy.highScore;
     _resolveSessionStakeOnGameOver();
     _persistHighScoreIfNeeded();
@@ -2263,6 +2266,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     _criticalFailure = true;
     _cancelMatchScheduling();
     if (!wasCritical) {
+      unawaited(_recordRunStatsIfNeeded());
       _lastGameWasPersonalBest = _lux > _economy.highScore;
       _resolveSessionStakeOnGameOver();
       _playGameOverSound();

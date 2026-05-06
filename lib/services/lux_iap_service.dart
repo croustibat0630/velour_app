@@ -105,6 +105,9 @@ class LuxIapService {
   LuxIapService._();
   static final LuxIapService instance = LuxIapService._();
 
+  /// Achats `purchased` reçus avant liaison du [GameState] (cold start).
+  static final List<PurchaseDetails> _pendingOrphans = <PurchaseDetails>[];
+
   static const bool _forceOffline = bool.fromEnvironment(
     'VELOUR_FORCE_OFFLINE',
     defaultValue: false,
@@ -145,6 +148,7 @@ class LuxIapService {
     _buyInFlight = false;
     _gameState = null;
     vaultStorePricesEpoch.value = 0;
+    _pendingOrphans.clear();
   }
 
   GameState? _gameState;
@@ -161,7 +165,27 @@ class LuxIapService {
   /// Référence au [GameState] pour créditer les LUX « orphelins » (session relancée avant completePurchase).
   void bindGameState(GameState gameState) {
     _gameState = gameState;
-    unawaited(_ensureInitialized());
+    unawaited(_ensureInitialized().then((_) => _flushPurchaseOrphans()));
+  }
+
+  void _enqueuePurchaseOrphan(PurchaseDetails p) {
+    final String? pid = p.purchaseID;
+    if (pid != null && pid.isNotEmpty) {
+      for (final PurchaseDetails x in _pendingOrphans) {
+        if (x.purchaseID == pid) return;
+      }
+    }
+    _pendingOrphans.add(p);
+  }
+
+  Future<void> _flushPurchaseOrphans() async {
+    if (_pendingOrphans.isEmpty) return;
+    final List<PurchaseDetails> batch =
+        List<PurchaseDetails>.from(_pendingOrphans);
+    _pendingOrphans.clear();
+    for (final PurchaseDetails p in batch) {
+      await _handlePurchasedOrRestored(p);
+    }
   }
 
   Future<void> _ensureInitialized() async {
@@ -418,6 +442,15 @@ class LuxIapService {
       }
       return;
     }
+
+    VelourAuditLog.event(
+      'iap.orphan_no_gamestate',
+      data: <String, Object?>{
+        'productId': p.productID,
+        if (pid != null && pid.isNotEmpty) 'purchaseId': pid,
+      },
+    );
+    _enqueuePurchaseOrphan(p);
   }
 
   /// À appeler après [GameState.addLuxCoins] / persistance (ex. fin de l’animation boutique).

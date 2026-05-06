@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:velour_app/l10n/app_localizations.dart';
 
 import '../services/audio_handler.dart';
@@ -15,6 +16,29 @@ import '../providers/game_state.dart';
 import '../utils/responsive.dart';
 import '../widgets/ui/dark_matte_overlay.dart';
 import '../widgets/ui/universal_back_button.dart';
+import '../utils/velour_release_links.dart';
+
+Future<void> _openPrivacyPolicyUrl(
+  BuildContext context,
+  AppLocalizations l10n,
+) async {
+  final String raw = VelourReleaseLinks.privacyPolicyUrl.trim();
+  final Uri? uri = Uri.tryParse(raw);
+  if (uri == null || !(uri.isScheme('https') || uri.isScheme('http'))) {
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(l10n.settingsPrivacyPolicyLaunchFail)),
+    );
+    return;
+  }
+  final bool ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
+  if (!context.mounted) return;
+  if (!ok) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(l10n.settingsPrivacyPolicyLaunchFail)),
+    );
+  }
+}
 
 class SettingsView extends StatelessWidget {
   const SettingsView({super.key});
@@ -284,6 +308,20 @@ class SettingsView extends StatelessWidget {
                                   }());
                                 },
                               ),
+                              if (VelourReleaseLinks.hasPrivacyPolicyUrl) ...[
+                                const _TileDivider(),
+                                _ActionTile(
+                                  icon: Icons.privacy_tip_outlined,
+                                  title: l10n.settingsPrivacyPolicyTitle,
+                                  subtitle: l10n.settingsPrivacyPolicySubtitle,
+                                  accent: accent,
+                                  onTap: () {
+                                    unawaited(
+                                      _openPrivacyPolicyUrl(context, l10n),
+                                    );
+                                  },
+                                ),
+                              ],
                               const _TileDivider(),
                               _ActionTile(
                                 icon: Icons.auto_awesome_rounded,

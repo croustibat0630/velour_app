@@ -388,6 +388,24 @@ abstract class AppLocalizations {
   /// **'Diagnostics copied.'**
   String get settingsCopyDiagnosticsSnack;
 
+  /// No description provided for @settingsPrivacyPolicyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy policy'**
+  String get settingsPrivacyPolicyTitle;
+
+  /// No description provided for @settingsPrivacyPolicySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in browser'**
+  String get settingsPrivacyPolicySubtitle;
+
+  /// No description provided for @settingsPrivacyPolicyLaunchFail.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open link.'**
+  String get settingsPrivacyPolicyLaunchFail;
+
   /// No description provided for @luxCloudRejectedUpdateRequired.
   ///
   /// In en, this message translates to:

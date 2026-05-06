@@ -173,6 +173,16 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settingsCopyDiagnosticsSnack => 'Diagnose kopiert.';
 
   @override
+  String get settingsPrivacyPolicyTitle => 'Datenschutzerklärung';
+
+  @override
+  String get settingsPrivacyPolicySubtitle => 'Im Browser öffnen';
+
+  @override
+  String get settingsPrivacyPolicyLaunchFail =>
+      'Link konnte nicht geöffnet werden.';
+
+  @override
   String get luxCloudRejectedUpdateRequired =>
       'LUX-Sync abgelehnt. Bitte App aktualisieren. Wenn es weiter passiert, kopiere deine Spieler-ID in Einstellungen → Info.';
 

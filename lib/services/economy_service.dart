@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 
 import '../providers/game_state_local_store.dart';
 import 'firestore_service.dart';
+import 'lux_apply_motifs.dart';
 import 'lux_credit_limits.dart';
 import '../utils/velour_audit_log.dart';
 import 'velour_observability.dart';
@@ -262,7 +263,10 @@ class EconomyService extends ChangeNotifier {
     while (_pendingLuxDeltaForCloud != 0) {
       final int d = _pendingLuxDeltaForCloud;
       final LuxDeltaApplyResult? r = await FirestoreService.instance
-          .tryApplyLuxDeltaViaCallable(d);
+          .tryApplyLuxDeltaViaCallable(
+            d,
+            motif: LuxApplyMotifs.velourClientSync,
+          );
       if (r != null && r.ok) {
         final int applied = r.appliedDelta ?? d;
         _pendingLuxDeltaForCloud -= applied;

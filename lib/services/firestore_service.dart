@@ -8,6 +8,7 @@ import 'package:firebase_core/firebase_core.dart';
 
 import '../models/skin_config.dart';
 import 'firestore_dense_world_rank_snapshot.dart';
+import 'lux_apply_motifs.dart';
 import 'lux_credit_limits.dart';
 import 'velour_observability.dart';
 
@@ -430,7 +431,13 @@ class FirestoreService {
       if (rawDelta == 0) break;
       final int step = chunkLuxDeltaForCallable(rawDelta);
       if (step == 0) break;
-      final LuxDeltaApplyResult? r = await tryApplyLuxDeltaViaCallable(step);
+      final String idemKey =
+          'bootstrap|t=$targetMergedLux|c=$serverCursor|s=$step';
+      final LuxDeltaApplyResult? r = await tryApplyLuxDeltaViaCallable(
+        step,
+        motif: LuxApplyMotifs.bootstrapReconcile,
+        idempotencyKey: idemKey,
+      );
       if (r == null || !r.ok) {
         VelourObservability.logEconomySecurity(
           'bootstrap_lux_reconcile_callable_failed',
@@ -510,9 +517,17 @@ class FirestoreService {
 
   /// Applique un delta LUX en transaction serveur ([velourApplyLuxDelta]).
   ///
+  /// [motif] doit être une valeur reconnue par la Cloud Function (voir [LuxApplyMotifs]).
+  /// [idempotencyKey] optionnel : rejouer la même clé renvoie le même résultat sans
+  /// double crédit.
+  ///
   /// Retourne `null` si l’appel est impossible (pas d’auth, hors ligne, fonction non
   /// déployée).
-  Future<LuxDeltaApplyResult?> tryApplyLuxDeltaViaCallable(int delta) async {
+  Future<LuxDeltaApplyResult?> tryApplyLuxDeltaViaCallable(
+    int delta, {
+    required String motif,
+    String? idempotencyKey,
+  }) async {
     const bool forceOffline = bool.fromEnvironment(
       'VELOUR_FORCE_OFFLINE',
       defaultValue: false,
@@ -537,6 +552,9 @@ class FirestoreService {
       );
       final HttpsCallableResult res = await callable.call(<String, dynamic>{
         'delta': delta,
+        'motif': motif,
+        if (idempotencyKey != null && idempotencyKey.isNotEmpty)
+          'idempotencyKey': idempotencyKey,
       });
       final Object? data = res.data;
       if (data is! Map) {
@@ -566,7 +584,11 @@ class FirestoreService {
         'velourApplyLuxDelta',
         error: e,
         stackTrace: st,
-        context: <String, Object?>{'delta': delta, 'code': e.code},
+        context: <String, Object?>{
+          'delta': delta,
+          'motif': motif,
+          'code': e.code,
+        },
       );
       return null;
     } catch (e, st) {
@@ -574,7 +596,7 @@ class FirestoreService {
         'velourApplyLuxDelta',
         error: e,
         stackTrace: st,
-        context: <String, Object?>{'delta': delta},
+        context: <String, Object?>{'delta': delta, 'motif': motif},
       );
       return null;
     }

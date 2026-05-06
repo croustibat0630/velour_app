@@ -13,6 +13,8 @@ Document de référence pour la mise à niveau « appli sérieuse » : sécurit�
   - Optionnel : **Firebase App Check** pour réduire les appels automatisés aux callables.
 - Le client migre progressivement : écriture directe désactivée dans les règles une fois la callable stable.
 
+**État livré (première tranche) :** `velourApplyLuxDelta` exige un **`motif`** parmi une liste serveur (`velour_client_sync`, `bootstrap_reconcile`), écrit une ligne **`players/{uid}/luxLedger/*`** par delta appliqué non nul, et accepte une **`idempotencyKey`** optionnelle (doc **`luxDedup`**, rejouer = même réponse). Le client envoie le motif approprié (`LuxApplyMotifs` côté Dart).
+
 **Référence code :** `functions/src/index.ts` — callables **`velourHealth`** (ping) et **`velourApplyLuxDelta`** (transaction LUX sur `players/{uid}`, région `europe-west3`).
 
 **Client Flutter :** `EconomyService` envoie les variations LUX uniquement via `FirestoreService.tryApplyLuxDeltaViaCallable` ; les règles Firestore **interdisent** toute mise à jour client du champ `totalLux`. En cas d’échec callable : log `velour.economy.security` + `queuePendingLuxCloudHint` pour le prochain merge.
@@ -119,6 +121,9 @@ flutter build appbundle --release
 | `VEL_CLI_IAP_CLOUD_GRANT_*` | Callable `velourGrantIapLux` (client) |
 | `VEL_CF_LUX_RATE_LIMIT` | Trop d’appels `velourApplyLuxDelta` / minute |
 | `VEL_CF_LUX_DAILY_CAP_*` | Cap journalier crédits positifs |
+| `VEL_CF_LUX_MOTIF_INVALID` | Motif LUX absent ou inconnu (callable) |
+| `VEL_CF_LUX_DEDUP_HIT` | Rejeu idempotent — réponse issue du doc `luxDedup` |
+| `VEL_CF_LUX_LEDGER_WRITTEN` | Ligne `luxLedger` écrite pour un delta non nul |
 | `VEL_IAP_GRANT_NEW` / `VEL_IAP_GRANT_DUP` | Grant IAP côté serveur |
 | `VEL_LB_PUBLIC_MIRROR_FAILED` | Miroir `leaderboardPublic` |
 

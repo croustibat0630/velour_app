@@ -3,6 +3,7 @@
  *
  * Région alignée avec le client Flutter ([FirestoreService.cloudFunctionsRegion]).
  */
+import { createHash } from "node:crypto";
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as logger from "firebase-functions/logger";
 import { initializeApp } from "firebase-admin/app";
@@ -30,12 +31,42 @@ const MAX_DAILY_POSITIVE_LUX = 50_000;
 /** Limite d’appels [velourApplyLuxDelta] par minute et par joueur (anti-script). */
 const MAX_LUX_APPLY_CALLS_PER_MINUTE = 90;
 
+/** Motifs connus (client + serveur) — toute autre valeur est rejetée. */
+const LUX_MOTIF_CLIENT_SYNC = "velour_client_sync";
+const LUX_MOTIF_BOOTSTRAP_RECONCILE = "bootstrap_reconcile";
+const ALLOWED_LUX_MOTIFS = new Set<string>([
+  LUX_MOTIF_CLIENT_SYNC,
+  LUX_MOTIF_BOOTSTRAP_RECONCILE,
+]);
+
+const MAX_IDEMPOTENCY_KEY_LEN = 200;
+
 /** Codes logs Cloud Logging / filtres dashboards (`VEL_CF_*`). */
 const CF_LUX_DELTA_CLAMPED = "VEL_CF_LUX_DELTA_CLAMPED";
 const CF_LUX_DAILY_CAP_PARTIAL = "VEL_CF_LUX_DAILY_CAP_PARTIAL";
 const CF_LUX_DAILY_CAP_BLOCK = "VEL_CF_LUX_DAILY_CAP_BLOCK";
 const CF_LUX_RATE_LIMIT = "VEL_CF_LUX_RATE_LIMIT";
 const CF_LUX_APPLY_OK = "VEL_CF_LUX_APPLY_OK";
+const CF_LUX_MOTIF_INVALID = "VEL_CF_LUX_MOTIF_INVALID";
+const CF_LUX_DEDUP_HIT = "VEL_CF_LUX_DEDUP_HIT";
+const CF_LUX_LEDGER_WRITTEN = "VEL_CF_LUX_LEDGER_WRITTEN";
+
+function luxMotifCaps(_motif: string): {
+  maxPositive: number;
+  maxNegativeMagnitude: number;
+} {
+  // Plafonds par motif (extensible) — aujourd’hui alignés sur les globaux.
+  return {
+    maxPositive: MAX_POSITIVE_LUX_DELTA,
+    maxNegativeMagnitude: MAX_NEGATIVE_LUX_MAGNITUDE,
+  };
+}
+
+function luxDedupDocId(uid: string, idempotencyKey: string): string {
+  return createHash("sha256")
+    .update(`${uid}\n${idempotencyKey}`, "utf8")
+    .digest("hex");
+}
 
 /** Ping authentifié — vérifie le déploiement Functions + droits d’appel. */
 export const velourHealth = onCall(
@@ -55,6 +86,7 @@ export const velourHealth = onCall(
 /**
  * Applique un delta LUX sur `players/{uid}` en **transaction** (source de vérité serveur).
  *
+ * Corps attendu : `{ delta, motif, idempotencyKey? }`.
  * Réponse : `{ ok, newLux, prevLux, appliedDelta }` — `appliedDelta` peut différer du
  * paramètre si plafonné côté serveur.
  */
@@ -65,7 +97,45 @@ export const velourApplyLuxDelta = onCall(
       throw new HttpsError("unauthenticated", "Auth required");
     }
     const uid = request.auth.uid;
-    const raw = request.data as { delta?: unknown };
+    const raw = request.data as {
+      delta?: unknown;
+      motif?: unknown;
+      idempotencyKey?: unknown;
+    };
+
+    const motifRaw =
+      typeof raw.motif === "string" ? raw.motif.trim() : "";
+    if (!motifRaw || !ALLOWED_LUX_MOTIFS.has(motifRaw)) {
+      logger.warn(CF_LUX_MOTIF_INVALID, {
+        code: CF_LUX_MOTIF_INVALID,
+        uid,
+        motif: motifRaw || null,
+      });
+      throw new HttpsError(
+        "invalid-argument",
+        "motif must be a known non-empty string (e.g. velour_client_sync)"
+      );
+    }
+    const motif = motifRaw;
+
+    let idempotencyKey: string | null = null;
+    if (raw.idempotencyKey !== undefined && raw.idempotencyKey !== null) {
+      if (typeof raw.idempotencyKey !== "string") {
+        throw new HttpsError(
+          "invalid-argument",
+          "idempotencyKey must be a string when provided"
+        );
+      }
+      const trimmed = raw.idempotencyKey.trim();
+      if (trimmed.length === 0 || trimmed.length > MAX_IDEMPOTENCY_KEY_LEN) {
+        throw new HttpsError(
+          "invalid-argument",
+          "idempotencyKey must be 1–200 characters after trim"
+        );
+      }
+      idempotencyKey = trimmed;
+    }
+
     const d0 =
       typeof raw.delta === "number" && Number.isFinite(raw.delta)
         ? Math.trunc(raw.delta)
@@ -77,14 +147,16 @@ export const velourApplyLuxDelta = onCall(
       );
     }
 
+    const caps = luxMotifCaps(motif);
     const appliedDelta = Math.min(
-      MAX_POSITIVE_LUX_DELTA,
-      Math.max(-MAX_NEGATIVE_LUX_MAGNITUDE, d0)
+      caps.maxPositive,
+      Math.max(-caps.maxNegativeMagnitude, d0)
     );
     if (appliedDelta !== d0) {
       logger.warn(CF_LUX_DELTA_CLAMPED, {
         code: CF_LUX_DELTA_CLAMPED,
         uid,
+        motif,
         requested: d0,
         appliedDelta,
       });
@@ -92,9 +164,38 @@ export const velourApplyLuxDelta = onCall(
 
     const db = getFirestore();
     const ref = db.collection("players").doc(uid);
+    const dedupId = idempotencyKey
+      ? luxDedupDocId(uid, idempotencyKey)
+      : null;
 
-    const { prevLux, newLux, applied } = await db.runTransaction(
+    const { prevLux, newLux, applied, fromDedup } = await db.runTransaction(
       async (tx) => {
+        if (dedupId) {
+          const dedRef = ref.collection("luxDedup").doc(dedupId);
+          const dedSnap = await tx.get(dedRef);
+          if (dedSnap.exists) {
+            const dr = dedSnap.data();
+            const nl = dr?.newLux;
+            const pl = dr?.prevLux;
+            const ad = dr?.appliedDelta;
+            if (
+              typeof nl === "number" &&
+              Number.isFinite(nl) &&
+              typeof pl === "number" &&
+              Number.isFinite(pl) &&
+              typeof ad === "number" &&
+              Number.isFinite(ad)
+            ) {
+              return {
+                fromDedup: true as const,
+                prevLux: Math.trunc(pl),
+                newLux: Math.max(0, Math.trunc(nl)),
+                applied: Math.trunc(ad),
+              };
+            }
+          }
+        }
+
         const snap = await tx.get(ref);
         const minuteEpoch = Math.floor(Date.now() / 60_000);
         const prevMin = snap.exists
@@ -109,6 +210,7 @@ export const velourApplyLuxDelta = onCall(
           logger.warn(CF_LUX_RATE_LIMIT, {
             code: CF_LUX_RATE_LIMIT,
             uid,
+            motif,
             minuteEpoch,
             minuteCount,
             max: MAX_LUX_APPLY_CALLS_PER_MINUTE,
@@ -141,6 +243,7 @@ export const velourApplyLuxDelta = onCall(
           logger.warn(CF_LUX_DAILY_CAP_BLOCK, {
             code: CF_LUX_DAILY_CAP_BLOCK,
             uid,
+            motif,
             day,
             daily,
             requested: appliedDelta,
@@ -149,6 +252,7 @@ export const velourApplyLuxDelta = onCall(
           logger.warn(CF_LUX_DAILY_CAP_PARTIAL, {
             code: CF_LUX_DAILY_CAP_PARTIAL,
             uid,
+            motif,
             day,
             daily,
             requested: appliedDelta,
@@ -156,7 +260,8 @@ export const velourApplyLuxDelta = onCall(
           });
         }
 
-        const next = Math.max(0, prev + clampedForDay);
+        const appliedLocal = clampedForDay;
+        const next = Math.max(0, prev + appliedLocal);
         tx.set(
           ref,
           {
@@ -165,23 +270,70 @@ export const velourApplyLuxDelta = onCall(
             updatedAt: FieldValue.serverTimestamp(),
             dailyPositiveLuxDay: day,
             dailyPositiveLux:
-              clampedForDay > 0 ? daily + clampedForDay : daily,
+              appliedLocal > 0 ? daily + appliedLocal : daily,
             luxApplyMinuteEpoch: minuteEpoch,
             luxApplyMinuteCount: minuteCount,
           },
           { merge: true }
         );
-        return { prevLux: prev, newLux: next, applied: clampedForDay };
+
+        if (dedupId && idempotencyKey) {
+          tx.set(ref.collection("luxDedup").doc(dedupId), {
+            prevLux: prev,
+            newLux: next,
+            appliedDelta: appliedLocal,
+            motif,
+            createdAt: FieldValue.serverTimestamp(),
+          });
+        }
+
+        if (appliedLocal !== 0) {
+          const ledgerRef = ref.collection("luxLedger").doc();
+          tx.set(ledgerRef, {
+            motif,
+            prevLux: prev,
+            newLux: next,
+            appliedDelta: appliedLocal,
+            createdAt: FieldValue.serverTimestamp(),
+          });
+        }
+
+        return {
+          fromDedup: false as const,
+          prevLux: prev,
+          newLux: next,
+          applied: appliedLocal,
+        };
       }
     );
 
-    logger.info(CF_LUX_APPLY_OK, {
-      code: CF_LUX_APPLY_OK,
-      uid,
-      prevLux,
-      newLux,
-      appliedDelta: applied,
-    });
+    if (fromDedup) {
+      logger.info(CF_LUX_DEDUP_HIT, {
+        code: CF_LUX_DEDUP_HIT,
+        uid,
+        motif,
+        prevLux,
+        newLux,
+        appliedDelta: applied,
+      });
+    } else {
+      logger.info(CF_LUX_APPLY_OK, {
+        code: CF_LUX_APPLY_OK,
+        uid,
+        motif,
+        prevLux,
+        newLux,
+        appliedDelta: applied,
+      });
+      if (applied !== 0) {
+        logger.info(CF_LUX_LEDGER_WRITTEN, {
+          code: CF_LUX_LEDGER_WRITTEN,
+          uid,
+          motif,
+          appliedDelta: applied,
+        });
+      }
+    }
 
     return {
       ok: true as const,

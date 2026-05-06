@@ -116,6 +116,17 @@ service cloud.firestore {
         && isActiveSkinIdOwnedIfPresent();
 
       allow delete: if false;
+
+      /// Journal LUX (append-only via Cloud Functions) — lecture propriétaire.
+      match /luxLedger/{entryId} {
+        allow read: if isSignedIn() && isOwner(userId);
+        allow write: if false;
+      }
+
+      /// Déduplication idempotence callable — Admin SDK uniquement.
+      match /luxDedup/{dupId} {
+        allow read, write: if false;
+      }
     }
 
     /// Grants IAP (idempotence) — écrits uniquement par Cloud Functions (`velourGrantIapLux`).

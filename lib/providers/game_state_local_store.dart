@@ -13,6 +13,7 @@ class EconomyWelcomeLoad {
     required this.isFirstTimeGame,
     required this.activeSkinIdRaw,
     required this.unlockedSkinsRaw,
+    this.lastDailyLuxClaimUtcDay,
   });
 
   final bool isFirstLaunch;
@@ -21,6 +22,9 @@ class EconomyWelcomeLoad {
   final bool isFirstTimeGame;
   final String? activeSkinIdRaw;
   final List<String>? unlockedSkinsRaw;
+
+  /// `yyyy-MM-dd` UTC ou null si jamais réclamé.
+  final String? lastDailyLuxClaimUtcDay;
 }
 
 /// Persistance locale ([SharedPreferences]) pour l’économie, skins et scores.
@@ -38,10 +42,19 @@ class GameStateLocalStore {
         isFirstTimeGame: prefs.getBool(GameStatePrefs.isFirstTimeGame) ?? true,
         activeSkinIdRaw: prefs.getString(GameStatePrefs.activeSkinId),
         unlockedSkinsRaw: prefs.getStringList(GameStatePrefs.unlockedSkins),
+        lastDailyLuxClaimUtcDay:
+            prefs.getString(GameStatePrefs.lastDailyLuxClaimUtcDay),
       );
     } catch (_) {
       return null;
     }
+  }
+
+  Future<void> persistLastDailyLuxClaimUtcDay(String ymdUtc) async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString(GameStatePrefs.lastDailyLuxClaimUtcDay, ymdUtc);
+    } catch (_) {}
   }
 
   Future<void> persistLuxCoins(int luxCoins) async {

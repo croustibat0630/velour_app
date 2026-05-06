@@ -32,6 +32,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get menuPlay => 'PLAY';
 
   @override
+  String menuDailyLuxBonus(int amount) {
+    return '+$amount LUX — Daily bonus';
+  }
+
+  @override
+  String get menuDailyLuxBonusSuccess => 'Daily bonus claimed.';
+
+  @override
+  String get menuDailyLuxBonusQueued =>
+      'Bonus saved — it will sync when you are online.';
+
+  @override
+  String get menuDailyLuxBonusSynced => 'Balance synced from the server.';
+
+  @override
+  String get menuDailyLuxBonusAlready => 'Already claimed today.';
+
+  @override
+  String get menuDailyLuxBonusRetry => 'Could not reach the server. Try again.';
+
+  @override
   String get menuLeaderboard => 'WORLD LEADERBOARD';
 
   @override

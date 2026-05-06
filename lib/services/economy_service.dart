@@ -49,6 +49,9 @@ class EconomyService extends ChangeNotifier {
 
   static const int welcomeLuxGrant = 250;
 
+  /// Bonus quotidien gratuit (aligné Cloud Function `daily_bonus`).
+  static const int dailyLuxBonusAmount = 50;
+
   Timer? _luxCloudSyncDebounce;
   Timer? _pendingLuxPersistDebounce;
 
@@ -241,6 +244,45 @@ class EconomyService extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Somme des deltas **positifs** encore en attente d’envoi cloud (avant merge bootstrap).
+  int sumPendingPositiveLuxForCloud() {
+    int sum = 0;
+    for (final List<int> q in _pendingLuxByMotifForCloud.values) {
+      for (final int v in q) {
+        if (v > 0) sum += v;
+      }
+    }
+    return sum;
+  }
+
+  /// Plafonne le solde local après bootstrap lorsque le reconcile serveur est borné.
+  Future<void> clampLuxCoinsToCeiling(int ceiling) async {
+    final int c = math.max(0, ceiling);
+    if (_luxCoins <= c) return;
+    _luxCoins = c;
+    await _persistLuxCoins();
+    _economyLog(
+      'lux_ceiling_clamp',
+      data: <String, Object?>{'lux': _luxCoins},
+    );
+    notifyListeners();
+  }
+
+  /// Monte le solde local au minimum du total serveur (sans rejouer une sync cloud).
+  Future<void> applyLuxCoinsFloorFromServer(int serverLux) async {
+    final int floor = math.max(0, serverLux);
+    if (_luxCoins >= floor) return;
+    final int delta = floor - _luxCoins;
+    _luxCoins = floor;
+    pendingLuxAnimation += delta;
+    await _persistLuxCoins();
+    _economyLog(
+      'lux_floor_from_server',
+      data: <String, Object?>{'lux': _luxCoins, 'delta': delta},
+    );
+    notifyListeners();
+  }
+
   Future<void> mergeBootstrapFromCloud({
     required PlayerCloudPull pulled,
     required int? pendingLux,
@@ -377,11 +419,24 @@ class EconomyService extends ChangeNotifier {
           .tryApplyLuxDeltaViaCallable(step, motif: motif);
       if (r != null && r.ok) {
         final int applied = r.appliedDelta ?? step;
-        final int remaining = d0 - applied;
-        if (remaining == 0) {
+        if (applied == 0 && d0 != 0) {
+          // Ex. plafond journalier motif (`daily_bonus`) : évite boucle infinie sur la file.
           q.removeAt(0);
+          VelourObservability.logEconomySecurity(
+            'lux_cloud_delta_ok_zero_applied',
+            data: <String, Object?>{'motif': motif, 'requested': d0},
+          );
+          _economyLog(
+            'lux_cloud_delta_ok_zero_applied',
+            data: <String, Object?>{'motif': motif, 'requested': d0},
+          );
         } else {
-          q[0] = remaining;
+          final int remaining = d0 - applied;
+          if (remaining == 0) {
+            q.removeAt(0);
+          } else {
+            q[0] = remaining;
+          }
         }
         if (q.isEmpty) {
           _pendingLuxByMotifForCloud.remove(motif);

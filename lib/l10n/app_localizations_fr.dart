@@ -32,6 +32,27 @@ class AppLocalizationsFr extends AppLocalizations {
   String get menuPlay => 'COMMENCER';
 
   @override
+  String menuDailyLuxBonus(int amount) {
+    return '+$amount LUX — Bonus quotidien';
+  }
+
+  @override
+  String get menuDailyLuxBonusSuccess => 'Bonus quotidien réclamé.';
+
+  @override
+  String get menuDailyLuxBonusQueued =>
+      'Bonus enregistré — synchronisation dès connexion.';
+
+  @override
+  String get menuDailyLuxBonusSynced => 'Solde aligné avec le serveur.';
+
+  @override
+  String get menuDailyLuxBonusAlready => 'Déjà réclamé aujourd’hui.';
+
+  @override
+  String get menuDailyLuxBonusRetry => 'Serveur injoignable. Réessayez.';
+
+  @override
   String get menuLeaderboard => 'CLASSEMENT MONDIAL';
 
   @override

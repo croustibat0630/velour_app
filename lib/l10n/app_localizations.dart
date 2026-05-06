@@ -130,6 +130,42 @@ abstract class AppLocalizations {
   /// **'PLAY'**
   String get menuPlay;
 
+  /// Main menu: claim once-per-day free LUX.
+  ///
+  /// In en, this message translates to:
+  /// **'+{amount} LUX — Daily bonus'**
+  String menuDailyLuxBonus(int amount);
+
+  /// Snack after successful daily LUX claim (server applied).
+  ///
+  /// In en, this message translates to:
+  /// **'Daily bonus claimed.'**
+  String get menuDailyLuxBonusSuccess;
+
+  /// Snack when daily bonus was granted offline and queued for cloud sync.
+  ///
+  /// In en, this message translates to:
+  /// **'Bonus saved — it will sync when you are online.'**
+  String get menuDailyLuxBonusQueued;
+
+  /// Snack when server already applied today’s bonus (no new credit).
+  ///
+  /// In en, this message translates to:
+  /// **'Balance synced from the server.'**
+  String get menuDailyLuxBonusSynced;
+
+  /// Snack when local state says daily bonus was already claimed.
+  ///
+  /// In en, this message translates to:
+  /// **'Already claimed today.'**
+  String get menuDailyLuxBonusAlready;
+
+  /// Snack when the daily bonus callable failed or network error.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not reach the server. Try again.'**
+  String get menuDailyLuxBonusRetry;
+
   /// Main menu: online rankings.
   ///
   /// In en, this message translates to:

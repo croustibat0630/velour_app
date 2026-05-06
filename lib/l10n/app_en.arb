@@ -25,6 +25,35 @@
   "@menuPlay": {
     "description": "Main menu: start a run."
   },
+  "menuDailyLuxBonus": "+{amount} LUX — Daily bonus",
+  "@menuDailyLuxBonus": {
+    "description": "Main menu: claim once-per-day free LUX.",
+    "placeholders": {
+      "amount": {
+        "type": "int"
+      }
+    }
+  },
+  "menuDailyLuxBonusSuccess": "Daily bonus claimed.",
+  "@menuDailyLuxBonusSuccess": {
+    "description": "Snack after successful daily LUX claim (server applied)."
+  },
+  "menuDailyLuxBonusQueued": "Bonus saved — it will sync when you are online.",
+  "@menuDailyLuxBonusQueued": {
+    "description": "Snack when daily bonus was granted offline and queued for cloud sync."
+  },
+  "menuDailyLuxBonusSynced": "Balance synced from the server.",
+  "@menuDailyLuxBonusSynced": {
+    "description": "Snack when server already applied today’s bonus (no new credit)."
+  },
+  "menuDailyLuxBonusAlready": "Already claimed today.",
+  "@menuDailyLuxBonusAlready": {
+    "description": "Snack when local state says daily bonus was already claimed."
+  },
+  "menuDailyLuxBonusRetry": "Could not reach the server. Try again.",
+  "@menuDailyLuxBonusRetry": {
+    "description": "Snack when the daily bonus callable failed or network error."
+  },
   "menuLeaderboard": "WORLD LEADERBOARD",
   "@menuLeaderboard": {
     "description": "Main menu: online rankings."

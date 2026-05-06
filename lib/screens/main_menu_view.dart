@@ -34,6 +34,7 @@ class _MainMenuViewState extends State<MainMenuView>
   int? _overrideInitialValue;
   bool _namingDialogOpen = false;
   int _streakDays = 0;
+  bool _dailyLuxClaimBusy = false;
 
   Future<void> _refreshStreak() async {
     await StatsService.instance.load();
@@ -41,6 +42,47 @@ class _MainMenuViewState extends State<MainMenuView>
     setState(() {
       _streakDays = StatsService.instance.snapshot().streakDays;
     });
+  }
+
+  Future<void> _claimDailyLuxBonus(GameState gs, AppLocalizations l10n) async {
+    if (_dailyLuxClaimBusy || !gs.canClaimDailyLuxBonus) return;
+    setState(() => _dailyLuxClaimBusy = true);
+    try {
+      final DailyLuxClaimOutcome outcome = await gs.claimDailyLuxBonus();
+      if (!mounted) return;
+      final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+      switch (outcome) {
+        case DailyLuxClaimOutcome.successServerApplied:
+          messenger.showSnackBar(
+            SnackBar(content: Text(l10n.menuDailyLuxBonusSuccess)),
+          );
+          break;
+        case DailyLuxClaimOutcome.successQueuedOffline:
+          messenger.showSnackBar(
+            SnackBar(content: Text(l10n.menuDailyLuxBonusQueued)),
+          );
+          break;
+        case DailyLuxClaimOutcome.alreadySyncedServerSide:
+          messenger.showSnackBar(
+            SnackBar(content: Text(l10n.menuDailyLuxBonusSynced)),
+          );
+          break;
+        case DailyLuxClaimOutcome.alreadyClaimedToday:
+          messenger.showSnackBar(
+            SnackBar(content: Text(l10n.menuDailyLuxBonusAlready)),
+          );
+          break;
+        case DailyLuxClaimOutcome.networkUnavailable:
+        case DailyLuxClaimOutcome.callableFailed:
+          messenger.showSnackBar(
+            SnackBar(content: Text(l10n.menuDailyLuxBonusRetry)),
+          );
+          break;
+      }
+      _syncPendingLuxJuiceIfAny();
+    } finally {
+      if (mounted) setState(() => _dailyLuxClaimBusy = false);
+    }
   }
 
   @override
@@ -323,6 +365,23 @@ class _MainMenuViewState extends State<MainMenuView>
                                 ],
                               ),
                               SizedBox(height: 16 * scaleH),
+                            ],
+                            if (gs.canClaimDailyLuxBonus || _dailyLuxClaimBusy) ...[
+                              MenuTextButton(
+                                label: l10n.menuDailyLuxBonus(
+                                  GameState.dailyLuxBonusAmount,
+                                ),
+                                neon: gold.withValues(alpha: 0.94),
+                                scale: scaleH * 0.92,
+                                baseAlpha: 0.9,
+                                neonShadowBlur: 16,
+                                fontSize: 13.5,
+                                letterSpacing: 3.8,
+                                onPressed: () => _primeMenuInteraction(() {
+                                  unawaited(_claimDailyLuxBonus(gs, l10n));
+                                }),
+                              ),
+                              SizedBox(height: 14 * scaleH),
                             ],
                             MenuTextButton(
                               label: l10n.menuPlay,

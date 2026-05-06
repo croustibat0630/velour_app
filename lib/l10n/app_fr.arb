@@ -10,6 +10,17 @@
   "menuCareer": "CARRIÈRE",
   "menuSettings": "PARAMÈTRES",
   "menuGuidedTutorial": "TUTORIEL",
+  "menuDailyLuxBonus": "+{amount} LUX — Bonus quotidien",
+  "@menuDailyLuxBonus": {
+    "placeholders": {
+      "amount": {"type": "int"}
+    }
+  },
+  "menuDailyLuxBonusSuccess": "Bonus quotidien réclamé.",
+  "menuDailyLuxBonusQueued": "Bonus enregistré — synchronisation dès connexion.",
+  "menuDailyLuxBonusSynced": "Solde aligné avec le serveur.",
+  "menuDailyLuxBonusAlready": "Déjà réclamé aujourd’hui.",
+  "menuDailyLuxBonusRetry": "Serveur injoignable. Réessayez.",
   "luxHudPrefix": "MEILLEUR SCORE  {highScore}   •   LUX",
   "settingsSectionLanguage": "LANGUE",
   "settingsLanguageRowTitle": "Langue d’affichage",

@@ -45,6 +45,13 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
   /// Aligné sur [EconomyService.welcomeLuxGrant] (API stable pour l’UI).
   static int get welcomeLuxGrant => EconomyService.welcomeLuxGrant;
 
+  /// Aligné sur [EconomyService.dailyLuxBonusAmount].
+  static int get dailyLuxBonusAmount => EconomyService.dailyLuxBonusAmount;
+
+  /// Marge LUX au-delà du snapshot cloud + tampons positifs lors du reconcile bootstrap
+  /// (filets légers IAP / horloges désynchronisées).
+  static const int bootstrapReconcileLuxTrustMargin = 500;
+
   late final NarrativeTutorialService _narrativeTutorial;
   final TrinityTutorialService _trinityTutorial = TrinityTutorialService();
   final OracleNamingService _oracleNaming = OracleNamingService();
@@ -128,6 +135,8 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     if (pulled == null) return;
 
     try {
+      final int pendingPositiveBudget =
+          _economy.sumPendingPositiveLuxForCloud();
       final ({int? luxCoins, int? highScore}) pending = FirestoreService
           .instance
           .consumePendingCloudSyncHints();
@@ -140,6 +149,12 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
         pendingLux: pending.luxCoins,
         pendingHigh: pending.highScore,
       );
+      final int mergedLuxAfterBootstrap = _economy.luxCoins;
+      final int reconcileCeiling = cloudLuxSnapshot +
+          pendingPositiveBudget +
+          bootstrapReconcileLuxTrustMargin;
+      final int reconcileTarget =
+          math.min(mergedLuxAfterBootstrap, reconcileCeiling);
       if (_runStartedAt == null) {
         _runHighScoreBaseline = _economy.highScore;
       }
@@ -169,9 +184,12 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
       notifyListeners();
 
       await FirestoreService.instance.reconcileBootstrapLuxAgainstSnapshot(
-        targetMergedLux: _economy.luxCoins,
+        targetMergedLux: reconcileTarget,
         cloudLuxSnapshot: cloudLuxSnapshot,
       );
+      if (_economy.luxCoins > reconcileTarget) {
+        await _economy.clampLuxCoinsToCeiling(reconcileTarget);
+      }
 
       await FirestoreService.instance.pushMergedPlayerProgress(
         highScore: _economy.highScore,
@@ -245,6 +263,9 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
 
   /// Le chrono est tombé à zéro pendant [_awaitingScheduledMatch] / [_isProcessingMatch].
   bool _deferredTimerGameOver = false;
+
+  /// Dernier jour UTC où le joueur a réclamé le bonus LUX quotidien (`yyyy-MM-dd`).
+  String? _lastDailyLuxClaimUtcDay;
   DateTime? _runStartedAt;
   int _shapesPlacedThisRun = 0;
   int _matchesResolvedThisRun = 0;
@@ -515,6 +536,58 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
 
   int get luxCoins => _economy.luxCoins;
 
+  static String _todayUtcYmd() {
+    final DateTime n = DateTime.now().toUtc();
+    final String mm = n.month.toString().padLeft(2, '0');
+    final String dd = n.day.toString().padLeft(2, '0');
+    return '${n.year}-$mm-$dd';
+  }
+
+  bool get canClaimDailyLuxBonus =>
+      _economy.economyLoadedFromDisk &&
+      _lastDailyLuxClaimUtcDay != _todayUtcYmd();
+
+  /// Réclame [EconomyService.dailyLuxBonusAmount] LUX une fois par jour UTC (serveur borne).
+  Future<DailyLuxClaimOutcome> claimDailyLuxBonus() async {
+    final String today = _todayUtcYmd();
+    if (_lastDailyLuxClaimUtcDay == today) {
+      return DailyLuxClaimOutcome.alreadyClaimedToday;
+    }
+    if (!FirestoreService.instance.isCloudReady) {
+      _economy.addLuxCoins(
+        EconomyService.dailyLuxBonusAmount,
+        luxCloudMotif: LuxApplyMotifs.dailyBonus,
+      );
+      _lastDailyLuxClaimUtcDay = today;
+      await _localDisk.persistLastDailyLuxClaimUtcDay(today);
+      notifyListeners();
+      return DailyLuxClaimOutcome.successQueuedOffline;
+    }
+    final LuxDeltaApplyResult? r =
+        await FirestoreService.instance.tryApplyLuxDeltaViaCallable(
+      EconomyService.dailyLuxBonusAmount,
+      motif: LuxApplyMotifs.dailyBonus,
+      idempotencyKey: 'daily_bonus|$today',
+    );
+    if (r == null) {
+      return DailyLuxClaimOutcome.networkUnavailable;
+    }
+    if (!r.ok) {
+      return DailyLuxClaimOutcome.callableFailed;
+    }
+    final int applied = r.appliedDelta ?? 0;
+    _lastDailyLuxClaimUtcDay = today;
+    await _localDisk.persistLastDailyLuxClaimUtcDay(today);
+    if (r.newLux != null) {
+      await _economy.applyLuxCoinsFloorFromServer(r.newLux!);
+    }
+    notifyListeners();
+    if (applied <= 0) {
+      return DailyLuxClaimOutcome.alreadySyncedServerSide;
+    }
+    return DailyLuxClaimOutcome.successServerApplied;
+  }
+
   List<String> _unlockedSkins = <String>[SkinCatalog.standard.id];
   List<String> get unlockedSkins => List.unmodifiable(_unlockedSkins);
 
@@ -698,6 +771,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
       final EconomyWelcomeLoad? disk = await _localDisk.loadEconomyWelcome();
       if (disk == null) return false;
       _economy.hydrateLuxAndWelcomeFromDisk(disk);
+      _lastDailyLuxClaimUtcDay = disk.lastDailyLuxClaimUtcDay;
       final Map<String, List<int>> pending =
           await _localDisk.loadPendingLuxByMotifForCloud();
       _economy.hydratePendingLuxByMotifFromDisk(pending);
@@ -796,6 +870,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
 
     _economy.resetForFullHardReset();
     _oracleNaming.reset();
+    _lastDailyLuxClaimUtcDay = null;
     _unlockedSkins = <String>[SkinCatalog.standard.id];
     _activeSkinId = SkinCatalog.standard.id;
     _oracleInsuranceCharges = 0;
@@ -1720,9 +1795,9 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
   Future<void> selectItem(String id) async {
     if (_criticalFailure) return;
     if (_isGameOver) return;
-    if (_isProcessingMatch || _awaitingScheduledMatch) {
+    if (_isProcessingMatch) {
       velourDebug(
-        '[Velour][selectItem] ignoré pendant résolution / attente match (id=$id)',
+        '[Velour][selectItem] ignoré pendant résolution match (id=$id)',
       );
       return;
     }

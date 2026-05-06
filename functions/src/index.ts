@@ -35,6 +35,7 @@ const MAX_LUX_APPLY_CALLS_PER_MINUTE = 90;
 const LUX_MOTIF_CLIENT_SYNC = "velour_client_sync";
 const LUX_MOTIF_BOOTSTRAP_RECONCILE = "bootstrap_reconcile";
 const LUX_MOTIF_WELCOME_GRANT = "welcome_grant";
+const LUX_MOTIF_DAILY_BONUS = "daily_bonus";
 const LUX_MOTIF_SHOP_SKIN = "shop_skin";
 const LUX_MOTIF_SHOP_FORGE = "shop_forge_consumable";
 const LUX_MOTIF_STAKE_ANTE = "stake_ante";
@@ -60,6 +61,7 @@ const MOTIF_DAILY_POSITIVE_CAP: Partial<Record<string, number>> = {
   [LUX_MOTIF_STAKE_REWARD]: 40_000,
   [LUX_MOTIF_ORACLE_REFUND]: 4_000,
   [LUX_MOTIF_WELCOME_GRANT]: 500,
+  [LUX_MOTIF_DAILY_BONUS]: 50,
   [LUX_MOTIF_VAULT_SOFT]: 20_000,
 };
 
@@ -67,6 +69,7 @@ const ALLOWED_LUX_MOTIFS = new Set<string>([
   LUX_MOTIF_CLIENT_SYNC,
   LUX_MOTIF_BOOTSTRAP_RECONCILE,
   LUX_MOTIF_WELCOME_GRANT,
+  LUX_MOTIF_DAILY_BONUS,
   LUX_MOTIF_SHOP_SKIN,
   LUX_MOTIF_SHOP_FORGE,
   LUX_MOTIF_STAKE_ANTE,
@@ -97,6 +100,8 @@ function luxMotifCaps(motif: string): {
   switch (motif) {
     case LUX_MOTIF_WELCOME_GRANT:
       return { maxPositive: 300, maxNegativeMagnitude: 0 };
+    case LUX_MOTIF_DAILY_BONUS:
+      return { maxPositive: 50, maxNegativeMagnitude: 0 };
     case LUX_MOTIF_SHOP_SKIN:
       return {
         maxPositive: MAX_POSITIVE_LUX_DELTA,
@@ -194,6 +199,15 @@ function assertDeltaAllowedForMotif(motif: string, d0: number): void {
     case LUX_MOTIF_WELCOME_GRANT:
       if (d0 < 1 || d0 > 300) {
         rejectMotifDelta(motif, d0, "welcome_grant: delta out of allowed range");
+      }
+      break;
+    case LUX_MOTIF_DAILY_BONUS:
+      if (d0 !== 50) {
+        rejectMotifDelta(
+          motif,
+          d0,
+          "daily_bonus: delta must be exactly 50 LUX"
+        );
       }
       break;
     case LUX_MOTIF_VAULT_SOFT:

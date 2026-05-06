@@ -47,6 +47,16 @@ enum ForgePurchaseOutcome {
   mercySalvageStackFull,
 }
 
+/// Réclamation du bonus LUX quotidien (menu principal).
+enum DailyLuxClaimOutcome {
+  successServerApplied,
+  successQueuedOffline,
+  alreadySyncedServerSide,
+  alreadyClaimedToday,
+  networkUnavailable,
+  callableFailed,
+}
+
 /// Message dock Oracle (tutoriel narratif) — texte résolu via [AppLocalizations].
 enum OracleDockMessageId {
   none,

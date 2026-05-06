@@ -9,6 +9,9 @@ abstract final class LuxApplyMotifs {
 
   static const String welcomeGrant = 'welcome_grant';
 
+  /// Petit crédit quotidien gratuit (serveur borne par jour UTC).
+  static const String dailyBonus = 'daily_bonus';
+
   static const String shopSkin = 'shop_skin';
 
   /// Forge : assurance Oracle, prime royale, chrono, sauvetage — débits boutique.
@@ -34,6 +37,7 @@ abstract final class LuxApplyMotifs {
     oracleInsuranceRefund,
     stakeReward,
     welcomeGrant,
+    dailyBonus,
     vaultSoftCredit,
     velourClientSync,
   ];

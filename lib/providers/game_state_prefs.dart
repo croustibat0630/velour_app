@@ -5,6 +5,9 @@ abstract final class GameStatePrefs {
   static const String isFirstTimeGame = 'velour_is_first_time_game';
   static const String firstLaunch = 'velour_is_first_launch';
   static const String luxCoins = 'velour_lux_coins';
+
+  /// Dernier jour UTC où le bonus LUX quotidien a été réclamé (`yyyy-MM-dd`).
+  static const String lastDailyLuxClaimUtcDay = 'velour_last_daily_lux_claim_utc_day';
   static const String activeSkinId = 'velour_active_skin_id';
   static const String unlockedSkins = 'velour_unlocked_skins';
   static const String highScore = 'velour_high_score';

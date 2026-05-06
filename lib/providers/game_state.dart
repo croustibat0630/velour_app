@@ -31,6 +31,7 @@ import '../services/oracle_naming_service.dart';
 import '../services/trinity_tutorial_service.dart';
 import '../services/stats_service.dart';
 import '../services/velour_observability.dart';
+import '../utils/velour_audit_log.dart';
 import '../utils/velour_debug_log.dart';
 import '../widgets/ui/premium_alert_view.dart';
 
@@ -925,8 +926,24 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     _guidedTutorialReplayPending = false;
     if (kind == SessionStakeKind.highStakes) {
       if (_economy.luxCoins < highStakesAnteLux) {
+        VelourAuditLog.event(
+          'ftue.premium_blocked_insufficient_lux',
+          data: <String, Object?>{
+            'stake': 'high_stakes',
+            'need': highStakesAnteLux,
+            'have': _economy.luxCoins,
+          },
+        );
         return false;
       }
+      VelourAuditLog.event(
+        'ftue.premium_stake_start',
+        data: <String, Object?>{
+          'stake': 'high_stakes',
+          'ante': highStakesAnteLux,
+          'luxBefore': _economy.luxCoins,
+        },
+      );
       addLuxCoins(-highStakesAnteLux, luxCloudMotif: LuxApplyMotifs.stakeAnte);
       _sessionStake = SessionStakeKind.highStakes;
       notifyListeners();
@@ -934,8 +951,24 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     }
     if (kind == SessionStakeKind.royal) {
       if (_economy.luxCoins < royalAnteLux) {
+        VelourAuditLog.event(
+          'ftue.premium_blocked_insufficient_lux',
+          data: <String, Object?>{
+            'stake': 'royal',
+            'need': royalAnteLux,
+            'have': _economy.luxCoins,
+          },
+        );
         return false;
       }
+      VelourAuditLog.event(
+        'ftue.premium_stake_start',
+        data: <String, Object?>{
+          'stake': 'royal',
+          'ante': royalAnteLux,
+          'luxBefore': _economy.luxCoins,
+        },
+      );
       addLuxCoins(-royalAnteLux, luxCloudMotif: LuxApplyMotifs.stakeAnte);
       _sessionStake = SessionStakeKind.royal;
       notifyListeners();
@@ -1018,6 +1051,15 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
         _royalVictoryBountyPending = false;
         unawaited(_persistForgeShopPrefs());
       }
+      VelourAuditLog.event(
+        'ftue.premium_stake_reward',
+        data: <String, Object?>{
+          'stake': _lastEndedRunStakeKind.toString(),
+          'reward': reward,
+          'level': _gameLevel,
+          'footer': r.footerLine.toString(),
+        },
+      );
       addLuxCoins(reward, luxCloudMotif: LuxApplyMotifs.stakeReward);
       _lastStakeRewardLuxCoins = reward;
     } else if (isPremiumStakeFailure(r.footerLine) &&
@@ -1031,6 +1073,14 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
         refundPercentOfAnte: forgeOracleInsuranceRefundPercent,
       );
       if (refund > 0) {
+        VelourAuditLog.event(
+          'ftue.premium_oracle_insurance_refund',
+          data: <String, Object?>{
+            'stake': _lastEndedRunStakeKind.toString(),
+            'refund': refund,
+            'footer': r.footerLine.toString(),
+          },
+        );
         addLuxCoins(
           refund,
           luxCloudMotif: LuxApplyMotifs.oracleInsuranceRefund,
@@ -1039,6 +1089,15 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
         _lastOracleInsuranceRefundLux = refund;
         unawaited(_persistForgeShopPrefs());
       }
+    } else if (isPremiumStakeFailure(r.footerLine)) {
+      VelourAuditLog.event(
+        'ftue.premium_stake_fail',
+        data: <String, Object?>{
+          'stake': _lastEndedRunStakeKind.toString(),
+          'level': _gameLevel,
+          'footer': r.footerLine.toString(),
+        },
+      );
     }
     _replaySuggestedStake = r.replaySuggestedStake;
     _sessionStake = SessionStakeKind.casual;

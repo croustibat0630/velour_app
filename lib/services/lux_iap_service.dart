@@ -501,9 +501,12 @@ class LuxIapService {
     _awaiting = completer;
     _awaitingProductId = productId;
     try {
+      // On iOS (StoreKit), consumables must be auto-consumed by the plugin.
+      // Using autoConsume: false triggers an assertion and crashes in debug.
+      final bool autoConsume = defaultTargetPlatform == TargetPlatform.iOS;
       final bool launched = await _iap.buyConsumable(
         purchaseParam: PurchaseParam(productDetails: details),
-        autoConsume: false,
+        autoConsume: autoConsume,
       );
       if (!launched) {
         _pendingAppleCompletion = null;

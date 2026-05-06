@@ -141,6 +141,18 @@ class AppLocalizationsDe extends AppLocalizations {
       'Server nicht erreichbar (Netz / App Check).';
 
   @override
+  String get luxCloudRejectedUpdateRequired =>
+      'LUX-Sync abgelehnt. Bitte App aktualisieren.';
+
+  @override
+  String get luxCloudRejectedTryLater =>
+      'LUX-Sync abgelehnt. Bitte später erneut versuchen.';
+
+  @override
+  String get luxCloudRejectedGeneric =>
+      'LUX-Sync fehlgeschlagen. Netzwerk prüfen und erneut versuchen.';
+
+  @override
   String get settingsCreditsTitle => 'Mitwirkende';
 
   @override

@@ -32,6 +32,16 @@ class EconomyService extends ChangeNotifier {
 
   final GameStateLocalStore _local;
 
+  int _luxCloudUnrecoverableNoticeId = 0;
+  ({int id, String code, String motif})? _luxCloudUnrecoverableNotice;
+
+  ({int id, String code, String motif})? consumeLuxCloudUnrecoverableNotice() {
+    final ({int id, String code, String motif})? n =
+        _luxCloudUnrecoverableNotice;
+    _luxCloudUnrecoverableNotice = null;
+    return n;
+  }
+
   /// Plafond par **crédit** LUX positif (anti-injection côté client).
   /// Aligné sur [LuxCreditLimits.maxPositiveCreditPerApply].
   static const int maxLuxPerPositiveCredit =
@@ -343,6 +353,13 @@ class EconomyService extends ChangeNotifier {
         final String? fe = r?.functionErrorCode;
         if (fe != null && _luxCallableUnrecoverableCodes.contains(fe)) {
           _pendingLuxByMotifForCloud.remove(motif);
+          _luxCloudUnrecoverableNoticeId++;
+          _luxCloudUnrecoverableNotice = (
+            id: _luxCloudUnrecoverableNoticeId,
+            code: fe,
+            motif: motif,
+          );
+          notifyListeners();
           _economyLog(
             'lux_cloud_delta_unrecoverable',
             data: <String, Object?>{

@@ -334,6 +334,24 @@ abstract class AppLocalizations {
   /// **'Server unreachable (check network / App Check).'**
   String get settingsPingServerFail;
 
+  /// No description provided for @luxCloudRejectedUpdateRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'LUX sync rejected. Please update the app.'**
+  String get luxCloudRejectedUpdateRequired;
+
+  /// No description provided for @luxCloudRejectedTryLater.
+  ///
+  /// In en, this message translates to:
+  /// **'LUX sync rejected. Please try again later.'**
+  String get luxCloudRejectedTryLater;
+
+  /// No description provided for @luxCloudRejectedGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'LUX sync failed. Check network and try again.'**
+  String get luxCloudRejectedGeneric;
+
   /// No description provided for @settingsCreditsTitle.
   ///
   /// In en, this message translates to:

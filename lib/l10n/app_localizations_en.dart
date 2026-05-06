@@ -140,6 +140,18 @@ class AppLocalizationsEn extends AppLocalizations {
       'Server unreachable (check network / App Check).';
 
   @override
+  String get luxCloudRejectedUpdateRequired =>
+      'LUX sync rejected. Please update the app.';
+
+  @override
+  String get luxCloudRejectedTryLater =>
+      'LUX sync rejected. Please try again later.';
+
+  @override
+  String get luxCloudRejectedGeneric =>
+      'LUX sync failed. Check network and try again.';
+
+  @override
   String get settingsCreditsTitle => 'Credits';
 
   @override

@@ -141,6 +141,18 @@ class AppLocalizationsFr extends AppLocalizations {
       'Serveur injoignable (réseau / App Check).';
 
   @override
+  String get luxCloudRejectedUpdateRequired =>
+      'Sync LUX refusée. Mets l’app à jour.';
+
+  @override
+  String get luxCloudRejectedTryLater =>
+      'Sync LUX refusée. Réessaie plus tard.';
+
+  @override
+  String get luxCloudRejectedGeneric =>
+      'Sync LUX en échec. Vérifie ta connexion.';
+
+  @override
   String get settingsCreditsTitle => 'Crédits';
 
   @override

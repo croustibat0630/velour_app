@@ -645,6 +645,10 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     return _economy.takePendingLuxJuice();
   }
 
+  ({int id, String code, String motif})? consumeLuxCloudUnrecoverableNotice() {
+    return _economy.consumeLuxCloudUnrecoverableNotice();
+  }
+
   /// True tant que le cadeau de bienvenue n’a pas été accordé (persisté).
   bool get hasPendingWelcomeGift => _economy.hasPendingWelcomeGift;
 

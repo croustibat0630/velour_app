@@ -23,6 +23,7 @@ import 'screens/shop_view.dart';
 import 'theme/theme_engine.dart';
 import 'widgets/lux_iap_binding.dart';
 import 'widgets/ui/welcome_gift_global_layer.dart';
+import 'widgets/ui/lux_cloud_notice_global_layer.dart';
 import 'utils/route_transition_observer.dart';
 import 'utils/velour_route_observer.dart';
 
@@ -165,6 +166,7 @@ class VelourApp extends StatelessWidget {
                       children: [
                         child ?? const SizedBox.shrink(),
                         const WelcomeGiftGlobalLayer(),
+                        const LuxCloudNoticeGlobalLayer(),
                       ],
                     );
                   },

@@ -75,6 +75,35 @@ void main() {
     expect(e.highScore, 500);
   });
 
+  test(
+    'mergeBootstrapFromCloud préserve la file pending LUX cloud par motif',
+    () async {
+      final GameStateLocalStore store = const GameStateLocalStore();
+      final EconomyService e = EconomyService(localStore: store);
+      e.hydrateLuxAndWelcomeFromDisk(_disk(lux: 40));
+      e.addLuxCoins(100, luxCloudMotif: LuxApplyMotifs.stakeReward);
+      expect(e.luxCoins, 140);
+
+      await e.mergeBootstrapFromCloud(
+        pulled: (
+          inventory: null,
+          activeSkinId: null,
+          cloudLuxCoins: 50,
+          cloudHighScore: 10,
+        ),
+        pendingLux: null,
+        pendingHigh: null,
+      );
+
+      expect(e.luxCoins, 140);
+      expect(e.highScore, 10);
+
+      final Map<String, List<int>> loaded =
+          await store.loadPendingLuxByMotifForCloud();
+      expect(loaded[LuxApplyMotifs.stakeReward], <int>[100]);
+    },
+  );
+
   test('commitRunHighScoreIfBetter notifie le callback une fois', () async {
     final EconomyService e = EconomyService();
     int? seen;

@@ -13,7 +13,7 @@ Document de référence pour la mise à niveau « appli sérieuse » : sécurit�
   - Optionnel : **Firebase App Check** pour réduire les appels automatisés aux callables.
 - Le client migre progressivement : écriture directe désactivée dans les règles une fois la callable stable.
 
-**État livré (première tranche) :** `velourApplyLuxDelta` exige un **`motif`** parmi une liste serveur (`velour_client_sync`, `bootstrap_reconcile`), écrit une ligne **`players/{uid}/luxLedger/*`** par delta appliqué non nul, et accepte une **`idempotencyKey`** optionnelle (doc **`luxDedup`**, rejouer = même réponse). Le client envoie le motif approprié (`LuxApplyMotifs` côté Dart).
+**État livré (première tranche) :** `velourApplyLuxDelta` exige un **`motif`** parmi une liste serveur (`velour_client_sync`, `bootstrap_reconcile`), écrit une ligne **`players/{uid}/luxLedger/*`** par delta appliqué non nul, et utilise une **`idempotencyKey`** pour **`luxDedup`** (rejouer avec la même clé = même réponse). Le client Flutter envoie systématiquement une clé non vide (`FirestoreService`) ; la callable peut encore compléter une clé absente pour compatibilité. Le motif approprié est celui de `LuxApplyMotifs` côté Dart.
 
 **Suite :** motifs métier (`welcome_grant`, `shop_skin`, `shop_forge_consumable`, `stake_ante`, `stake_reward`, `oracle_insurance_refund`, `vault_soft_credit`) + **tampons cloud séparés par motif** côté `EconomyService` (vidage ordonné). Plafonds **par motif** côté CF (ex. forge / mise plus stricts que le fallback `velour_client_sync`). Crédits **IAP** : `velourGrantIapLux` met déjà à jour `totalLux` — le client met à jour le portefeuille local avec **`recordCloudPending: false`** pour éviter un second passage par `velourApplyLuxDelta`.
 

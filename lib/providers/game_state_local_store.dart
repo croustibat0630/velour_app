@@ -51,42 +51,65 @@ class GameStateLocalStore {
     } catch (_) {}
   }
 
-  Future<Map<String, int>> loadPendingLuxByMotifForCloud() async {
+  Future<Map<String, List<int>>> loadPendingLuxByMotifForCloud() async {
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       final String? raw = prefs.getString(GameStatePrefs.pendingLuxByMotifJson);
-      if (raw == null || raw.isEmpty) return <String, int>{};
+      if (raw == null || raw.isEmpty) return <String, List<int>>{};
       final Object? decoded = jsonDecode(raw);
-      if (decoded is! Map) return <String, int>{};
-      final Map<String, int> out = <String, int>{};
+      if (decoded is! Map) return <String, List<int>>{};
+      final Map<String, List<int>> out = <String, List<int>>{};
       for (final MapEntry entry in decoded.entries) {
         final Object? k0 = entry.key;
         final Object? v0 = entry.value;
         if (k0 is! String) continue;
-        if (v0 is! num) continue;
-        final int v = v0.toInt();
-        if (v == 0) continue;
-        out[k0] = v;
+        // Nouveau format: { motif: [int, int, ...] }
+        if (v0 is List) {
+          final List<int> q = <int>[];
+          for (final Object? e in v0) {
+            if (e is! num) continue;
+            final int v = e.toInt();
+            if (v == 0) continue;
+            q.add(v);
+          }
+          if (q.isEmpty) continue;
+          out[k0] = q;
+          continue;
+        }
+        // Ancien format (migration): { motif: intSum }
+        if (v0 is num) {
+          final int v = v0.toInt();
+          if (v == 0) continue;
+          out[k0] = <int>[v];
+        }
       }
       return out;
     } catch (_) {
-      return <String, int>{};
+      return <String, List<int>>{};
     }
   }
 
-  Future<void> persistPendingLuxByMotifForCloud(Map<String, int> pending) async {
+  Future<void> persistPendingLuxByMotifForCloud(
+    Map<String, List<int>> pending,
+  ) async {
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       if (pending.isEmpty) {
         await prefs.remove(GameStatePrefs.pendingLuxByMotifJson);
         return;
       }
-      final Map<String, int> clean = <String, int>{};
-      for (final MapEntry<String, int> e in pending.entries) {
+      final Map<String, List<int>> clean = <String, List<int>>{};
+      for (final MapEntry<String, List<int>> e in pending.entries) {
         final String k = e.key;
-        final int v = e.value;
-        if (k.isEmpty || v == 0) continue;
-        clean[k] = v;
+        final List<int> v = e.value;
+        if (k.isEmpty || v.isEmpty) continue;
+        final List<int> q = <int>[];
+        for (final int d in v) {
+          if (d == 0) continue;
+          q.add(d);
+        }
+        if (q.isEmpty) continue;
+        clean[k] = q;
       }
       if (clean.isEmpty) {
         await prefs.remove(GameStatePrefs.pendingLuxByMotifJson);

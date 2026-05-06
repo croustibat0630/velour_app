@@ -698,7 +698,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
       final EconomyWelcomeLoad? disk = await _localDisk.loadEconomyWelcome();
       if (disk == null) return false;
       _economy.hydrateLuxAndWelcomeFromDisk(disk);
-      final Map<String, int> pending =
+      final Map<String, List<int>> pending =
           await _localDisk.loadPendingLuxByMotifForCloud();
       _economy.hydratePendingLuxByMotifFromDisk(pending);
       _trinityTutorial.hydrateCompleteFromDisk(disk.trinityTutorialComplete);

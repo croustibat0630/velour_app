@@ -53,7 +53,8 @@ class EconomyService extends ChangeNotifier {
   Timer? _pendingLuxPersistDebounce;
 
   /// Deltas LUX à pousser vers la callable, **par motif** (journal / plafonds serveur).
-  final Map<String, int> _pendingLuxByMotifForCloud = <String, int>{};
+  final Map<String, List<int>> _pendingLuxByMotifForCloud =
+      <String, List<int>>{};
 
   // Avoid log spam when offline: we only emit a fail log periodically,
   // or when the pending amount changes.
@@ -101,7 +102,7 @@ class EconomyService extends ChangeNotifier {
     notifyListeners();
   }
 
-  void hydratePendingLuxByMotifFromDisk(Map<String, int> pending) {
+  void hydratePendingLuxByMotifFromDisk(Map<String, List<int>> pending) {
     if (pending.isEmpty) return;
     if (_pendingLuxByMotifForCloud.isNotEmpty) return;
     _pendingLuxByMotifForCloud.addAll(pending);
@@ -155,8 +156,10 @@ class EconomyService extends ChangeNotifier {
       pendingLuxAnimation += appliedDelta;
     }
     if (recordCloudPending) {
-      final int prevP = _pendingLuxByMotifForCloud[luxCloudMotif] ?? 0;
-      _pendingLuxByMotifForCloud[luxCloudMotif] = prevP + appliedDelta;
+      final List<int> q =
+          _pendingLuxByMotifForCloud[luxCloudMotif] ?? <int>[];
+      q.add(appliedDelta);
+      _pendingLuxByMotifForCloud[luxCloudMotif] = q;
       _schedulePersistPendingLuxByMotif();
     }
     _economyLog(
@@ -200,9 +203,11 @@ class EconomyService extends ChangeNotifier {
       pendingLuxAnimation += delta;
       _pendingLuxJuiceSilent = true;
     }
-    final int prevP =
-        _pendingLuxByMotifForCloud[LuxApplyMotifs.welcomeGrant] ?? 0;
-    _pendingLuxByMotifForCloud[LuxApplyMotifs.welcomeGrant] = prevP + delta;
+    // (prevP unused) keep intent visible without aggregating.
+    final List<int> q =
+        _pendingLuxByMotifForCloud[LuxApplyMotifs.welcomeGrant] ?? <int>[];
+    q.add(delta);
+    _pendingLuxByMotifForCloud[LuxApplyMotifs.welcomeGrant] = q;
     _schedulePersistPendingLuxByMotif();
     _economyLog('welcome_grant', data: {'lux': _luxCoins});
     notifyListeners();
@@ -316,18 +321,26 @@ class EconomyService extends ChangeNotifier {
   }
 
   bool _hasPendingLuxCloudDeltas() {
-    for (final int v in _pendingLuxByMotifForCloud.values) {
-      if (v != 0) return true;
+    for (final List<int> q in _pendingLuxByMotifForCloud.values) {
+      if (q.isEmpty) continue;
+      for (final int v in q) {
+        if (v != 0) return true;
+      }
     }
     return false;
   }
 
   String? _firstPendingLuxCloudMotif() {
     for (final String m in LuxApplyMotifs.cloudDrainOrder) {
-      if ((_pendingLuxByMotifForCloud[m] ?? 0) != 0) return m;
+      final List<int>? q = _pendingLuxByMotifForCloud[m];
+      if (q == null || q.isEmpty) continue;
+      if (q.any((int v) => v != 0)) return m;
     }
-    for (final MapEntry<String, int> e in _pendingLuxByMotifForCloud.entries) {
-      if (e.value != 0) return e.key;
+    for (final MapEntry<String, List<int>> e
+        in _pendingLuxByMotifForCloud.entries) {
+      final List<int> q = e.value;
+      if (q.isEmpty) continue;
+      if (q.any((int v) => v != 0)) return e.key;
     }
     return null;
   }
@@ -341,22 +354,39 @@ class EconomyService extends ChangeNotifier {
     while (_hasPendingLuxCloudDeltas()) {
       final String? motif = _firstPendingLuxCloudMotif();
       if (motif == null) break;
-      final int pendingForMotif = _pendingLuxByMotifForCloud[motif] ?? 0;
-      if (pendingForMotif == 0) continue;
+      final List<int> q = _pendingLuxByMotifForCloud[motif] ?? <int>[];
+      if (q.isEmpty) {
+        _pendingLuxByMotifForCloud.remove(motif);
+        continue;
+      }
+      // Nettoie les zéros en tête si besoin.
+      while (q.isNotEmpty && q.first == 0) {
+        q.removeAt(0);
+      }
+      if (q.isEmpty) {
+        _pendingLuxByMotifForCloud.remove(motif);
+        _schedulePersistPendingLuxByMotif();
+        continue;
+      }
 
-      final int d = pendingForMotif;
-      final int step = FirestoreService.chunkLuxDeltaForCallable(d);
+      final int d0 = q.first;
+      final int step = FirestoreService.chunkLuxDeltaForCallable(d0);
       if (step == 0) break;
 
       final LuxDeltaApplyResult? r = await FirestoreService.instance
           .tryApplyLuxDeltaViaCallable(step, motif: motif);
       if (r != null && r.ok) {
         final int applied = r.appliedDelta ?? step;
-        final int nextP = pendingForMotif - applied;
-        if (nextP == 0) {
+        final int remaining = d0 - applied;
+        if (remaining == 0) {
+          q.removeAt(0);
+        } else {
+          q[0] = remaining;
+        }
+        if (q.isEmpty) {
           _pendingLuxByMotifForCloud.remove(motif);
         } else {
-          _pendingLuxByMotifForCloud[motif] = nextP;
+          _pendingLuxByMotifForCloud[motif] = q;
         }
         _schedulePersistPendingLuxByMotif();
         final int? serverLux = r.newLux;
@@ -369,7 +399,7 @@ class EconomyService extends ChangeNotifier {
           'lux_cloud_delta_ok',
           data: <String, Object?>{
             'motif': motif,
-            'requested': d,
+            'requested': d0,
             'chunk': step,
             'applied': applied,
             'lux': _luxCoins,
@@ -378,7 +408,15 @@ class EconomyService extends ChangeNotifier {
       } else {
         final String? fe = r?.functionErrorCode;
         if (fe != null && _luxCallableUnrecoverableCodes.contains(fe)) {
-          _pendingLuxByMotifForCloud.remove(motif);
+          // Drop uniquement le delta courant pour ce motif (pas tout le motif).
+          if (q.isNotEmpty) {
+            q.removeAt(0);
+          }
+          if (q.isEmpty) {
+            _pendingLuxByMotifForCloud.remove(motif);
+          } else {
+            _pendingLuxByMotifForCloud[motif] = q;
+          }
           _schedulePersistPendingLuxByMotif();
           _luxCloudUnrecoverableNoticeId++;
           _luxCloudUnrecoverableNotice = (
@@ -408,7 +446,7 @@ class EconomyService extends ChangeNotifier {
           break;
         }
         final int now = DateTime.now().microsecondsSinceEpoch;
-        final String failKey = '$motif|$d';
+        final String failKey = '$motif|$d0';
         final bool pendingChanged = _lastLuxCloudFailPending != failKey;
         final bool rateOk =
             (now - _lastLuxCloudFailLogMicros) > 5 * 1000 * 1000;
@@ -419,7 +457,7 @@ class EconomyService extends ChangeNotifier {
             'lux_cloud_delta_fail',
             data: <String, Object?>{
               'motif': motif,
-              'requested': d,
+              'requested': d0,
               'chunk': step,
               'lux': _luxCoins,
               if (forceOffline) 'forcedOffline': true,
@@ -430,7 +468,7 @@ class EconomyService extends ChangeNotifier {
           'lux_cloud_drain_failed',
           data: <String, Object?>{
             'motif': motif,
-            'pending': d,
+            'pending': d0,
             'lux': _luxCoins,
           },
         );

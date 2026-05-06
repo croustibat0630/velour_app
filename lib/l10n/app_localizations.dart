@@ -286,6 +286,54 @@ abstract class AppLocalizations {
   /// **'Version'**
   String get settingsVersionLabel;
 
+  /// No description provided for @settingsCopyPlayerIdTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy player ID'**
+  String get settingsCopyPlayerIdTitle;
+
+  /// No description provided for @settingsCopyPlayerIdSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Useful for support and bug reports'**
+  String get settingsCopyPlayerIdSubtitle;
+
+  /// No description provided for @settingsCopyPlayerIdFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Player ID not available yet.'**
+  String get settingsCopyPlayerIdFailed;
+
+  /// No description provided for @settingsCopyPlayerIdSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied: {uid}'**
+  String settingsCopyPlayerIdSnack(String uid);
+
+  /// No description provided for @settingsPingServerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Server status'**
+  String get settingsPingServerTitle;
+
+  /// No description provided for @settingsPingServerSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ping backend (velourHealth)'**
+  String get settingsPingServerSubtitle;
+
+  /// No description provided for @settingsPingServerOk.
+  ///
+  /// In en, this message translates to:
+  /// **'Server OK.'**
+  String get settingsPingServerOk;
+
+  /// No description provided for @settingsPingServerFail.
+  ///
+  /// In en, this message translates to:
+  /// **'Server unreachable (check network / App Check).'**
+  String get settingsPingServerFail;
+
   /// No description provided for @settingsCreditsTitle.
   ///
   /// In en, this message translates to:

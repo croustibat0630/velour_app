@@ -86,6 +86,19 @@
   "settingsHapticsOff": "Off",
   "settingsSectionInfos": "INFO",
   "settingsVersionLabel": "Version",
+  "settingsCopyPlayerIdTitle": "Copy player ID",
+  "settingsCopyPlayerIdSubtitle": "Useful for support and bug reports",
+  "settingsCopyPlayerIdFailed": "Player ID not available yet.",
+  "settingsCopyPlayerIdSnack": "Copied: {uid}",
+  "@settingsCopyPlayerIdSnack": {
+    "placeholders": {
+      "uid": {"type": "String"}
+    }
+  },
+  "settingsPingServerTitle": "Server status",
+  "settingsPingServerSubtitle": "Ping backend (velourHealth)",
+  "settingsPingServerOk": "Server OK.",
+  "settingsPingServerFail": "Server unreachable (check network / App Check).",
   "settingsCreditsTitle": "Credits",
   "settingsCreditsSubtitle": "See contributors",
   "settingsSectionDebug": "DEBUG",

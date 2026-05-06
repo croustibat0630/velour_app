@@ -79,6 +79,7 @@ class FirestoreService {
       .asBroadcastStream();
 
   bool get isCloudReady => _authReady && _playerRef != null;
+  String? get uid => _uid;
 
   /// UID courant (auth Firebase), sans dépendre de [initializeAuthAndPullSkins].
   String? get currentFirebaseUserId {
@@ -621,6 +622,52 @@ class FirestoreService {
         context: <String, Object?>{'delta': delta, 'motif': motif},
       );
       return null;
+    }
+  }
+
+  /// Ping simple de santé côté serveur (callable `velourHealth`).
+  ///
+  /// Retourne `true` si la callable répond avec `{ ok: true }`.
+  Future<bool> pingVelourHealth() async {
+    const bool forceOffline = bool.fromEnvironment(
+      'VELOUR_FORCE_OFFLINE',
+      defaultValue: false,
+    );
+    if (forceOffline) return false;
+    if (!isCloudReady) {
+      await ensureAnonymousAuthReady();
+    }
+    if (!isCloudReady) return false;
+
+    try {
+      final FirebaseFunctions fns = FirebaseFunctions.instanceFor(
+        app: Firebase.app(),
+        region: cloudFunctionsRegion,
+      );
+      final HttpsCallable callable = fns.httpsCallable(
+        'velourHealth',
+        options: HttpsCallableOptions(timeout: const Duration(seconds: 12)),
+      );
+      final HttpsCallableResult res = await callable.call(<String, dynamic>{});
+      final Object? data = res.data;
+      if (data is! Map) return false;
+      final Map<String, dynamic> raw = Map<String, dynamic>.from(data);
+      return raw['ok'] == true;
+    } on FirebaseFunctionsException catch (e, st) {
+      VelourObservability.logFirestoreFailure(
+        'velourHealth',
+        error: e,
+        stackTrace: st,
+        context: <String, Object?>{'code': e.code},
+      );
+      return false;
+    } catch (e, st) {
+      VelourObservability.logFirestoreFailure(
+        'velourHealth',
+        error: e,
+        stackTrace: st,
+      );
+      return false;
     }
   }
 

@@ -31,6 +31,19 @@
   "settingsHapticsOff": "Désactivé",
   "settingsSectionInfos": "INFOS",
   "settingsVersionLabel": "Version",
+  "settingsCopyPlayerIdTitle": "Copier l’ID joueur",
+  "settingsCopyPlayerIdSubtitle": "Utile pour l’assistance et les bugs",
+  "settingsCopyPlayerIdFailed": "ID joueur indisponible pour l’instant.",
+  "settingsCopyPlayerIdSnack": "Copié : {uid}",
+  "@settingsCopyPlayerIdSnack": {
+    "placeholders": {
+      "uid": {"type": "String"}
+    }
+  },
+  "settingsPingServerTitle": "État serveur",
+  "settingsPingServerSubtitle": "Ping backend (velourHealth)",
+  "settingsPingServerOk": "Serveur OK.",
+  "settingsPingServerFail": "Serveur injoignable (réseau / App Check).",
   "settingsCreditsTitle": "Crédits",
   "settingsCreditsSubtitle": "Voir les contributeurs",
   "settingsSectionDebug": "DEBUG",

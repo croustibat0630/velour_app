@@ -86,6 +86,19 @@
   "settingsHapticsOff": "Aus",
   "settingsSectionInfos": "INFO",
   "settingsVersionLabel": "Version",
+  "settingsCopyPlayerIdTitle": "Spieler-ID kopieren",
+  "settingsCopyPlayerIdSubtitle": "Hilfreich für Support und Bug-Reports",
+  "settingsCopyPlayerIdFailed": "Spieler-ID ist noch nicht verfügbar.",
+  "settingsCopyPlayerIdSnack": "Kopiert: {uid}",
+  "@settingsCopyPlayerIdSnack": {
+    "placeholders": {
+      "uid": {"type": "String"}
+    }
+  },
+  "settingsPingServerTitle": "Serverstatus",
+  "settingsPingServerSubtitle": "Backend anpingen (velourHealth)",
+  "settingsPingServerOk": "Server OK.",
+  "settingsPingServerFail": "Server nicht erreichbar (Netz / App Check).",
   "settingsCreditsTitle": "Mitwirkende",
   "settingsCreditsSubtitle": "Contributors anzeigen",
   "settingsSectionDebug": "DEBUG",

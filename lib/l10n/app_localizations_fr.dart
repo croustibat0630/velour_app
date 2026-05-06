@@ -112,6 +112,35 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settingsVersionLabel => 'Version';
 
   @override
+  String get settingsCopyPlayerIdTitle => 'Copier l’ID joueur';
+
+  @override
+  String get settingsCopyPlayerIdSubtitle =>
+      'Utile pour l’assistance et les bugs';
+
+  @override
+  String get settingsCopyPlayerIdFailed =>
+      'ID joueur indisponible pour l’instant.';
+
+  @override
+  String settingsCopyPlayerIdSnack(String uid) {
+    return 'Copié : $uid';
+  }
+
+  @override
+  String get settingsPingServerTitle => 'État serveur';
+
+  @override
+  String get settingsPingServerSubtitle => 'Ping backend (velourHealth)';
+
+  @override
+  String get settingsPingServerOk => 'Serveur OK.';
+
+  @override
+  String get settingsPingServerFail =>
+      'Serveur injoignable (réseau / App Check).';
+
+  @override
   String get settingsCreditsTitle => 'Crédits';
 
   @override

@@ -112,6 +112,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsVersionLabel => 'Version';
 
   @override
+  String get settingsCopyPlayerIdTitle => 'Copy player ID';
+
+  @override
+  String get settingsCopyPlayerIdSubtitle =>
+      'Useful for support and bug reports';
+
+  @override
+  String get settingsCopyPlayerIdFailed => 'Player ID not available yet.';
+
+  @override
+  String settingsCopyPlayerIdSnack(String uid) {
+    return 'Copied: $uid';
+  }
+
+  @override
+  String get settingsPingServerTitle => 'Server status';
+
+  @override
+  String get settingsPingServerSubtitle => 'Ping backend (velourHealth)';
+
+  @override
+  String get settingsPingServerOk => 'Server OK.';
+
+  @override
+  String get settingsPingServerFail =>
+      'Server unreachable (check network / App Check).';
+
+  @override
   String get settingsCreditsTitle => 'Credits';
 
   @override

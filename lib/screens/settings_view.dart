@@ -2,12 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:velour_app/l10n/app_localizations.dart';
 
 import '../services/audio_handler.dart';
 import '../services/app_settings.dart';
+import '../services/firestore_service.dart';
 import '../services/haptics_handler.dart';
 import '../providers/game_state.dart';
 import '../utils/responsive.dart';
@@ -170,6 +172,67 @@ class SettingsView extends StatelessWidget {
                                 icon: Icons.info_outline_rounded,
                                 title: l10n.settingsVersionLabel,
                                 accent: accent,
+                              ),
+                              const _TileDivider(),
+                              _ActionTile(
+                                icon: Icons.badge_outlined,
+                                title: l10n.settingsCopyPlayerIdTitle,
+                                subtitle: l10n.settingsCopyPlayerIdSubtitle,
+                                accent: accent,
+                                onTap: () {
+                                  unawaited(() async {
+                                    await FirestoreService.instance
+                                        .ensureAnonymousAuthReady();
+                                    final String? uid =
+                                        FirestoreService.instance.uid;
+                                    if (!context.mounted) return;
+                                    if (uid == null || uid.isEmpty) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            l10n.settingsCopyPlayerIdFailed,
+                                          ),
+                                        ),
+                                      );
+                                      return;
+                                    }
+                                    await Clipboard.setData(
+                                      ClipboardData(text: uid),
+                                    );
+                                    if (!context.mounted) return;
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          l10n.settingsCopyPlayerIdSnack(uid),
+                                        ),
+                                      ),
+                                    );
+                                  }());
+                                },
+                              ),
+                              const _TileDivider(),
+                              _ActionTile(
+                                icon: Icons.cloud_done_outlined,
+                                title: l10n.settingsPingServerTitle,
+                                subtitle: l10n.settingsPingServerSubtitle,
+                                accent: accent,
+                                onTap: () {
+                                  unawaited(() async {
+                                    final bool ok = await FirestoreService
+                                        .instance
+                                        .pingVelourHealth();
+                                    if (!context.mounted) return;
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          ok
+                                              ? l10n.settingsPingServerOk
+                                              : l10n.settingsPingServerFail,
+                                        ),
+                                      ),
+                                    );
+                                  }());
+                                },
                               ),
                               const _TileDivider(),
                               _ActionTile(

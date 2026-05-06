@@ -698,6 +698,9 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
       final EconomyWelcomeLoad? disk = await _localDisk.loadEconomyWelcome();
       if (disk == null) return false;
       _economy.hydrateLuxAndWelcomeFromDisk(disk);
+      final Map<String, int> pending =
+          await _localDisk.loadPendingLuxByMotifForCloud();
+      _economy.hydratePendingLuxByMotifFromDisk(pending);
       _trinityTutorial.hydrateCompleteFromDisk(disk.trinityTutorialComplete);
       // Cohérence : la trinité marquée « faite » implique que la première partie narrative est passée.
       bool firstTime = disk.isFirstTimeGame;

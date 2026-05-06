@@ -50,6 +50,7 @@ class EconomyService extends ChangeNotifier {
   static const int welcomeLuxGrant = 250;
 
   Timer? _luxCloudSyncDebounce;
+  Timer? _pendingLuxPersistDebounce;
 
   /// Deltas LUX à pousser vers la callable, **par motif** (journal / plafonds serveur).
   final Map<String, int> _pendingLuxByMotifForCloud = <String, int>{};
@@ -83,6 +84,7 @@ class EconomyService extends ChangeNotifier {
   @override
   void dispose() {
     _luxCloudSyncDebounce?.cancel();
+    _pendingLuxPersistDebounce?.cancel();
     super.dispose();
   }
 
@@ -97,6 +99,24 @@ class EconomyService extends ChangeNotifier {
       data: {'lux': _luxCoins, 'firstLaunch': _firstLaunchPendingWelcome},
     );
     notifyListeners();
+  }
+
+  void hydratePendingLuxByMotifFromDisk(Map<String, int> pending) {
+    if (pending.isEmpty) return;
+    if (_pendingLuxByMotifForCloud.isNotEmpty) return;
+    _pendingLuxByMotifForCloud.addAll(pending);
+    _economyLog(
+      'lux_pending_hydrate_disk',
+      data: <String, Object?>{'motifs': pending.length},
+    );
+    _schedulePersistPendingLuxByMotif();
+  }
+
+  void _schedulePersistPendingLuxByMotif() {
+    _pendingLuxPersistDebounce?.cancel();
+    _pendingLuxPersistDebounce = Timer(const Duration(milliseconds: 500), () {
+      unawaited(_local.persistPendingLuxByMotifForCloud(_pendingLuxByMotifForCloud));
+    });
   }
 
   Future<void> loadHighScoreFromDisk() async {
@@ -137,6 +157,7 @@ class EconomyService extends ChangeNotifier {
     if (recordCloudPending) {
       final int prevP = _pendingLuxByMotifForCloud[luxCloudMotif] ?? 0;
       _pendingLuxByMotifForCloud[luxCloudMotif] = prevP + appliedDelta;
+      _schedulePersistPendingLuxByMotif();
     }
     _economyLog(
       'lux_delta',
@@ -182,6 +203,7 @@ class EconomyService extends ChangeNotifier {
     final int prevP =
         _pendingLuxByMotifForCloud[LuxApplyMotifs.welcomeGrant] ?? 0;
     _pendingLuxByMotifForCloud[LuxApplyMotifs.welcomeGrant] = prevP + delta;
+    _schedulePersistPendingLuxByMotif();
     _economyLog('welcome_grant', data: {'lux': _luxCoins});
     notifyListeners();
     await _local.persistWelcomeGrant(_luxCoins);
@@ -193,6 +215,7 @@ class EconomyService extends ChangeNotifier {
     _luxCoins = 0;
     _firstLaunchPendingWelcome = true;
     _pendingLuxByMotifForCloud.clear();
+    _schedulePersistPendingLuxByMotif();
     _economyLog('debug_reset_welcome', data: const {});
     notifyListeners();
   }
@@ -206,6 +229,7 @@ class EconomyService extends ChangeNotifier {
     pendingLuxAnimation = 0;
     _pendingLuxJuiceSilent = false;
     _pendingLuxByMotifForCloud.clear();
+    _schedulePersistPendingLuxByMotif();
     _luxCloudSyncDebounce?.cancel();
     _luxCloudSyncDebounce = null;
     _economyLog('hard_reset', data: const {});
@@ -218,6 +242,7 @@ class EconomyService extends ChangeNotifier {
     required int? pendingHigh,
   }) async {
     _pendingLuxByMotifForCloud.clear();
+    _schedulePersistPendingLuxByMotif();
     final int mergedLux = math.max(
       math.max(_luxCoins, pulled.cloudLuxCoins),
       pendingLux ?? 0,
@@ -333,6 +358,7 @@ class EconomyService extends ChangeNotifier {
         } else {
           _pendingLuxByMotifForCloud[motif] = nextP;
         }
+        _schedulePersistPendingLuxByMotif();
         final int? serverLux = r.newLux;
         if (serverLux != null && serverLux != _luxCoins) {
           _luxCoins = math.max(_luxCoins, serverLux);
@@ -353,6 +379,7 @@ class EconomyService extends ChangeNotifier {
         final String? fe = r?.functionErrorCode;
         if (fe != null && _luxCallableUnrecoverableCodes.contains(fe)) {
           _pendingLuxByMotifForCloud.remove(motif);
+          _schedulePersistPendingLuxByMotif();
           _luxCloudUnrecoverableNoticeId++;
           _luxCloudUnrecoverableNotice = (
             id: _luxCloudUnrecoverableNoticeId,

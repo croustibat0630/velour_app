@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'game_state_prefs.dart';
@@ -49,6 +51,54 @@ class GameStateLocalStore {
     } catch (_) {}
   }
 
+  Future<Map<String, int>> loadPendingLuxByMotifForCloud() async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final String? raw = prefs.getString(GameStatePrefs.pendingLuxByMotifJson);
+      if (raw == null || raw.isEmpty) return <String, int>{};
+      final Object? decoded = jsonDecode(raw);
+      if (decoded is! Map) return <String, int>{};
+      final Map<String, int> out = <String, int>{};
+      for (final MapEntry entry in decoded.entries) {
+        final Object? k0 = entry.key;
+        final Object? v0 = entry.value;
+        if (k0 is! String) continue;
+        if (v0 is! num) continue;
+        final int v = v0.toInt();
+        if (v == 0) continue;
+        out[k0] = v;
+      }
+      return out;
+    } catch (_) {
+      return <String, int>{};
+    }
+  }
+
+  Future<void> persistPendingLuxByMotifForCloud(Map<String, int> pending) async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      if (pending.isEmpty) {
+        await prefs.remove(GameStatePrefs.pendingLuxByMotifJson);
+        return;
+      }
+      final Map<String, int> clean = <String, int>{};
+      for (final MapEntry<String, int> e in pending.entries) {
+        final String k = e.key;
+        final int v = e.value;
+        if (k.isEmpty || v == 0) continue;
+        clean[k] = v;
+      }
+      if (clean.isEmpty) {
+        await prefs.remove(GameStatePrefs.pendingLuxByMotifJson);
+        return;
+      }
+      await prefs.setString(
+        GameStatePrefs.pendingLuxByMotifJson,
+        jsonEncode(clean),
+      );
+    } catch (_) {}
+  }
+
   Future<void> persistSkinsLocal({
     required String activeSkinId,
     required List<String> unlockedSkins,
@@ -73,6 +123,7 @@ class GameStateLocalStore {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setBool(GameStatePrefs.firstLaunch, true);
       await prefs.setInt(GameStatePrefs.luxCoins, 0);
+      await prefs.remove(GameStatePrefs.pendingLuxByMotifJson);
     } catch (_) {}
   }
 

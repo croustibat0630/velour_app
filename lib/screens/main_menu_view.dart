@@ -366,7 +366,8 @@ class _MainMenuViewState extends State<MainMenuView>
                               ),
                               SizedBox(height: 16 * scaleH),
                             ],
-                            if (gs.canClaimDailyLuxBonus || _dailyLuxClaimBusy) ...[
+                            if (gs.canClaimDailyLuxBonus ||
+                                _dailyLuxClaimBusy) ...[
                               MenuTextButton(
                                 label: l10n.menuDailyLuxBonus(
                                   GameState.dailyLuxBonusAmount,

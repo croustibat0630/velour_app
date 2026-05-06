@@ -187,7 +187,9 @@ class SettingsView extends StatelessWidget {
                                         FirestoreService.instance.uid;
                                     if (!context.mounted) return;
                                     if (uid == null || uid.isEmpty) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
                                         SnackBar(
                                           content: Text(
                                             l10n.settingsCopyPlayerIdFailed,
@@ -243,8 +245,8 @@ class SettingsView extends StatelessWidget {
                                 onTap: () {
                                   unawaited(() async {
                                     final BuildContext safeContext = context;
-                                    final PackageInfo pkg = await PackageInfo
-                                        .fromPlatform();
+                                    final PackageInfo pkg =
+                                        await PackageInfo.fromPlatform();
                                     await FirestoreService.instance
                                         .ensureAnonymousAuthReady();
                                     final String uid =
@@ -270,7 +272,9 @@ class SettingsView extends StatelessWidget {
                                       ClipboardData(text: diag),
                                     );
                                     if (!safeContext.mounted) return;
-                                    ScaffoldMessenger.of(safeContext).showSnackBar(
+                                    ScaffoldMessenger.of(
+                                      safeContext,
+                                    ).showSnackBar(
                                       SnackBar(
                                         content: Text(
                                           l10n.settingsCopyDiagnosticsSnack,

@@ -98,8 +98,8 @@ void main() {
       expect(e.luxCoins, 140);
       expect(e.highScore, 10);
 
-      final Map<String, List<int>> loaded =
-          await store.loadPendingLuxByMotifForCloud();
+      final Map<String, List<int>> loaded = await store
+          .loadPendingLuxByMotifForCloud();
       expect(loaded[LuxApplyMotifs.stakeReward], <int>[100]);
     },
   );

@@ -29,6 +29,7 @@ typedef LuxDeltaApplyResult = ({
   int? newLux,
   int? prevLux,
   int? appliedDelta,
+
   /// Code [FirebaseFunctionsException.code] si l’appel a échoué côté Functions.
   String? functionErrorCode,
 });
@@ -556,8 +557,10 @@ class FirestoreService {
     if (forceOffline) {
       return null;
     }
-    final String resolvedKey =
-        _resolvedLuxApplyIdempotencyKey(motif, idempotencyKey);
+    final String resolvedKey = _resolvedLuxApplyIdempotencyKey(
+      motif,
+      idempotencyKey,
+    );
     try {
       final FirebaseFunctions fns = FirebaseFunctions.instanceFor(
         app: Firebase.app(),

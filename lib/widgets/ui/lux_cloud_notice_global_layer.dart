@@ -38,8 +38,8 @@ class _LuxCloudNoticeGlobalLayerState extends State<LuxCloudNoticeGlobalLayer> {
 
   void _onGameState() {
     if (!mounted) return;
-    final ({int id, String code, String motif})? n =
-        _gameState?.consumeLuxCloudUnrecoverableNotice();
+    final ({int id, String code, String motif})? n = _gameState
+        ?.consumeLuxCloudUnrecoverableNotice();
     if (n == null) return;
     if (n.id <= _consumedId) return;
     _consumedId = n.id;
@@ -49,7 +49,9 @@ class _LuxCloudNoticeGlobalLayerState extends State<LuxCloudNoticeGlobalLayer> {
   Future<void> _showNotice(String code, String motif) async {
     await Future<void>.delayed(Duration.zero);
     if (!mounted) return;
-    final ScaffoldMessengerState? messenger = ScaffoldMessenger.maybeOf(context);
+    final ScaffoldMessengerState? messenger = ScaffoldMessenger.maybeOf(
+      context,
+    );
     if (messenger == null) return;
     final AppLocalizations l10n = AppLocalizations.of(context)!;
 
@@ -60,10 +62,7 @@ class _LuxCloudNoticeGlobalLayerState extends State<LuxCloudNoticeGlobalLayer> {
     };
 
     messenger.showSnackBar(
-      SnackBar(
-        content: Text(text),
-        duration: const Duration(seconds: 4),
-      ),
+      SnackBar(content: Text(text), duration: const Duration(seconds: 4)),
     );
   }
 
@@ -72,4 +71,3 @@ class _LuxCloudNoticeGlobalLayerState extends State<LuxCloudNoticeGlobalLayer> {
     return const SizedBox.shrink();
   }
 }
-

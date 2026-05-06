@@ -119,7 +119,9 @@ class EconomyService extends ChangeNotifier {
   void _schedulePersistPendingLuxByMotif() {
     _pendingLuxPersistDebounce?.cancel();
     _pendingLuxPersistDebounce = Timer(const Duration(milliseconds: 500), () {
-      unawaited(_local.persistPendingLuxByMotifForCloud(_pendingLuxByMotifForCloud));
+      unawaited(
+        _local.persistPendingLuxByMotifForCloud(_pendingLuxByMotifForCloud),
+      );
     });
   }
 
@@ -159,8 +161,7 @@ class EconomyService extends ChangeNotifier {
       pendingLuxAnimation += appliedDelta;
     }
     if (recordCloudPending) {
-      final List<int> q =
-          _pendingLuxByMotifForCloud[luxCloudMotif] ?? <int>[];
+      final List<int> q = _pendingLuxByMotifForCloud[luxCloudMotif] ?? <int>[];
       q.add(appliedDelta);
       _pendingLuxByMotifForCloud[luxCloudMotif] = q;
       _schedulePersistPendingLuxByMotif();
@@ -261,10 +262,7 @@ class EconomyService extends ChangeNotifier {
     if (_luxCoins <= c) return;
     _luxCoins = c;
     await _persistLuxCoins();
-    _economyLog(
-      'lux_ceiling_clamp',
-      data: <String, Object?>{'lux': _luxCoins},
-    );
+    _economyLog('lux_ceiling_clamp', data: <String, Object?>{'lux': _luxCoins});
     notifyListeners();
   }
 
@@ -436,10 +434,10 @@ class EconomyService extends ChangeNotifier {
           '$motif|drain|d0=$d0|${DateTime.now().microsecondsSinceEpoch}|${math.Random().nextInt(0x7fffffff)}';
       final LuxDeltaApplyResult? r = await FirestoreService.instance
           .tryApplyLuxDeltaViaCallable(
-        step,
-        motif: motif,
-        idempotencyKey: idempotencyKey,
-      );
+            step,
+            motif: motif,
+            idempotencyKey: idempotencyKey,
+          );
       if (r != null && r.ok) {
         final int applied = r.appliedDelta ?? step;
         if (applied == 0 && d0 != 0) {
@@ -514,11 +512,7 @@ class EconomyService extends ChangeNotifier {
           );
           VelourObservability.logEconomySecurity(
             'lux_cloud_unrecoverable_motif_dropped',
-            data: <String, Object?>{
-              'motif': motif,
-              'code': fe,
-              'chunk': step,
-            },
+            data: <String, Object?>{'motif': motif, 'code': fe, 'chunk': step},
           );
           FirestoreService.instance.queuePendingLuxCloudHint(_luxCoins);
           break;

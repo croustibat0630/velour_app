@@ -180,8 +180,9 @@ class LuxIapService {
 
   Future<void> _flushPurchaseOrphans() async {
     if (_pendingOrphans.isEmpty) return;
-    final List<PurchaseDetails> batch =
-        List<PurchaseDetails>.from(_pendingOrphans);
+    final List<PurchaseDetails> batch = List<PurchaseDetails>.from(
+      _pendingOrphans,
+    );
     _pendingOrphans.clear();
     for (final PurchaseDetails p in batch) {
       await _handlePurchasedOrRestored(p);

@@ -905,77 +905,83 @@ class _ShopProductCard extends StatelessWidget {
         child: ConstrainedBox(
           constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
           child: Container(
-          padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(28),
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [_matteTop, _matteBottom],
-            ),
-            border: Border.all(
-              color:
-                  Color.lerp(
+            padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(28),
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [_matteTop, _matteBottom],
+              ),
+              border: Border.all(
+                color:
+                    Color.lerp(
+                      accent.withValues(alpha: 0.6),
+                      neon.withValues(alpha: 0.95),
+                      flash,
+                    ) ??
                     accent.withValues(alpha: 0.6),
-                    neon.withValues(alpha: 0.95),
-                    flash,
-                  ) ??
-                  accent.withValues(alpha: 0.6),
-              width: 1.2 + 0.6 * flash,
+                width: 1.2 + 0.6 * flash,
+              ),
+              boxShadow: glow,
             ),
-            boxShadow: glow,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (badge != null) ...[
-                Align(
-                  alignment: Alignment.topRight,
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 2, right: 2),
-                    child: _Badge(label: badge!, accent: accent),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (badge != null) ...[
+                  Align(
+                    alignment: Alignment.topRight,
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 2, right: 2),
+                      child: _Badge(label: badge!, accent: accent),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                ],
+                Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    letterSpacing: 5.5,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white.withValues(alpha: 0.92),
                   ),
                 ),
-                const SizedBox(height: 14),
+                const SizedBox(height: 12),
+                Text(
+                  AppLocalizations.of(context)!.shopLuxAmount(lux),
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    letterSpacing: 1.4,
+                    fontWeight: FontWeight.w800,
+                    color: neon.withValues(alpha: 0.96),
+                    shadows: [
+                      Shadow(
+                        color: neon.withValues(alpha: 0.55),
+                        blurRadius: 20,
+                      ),
+                      Shadow(
+                        color: neon.withValues(alpha: 0.25),
+                        blurRadius: 40,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  price,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    letterSpacing: 2.2,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white.withValues(alpha: 0.68),
+                  ),
+                ),
               ],
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  letterSpacing: 5.5,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white.withValues(alpha: 0.92),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                AppLocalizations.of(context)!.shopLuxAmount(lux),
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  letterSpacing: 1.4,
-                  fontWeight: FontWeight.w800,
-                  color: neon.withValues(alpha: 0.96),
-                  shadows: [
-                    Shadow(color: neon.withValues(alpha: 0.55), blurRadius: 20),
-                    Shadow(color: neon.withValues(alpha: 0.25), blurRadius: 40),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                price,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  letterSpacing: 2.2,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white.withValues(alpha: 0.68),
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
         ),
       ),
     );
@@ -1139,106 +1145,106 @@ class _ForgeBoostCard extends StatelessWidget {
             child: Stack(
               clipBehavior: Clip.none,
               children: [
-              Container(
-                padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
-                decoration: BoxDecoration(
-                  color: const Color(
-                    0xFF0A0C12,
-                  ).withValues(alpha: enabled ? 0.88 : 0.52),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: accent.withValues(
-                      alpha: (showStockedBadge || showPrimeActiveBadge)
-                          ? 0.58
-                          : (enabled ? 0.42 : 0.18),
+                Container(
+                  padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
+                  decoration: BoxDecoration(
+                    color: const Color(
+                      0xFF0A0C12,
+                    ).withValues(alpha: enabled ? 0.88 : 0.52),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: accent.withValues(
+                        alpha: (showStockedBadge || showPrimeActiveBadge)
+                            ? 0.58
+                            : (enabled ? 0.42 : 0.18),
+                      ),
+                      width: (showStockedBadge || showPrimeActiveBadge)
+                          ? 1.35
+                          : 1,
                     ),
-                    width: (showStockedBadge || showPrimeActiveBadge)
-                        ? 1.35
-                        : 1,
+                    boxShadow: glow,
                   ),
-                  boxShadow: glow,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            title,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              title,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.titleSmall
+                                  ?.copyWith(
+                                    letterSpacing: 2.4,
+                                    fontWeight: FontWeight.w800,
+                                    color: Colors.white.withValues(alpha: 0.90),
+                                  ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            l10n.shopPriceLux(priceLux),
+                            textAlign: TextAlign.right,
                             style: Theme.of(context).textTheme.titleSmall
                                 ?.copyWith(
-                                  letterSpacing: 2.4,
                                   fontWeight: FontWeight.w800,
-                                  color: Colors.white.withValues(alpha: 0.90),
+                                  letterSpacing: 1.0,
+                                  color: accent.withValues(
+                                    alpha: enabled ? 0.95 : 0.45,
+                                  ),
                                 ),
                           ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        body,
+                        maxLines: 5,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          height: 1.35,
+                          color: Colors.white.withValues(
+                            alpha: enabled ? 0.52 : 0.38,
+                          ),
                         ),
-                        const SizedBox(width: 8),
+                      ),
+                      if (metaLine != null && metaLine!.isNotEmpty) ...[
+                        const SizedBox(height: 8),
                         Text(
-                          l10n.shopPriceLux(priceLux),
-                          textAlign: TextAlign.right,
-                          style: Theme.of(context).textTheme.titleSmall
+                          metaLine!,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.labelMedium
                               ?.copyWith(
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 1.0,
+                                letterSpacing: 1.6,
+                                fontWeight: FontWeight.w700,
                                 color: accent.withValues(
-                                  alpha: enabled ? 0.95 : 0.45,
+                                  alpha: enabled ? 0.72 : 0.40,
                                 ),
                               ),
                         ),
                       ],
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      body,
-                      maxLines: 5,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        height: 1.35,
-                        color: Colors.white.withValues(
-                          alpha: enabled ? 0.52 : 0.38,
-                        ),
-                      ),
-                    ),
-                    if (metaLine != null && metaLine!.isNotEmpty) ...[
-                      const SizedBox(height: 8),
-                      Text(
-                        metaLine!,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.labelMedium
-                            ?.copyWith(
-                              letterSpacing: 1.6,
-                              fontWeight: FontWeight.w700,
-                              color: accent.withValues(
-                                alpha: enabled ? 0.72 : 0.40,
-                              ),
-                            ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              if (showStockedBadge || showPrimeActiveBadge)
-                Positioned(
-                  top: 4,
-                  right: 6,
-                  child: Icon(
-                    Icons.verified_rounded,
-                    size: 22,
-                    color: accent.withValues(alpha: 0.95),
-                    shadows: [
-                      Shadow(
-                        color: accent.withValues(alpha: 0.45),
-                        blurRadius: 10,
-                      ),
                     ],
                   ),
                 ),
+                if (showStockedBadge || showPrimeActiveBadge)
+                  Positioned(
+                    top: 4,
+                    right: 6,
+                    child: Icon(
+                      Icons.verified_rounded,
+                      size: 22,
+                      color: accent.withValues(alpha: 0.95),
+                      shadows: [
+                        Shadow(
+                          color: accent.withValues(alpha: 0.45),
+                          blurRadius: 10,
+                        ),
+                      ],
+                    ),
+                  ),
               ],
             ),
           ),

@@ -135,8 +135,8 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     if (pulled == null) return;
 
     try {
-      final int pendingPositiveBudget =
-          _economy.sumPendingPositiveLuxForCloud();
+      final int pendingPositiveBudget = _economy
+          .sumPendingPositiveLuxForCloud();
       final ({int? luxCoins, int? highScore}) pending = FirestoreService
           .instance
           .consumePendingCloudSyncHints();
@@ -150,11 +150,14 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
         pendingHigh: pending.highScore,
       );
       final int mergedLuxAfterBootstrap = _economy.luxCoins;
-      final int reconcileCeiling = cloudLuxSnapshot +
+      final int reconcileCeiling =
+          cloudLuxSnapshot +
           pendingPositiveBudget +
           bootstrapReconcileLuxTrustMargin;
-      final int reconcileTarget =
-          math.min(mergedLuxAfterBootstrap, reconcileCeiling);
+      final int reconcileTarget = math.min(
+        mergedLuxAfterBootstrap,
+        reconcileCeiling,
+      );
       if (_runStartedAt == null) {
         _runHighScoreBaseline = _economy.highScore;
       }
@@ -563,12 +566,12 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
       notifyListeners();
       return DailyLuxClaimOutcome.successQueuedOffline;
     }
-    final LuxDeltaApplyResult? r =
-        await FirestoreService.instance.tryApplyLuxDeltaViaCallable(
-      EconomyService.dailyLuxBonusAmount,
-      motif: LuxApplyMotifs.dailyBonus,
-      idempotencyKey: 'daily_bonus|$today',
-    );
+    final LuxDeltaApplyResult? r = await FirestoreService.instance
+        .tryApplyLuxDeltaViaCallable(
+          EconomyService.dailyLuxBonusAmount,
+          motif: LuxApplyMotifs.dailyBonus,
+          idempotencyKey: 'daily_bonus|$today',
+        );
     if (r == null) {
       return DailyLuxClaimOutcome.networkUnavailable;
     }
@@ -772,8 +775,8 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
       if (disk == null) return false;
       _economy.hydrateLuxAndWelcomeFromDisk(disk);
       _lastDailyLuxClaimUtcDay = disk.lastDailyLuxClaimUtcDay;
-      final Map<String, List<int>> pending =
-          await _localDisk.loadPendingLuxByMotifForCloud();
+      final Map<String, List<int>> pending = await _localDisk
+          .loadPendingLuxByMotifForCloud();
       _economy.hydratePendingLuxByMotifFromDisk(pending);
       _trinityTutorial.hydrateCompleteFromDisk(disk.trinityTutorialComplete);
       // Cohérence : la trinité marquée « faite » implique que la première partie narrative est passée.

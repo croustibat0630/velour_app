@@ -42,8 +42,9 @@ class GameStateLocalStore {
         isFirstTimeGame: prefs.getBool(GameStatePrefs.isFirstTimeGame) ?? true,
         activeSkinIdRaw: prefs.getString(GameStatePrefs.activeSkinId),
         unlockedSkinsRaw: prefs.getStringList(GameStatePrefs.unlockedSkins),
-        lastDailyLuxClaimUtcDay:
-            prefs.getString(GameStatePrefs.lastDailyLuxClaimUtcDay),
+        lastDailyLuxClaimUtcDay: prefs.getString(
+          GameStatePrefs.lastDailyLuxClaimUtcDay,
+        ),
       );
     } catch (_) {
       return null;

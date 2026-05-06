@@ -3,7 +3,7 @@
 ## Prérequis
 
 - Flutter (SDK compatible `pubspec.yaml`), Dart SDK.
-- Pour les Cloud Functions : Node 20+, `npm ci` dans `functions/`.
+- Pour les Cloud Functions : Node 22 (aligné `functions/package.json` → runtime Cloud Functions), `npm ci` dans `functions/`.
 
 ## Qualité avant commit
 

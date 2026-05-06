@@ -27,7 +27,7 @@ Document de référence pour la mise à niveau « appli sérieuse » : sécurit�
 
 1. `firebase login` puis cibler le projet : `firebase use <stagingId>` (ou variable `GOOGLE_APPLICATION_CREDENTIALS` en CI).
 2. Règles : `firebase deploy --only firestore:rules`
-3. Functions : depuis la racine du repo, `firebase deploy --only functions` (exécute `npm run build` dans `functions/` via `predeploy` dans `firebase.json`).
+3. Functions : depuis la racine du repo, `firebase deploy --only functions` (exécute `npm run build` dans `functions/` via `predeploy` dans `firebase.json`). **Runtime Cloud Functions : Node 22** (`functions/package.json` → `engines.node`) ; SDK **`firebase-functions` v7** / **`firebase-admin` v13** — aligner la machine locale et la CI sur Node 22 pour `npm ci` dans `functions/`.
 4. Vérifier dans la console Firebase **Functions** que `velourApplyLuxDelta` et `velourHealth` sont actives en `europe-west3`.
 5. Lancer l’app contre ce projet (même `google-services` / `firebase_options` que le staging) : jouer une partie, vérifier les logs Cloud et que le solde `totalLux` bouge.
 

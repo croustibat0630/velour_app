@@ -24,6 +24,7 @@ import '../models/skin_config.dart';
 import '../services/audio_handler.dart';
 import '../services/economy_service.dart';
 import '../services/firestore_service.dart';
+import '../services/lux_apply_motifs.dart';
 import '../services/haptics_handler.dart';
 import '../services/narrative_tutorial_service.dart';
 import '../services/oracle_naming_service.dart';
@@ -620,8 +621,16 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
   static const int forgeMercySalvagePriceLux = 220;
   static const int forgeMercySalvageMaxCharges = 2;
 
-  void addLuxCoins(int delta) {
-    _economy.addLuxCoins(delta);
+  void addLuxCoins(
+    int delta, {
+    required String luxCloudMotif,
+    bool recordCloudPending = true,
+  }) {
+    _economy.addLuxCoins(
+      delta,
+      luxCloudMotif: luxCloudMotif,
+      recordCloudPending: recordCloudPending,
+    );
   }
 
   ({int amount, bool silent}) takePendingLuxJuice() {
@@ -807,7 +816,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
       return SkinPurchaseOutcome.insufficientLux;
     }
     if (skin.price > 0) {
-      addLuxCoins(-skin.price);
+      addLuxCoins(-skin.price, luxCloudMotif: LuxApplyMotifs.shopSkin);
     }
     _unlockedSkins = <String>[..._unlockedSkins, id];
     _activeSkinId = id;
@@ -826,7 +835,10 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     if (_economy.luxCoins < forgeOracleInsurancePriceLux) {
       return ForgePurchaseOutcome.insufficientLux;
     }
-    addLuxCoins(-forgeOracleInsurancePriceLux);
+    addLuxCoins(
+      -forgeOracleInsurancePriceLux,
+      luxCloudMotif: LuxApplyMotifs.shopForgeConsumable,
+    );
     _oracleInsuranceCharges++;
     notifyListeners();
     unawaited(_persistForgeShopPrefs());
@@ -842,7 +854,10 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     if (_economy.luxCoins < forgeRoyalBountyPriceLux) {
       return ForgePurchaseOutcome.insufficientLux;
     }
-    addLuxCoins(-forgeRoyalBountyPriceLux);
+    addLuxCoins(
+      -forgeRoyalBountyPriceLux,
+      luxCloudMotif: LuxApplyMotifs.shopForgeConsumable,
+    );
     _royalVictoryBountyPending = true;
     notifyListeners();
     unawaited(_persistForgeShopPrefs());
@@ -858,7 +873,10 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     if (_economy.luxCoins < forgeChronoPulsePriceLux) {
       return ForgePurchaseOutcome.insufficientLux;
     }
-    addLuxCoins(-forgeChronoPulsePriceLux);
+    addLuxCoins(
+      -forgeChronoPulsePriceLux,
+      luxCloudMotif: LuxApplyMotifs.shopForgeConsumable,
+    );
     _chronoPulseCharges++;
     notifyListeners();
     unawaited(_persistForgeShopPrefs());
@@ -874,7 +892,10 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     if (_economy.luxCoins < forgeMercySalvagePriceLux) {
       return ForgePurchaseOutcome.insufficientLux;
     }
-    addLuxCoins(-forgeMercySalvagePriceLux);
+    addLuxCoins(
+      -forgeMercySalvagePriceLux,
+      luxCloudMotif: LuxApplyMotifs.shopForgeConsumable,
+    );
     _mercySalvageCharges++;
     notifyListeners();
     unawaited(_persistForgeShopPrefs());
@@ -894,7 +915,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
       if (_economy.luxCoins < highStakesAnteLux) {
         return false;
       }
-      addLuxCoins(-highStakesAnteLux);
+      addLuxCoins(-highStakesAnteLux, luxCloudMotif: LuxApplyMotifs.stakeAnte);
       _sessionStake = SessionStakeKind.highStakes;
       notifyListeners();
       return true;
@@ -903,7 +924,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
       if (_economy.luxCoins < royalAnteLux) {
         return false;
       }
-      addLuxCoins(-royalAnteLux);
+      addLuxCoins(-royalAnteLux, luxCloudMotif: LuxApplyMotifs.stakeAnte);
       _sessionStake = SessionStakeKind.royal;
       notifyListeners();
       return true;
@@ -985,7 +1006,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
         _royalVictoryBountyPending = false;
         unawaited(_persistForgeShopPrefs());
       }
-      addLuxCoins(reward);
+      addLuxCoins(reward, luxCloudMotif: LuxApplyMotifs.stakeReward);
       _lastStakeRewardLuxCoins = reward;
     } else if (isPremiumStakeFailure(r.footerLine) &&
         _oracleInsuranceCharges > 0 &&
@@ -998,7 +1019,10 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
         refundPercentOfAnte: forgeOracleInsuranceRefundPercent,
       );
       if (refund > 0) {
-        addLuxCoins(refund);
+        addLuxCoins(
+          refund,
+          luxCloudMotif: LuxApplyMotifs.oracleInsuranceRefund,
+        );
         _oracleInsuranceCharges--;
         _lastOracleInsuranceRefundLux = refund;
         unawaited(_persistForgeShopPrefs());

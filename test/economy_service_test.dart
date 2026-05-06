@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:velour_app/providers/game_state.dart';
 import 'package:velour_app/providers/game_state_local_store.dart';
 import 'package:velour_app/services/economy_service.dart';
+import 'package:velour_app/services/lux_apply_motifs.dart';
 
 EconomyWelcomeLoad _disk({int lux = 0, bool firstLaunch = false}) {
   return EconomyWelcomeLoad(
@@ -27,7 +28,10 @@ void main() {
     () async {
       final EconomyService e = EconomyService();
       e.hydrateLuxAndWelcomeFromDisk(_disk(lux: 10));
-      e.addLuxCoins(EconomyService.maxLuxPerPositiveCredit + 5000);
+      e.addLuxCoins(
+        EconomyService.maxLuxPerPositiveCredit + 5000,
+        luxCloudMotif: LuxApplyMotifs.velourClientSync,
+      );
       expect(e.luxCoins, 10 + EconomyService.maxLuxPerPositiveCredit);
     },
   );
@@ -35,7 +39,7 @@ void main() {
   test('addLuxCoins ne plafonne pas les montants négatifs', () async {
     final EconomyService e = EconomyService();
     e.hydrateLuxAndWelcomeFromDisk(_disk(lux: 100));
-    e.addLuxCoins(-150);
+    e.addLuxCoins(-150, luxCloudMotif: LuxApplyMotifs.shopSkin);
     expect(e.luxCoins, 0);
   });
 

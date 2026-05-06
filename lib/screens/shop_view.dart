@@ -8,6 +8,7 @@ import 'package:velour_app/l10n/app_localizations.dart';
 
 import '../providers/game_state.dart';
 import '../services/audio_handler.dart';
+import '../services/lux_apply_motifs.dart';
 import '../services/lux_iap_service.dart';
 import '../utils/responsive.dart';
 import '../widgets/ui/dark_matte_overlay.dart';
@@ -71,6 +72,7 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
   Future<void> _simulatePurchase({
     required int luxAmount,
     required Offset startGlobal,
+    bool recordCloudPending = true,
   }) async {
     if (_busy) return;
     final GameState gs = context.read<GameState>();
@@ -104,7 +106,11 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
     });
     _flyCoins.reset();
 
-    gs.addLuxCoins(luxAmount);
+    gs.addLuxCoins(
+      luxAmount,
+      luxCloudMotif: LuxApplyMotifs.vaultSoftCredit,
+      recordCloudPending: recordCloudPending,
+    );
     // Ne bloque pas l'UI sur le disque (la sync cloud est debouncée via addLuxCoins).
     unawaited(gs.flushLuxCoinsPersistence());
 
@@ -137,7 +143,11 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
       switch (r.kind) {
         case LuxIapBuyKind.success:
           final int grant = r.luxAmount > 0 ? r.luxAmount : luxAmount;
-          await _simulatePurchase(luxAmount: grant, startGlobal: startGlobal);
+          await _simulatePurchase(
+            luxAmount: grant,
+            startGlobal: startGlobal,
+            recordCloudPending: false,
+          );
           break;
         case LuxIapBuyKind.cancelled:
           messenger?.showSnackBar(

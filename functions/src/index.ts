@@ -34,9 +34,23 @@ const MAX_LUX_APPLY_CALLS_PER_MINUTE = 90;
 /** Motifs connus (client + serveur) — toute autre valeur est rejetée. */
 const LUX_MOTIF_CLIENT_SYNC = "velour_client_sync";
 const LUX_MOTIF_BOOTSTRAP_RECONCILE = "bootstrap_reconcile";
+const LUX_MOTIF_WELCOME_GRANT = "welcome_grant";
+const LUX_MOTIF_SHOP_SKIN = "shop_skin";
+const LUX_MOTIF_SHOP_FORGE = "shop_forge_consumable";
+const LUX_MOTIF_STAKE_ANTE = "stake_ante";
+const LUX_MOTIF_STAKE_REWARD = "stake_reward";
+const LUX_MOTIF_ORACLE_REFUND = "oracle_insurance_refund";
+const LUX_MOTIF_VAULT_SOFT = "vault_soft_credit";
 const ALLOWED_LUX_MOTIFS = new Set<string>([
   LUX_MOTIF_CLIENT_SYNC,
   LUX_MOTIF_BOOTSTRAP_RECONCILE,
+  LUX_MOTIF_WELCOME_GRANT,
+  LUX_MOTIF_SHOP_SKIN,
+  LUX_MOTIF_SHOP_FORGE,
+  LUX_MOTIF_STAKE_ANTE,
+  LUX_MOTIF_STAKE_REWARD,
+  LUX_MOTIF_ORACLE_REFUND,
+  LUX_MOTIF_VAULT_SOFT,
 ]);
 
 const MAX_IDEMPOTENCY_KEY_LEN = 200;
@@ -51,15 +65,40 @@ const CF_LUX_MOTIF_INVALID = "VEL_CF_LUX_MOTIF_INVALID";
 const CF_LUX_DEDUP_HIT = "VEL_CF_LUX_DEDUP_HIT";
 const CF_LUX_LEDGER_WRITTEN = "VEL_CF_LUX_LEDGER_WRITTEN";
 
-function luxMotifCaps(_motif: string): {
+function luxMotifCaps(motif: string): {
   maxPositive: number;
   maxNegativeMagnitude: number;
 } {
-  // Plafonds par motif (extensible) — aujourd’hui alignés sur les globaux.
-  return {
-    maxPositive: MAX_POSITIVE_LUX_DELTA,
-    maxNegativeMagnitude: MAX_NEGATIVE_LUX_MAGNITUDE,
-  };
+  switch (motif) {
+    case LUX_MOTIF_WELCOME_GRANT:
+      return { maxPositive: 300, maxNegativeMagnitude: 0 };
+    case LUX_MOTIF_SHOP_SKIN:
+      return {
+        maxPositive: MAX_POSITIVE_LUX_DELTA,
+        maxNegativeMagnitude: MAX_NEGATIVE_LUX_MAGNITUDE,
+      };
+    case LUX_MOTIF_SHOP_FORGE:
+      return { maxPositive: 0, maxNegativeMagnitude: 500 };
+    case LUX_MOTIF_STAKE_ANTE:
+      return { maxPositive: 0, maxNegativeMagnitude: 500 };
+    case LUX_MOTIF_STAKE_REWARD:
+      return { maxPositive: MAX_POSITIVE_LUX_DELTA, maxNegativeMagnitude: 0 };
+    case LUX_MOTIF_ORACLE_REFUND:
+      return { maxPositive: 500, maxNegativeMagnitude: 0 };
+    case LUX_MOTIF_VAULT_SOFT:
+      return { maxPositive: MAX_POSITIVE_LUX_DELTA, maxNegativeMagnitude: 0 };
+    case LUX_MOTIF_BOOTSTRAP_RECONCILE:
+    case LUX_MOTIF_CLIENT_SYNC:
+      return {
+        maxPositive: MAX_POSITIVE_LUX_DELTA,
+        maxNegativeMagnitude: MAX_NEGATIVE_LUX_MAGNITUDE,
+      };
+    default:
+      return {
+        maxPositive: MAX_POSITIVE_LUX_DELTA,
+        maxNegativeMagnitude: MAX_NEGATIVE_LUX_MAGNITUDE,
+      };
+  }
 }
 
 function luxDedupDocId(uid: string, idempotencyKey: string): string {
@@ -160,6 +199,12 @@ export const velourApplyLuxDelta = onCall(
         requested: d0,
         appliedDelta,
       });
+    }
+    if (appliedDelta === 0) {
+      throw new HttpsError(
+        "invalid-argument",
+        "delta is incompatible with motif caps (would apply 0)"
+      );
     }
 
     const db = getFirestore();

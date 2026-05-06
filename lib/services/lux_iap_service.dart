@@ -15,6 +15,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/game_state.dart';
 import '../utils/velour_audit_log.dart';
 import 'iap_cloud_grant_service.dart';
+import 'lux_apply_motifs.dart';
 import 'velour_observability.dart';
 
 /// Identifiants consommables — mêmes SKU sur App Store Connect et Google Play Console.
@@ -402,7 +403,11 @@ class LuxIapService {
     if (gs != null) {
       final bool ok = await _tryGrantVaultPurchaseToCloudStrict(p);
       if (ok) {
-        gs.addLuxCoins(lux);
+        gs.addLuxCoins(
+          lux,
+          luxCloudMotif: LuxApplyMotifs.velourClientSync,
+          recordCloudPending: false,
+        );
         await gs.flushLuxCoinsPersistence();
         await _markConsumed(pid);
         await _completeIfNeeded(p);

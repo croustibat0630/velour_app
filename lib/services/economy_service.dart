@@ -35,13 +35,13 @@ class EconomyService extends ChangeNotifier {
 
   Timer? _luxCloudSyncDebounce;
 
-  /// Somme des deltas LUX depuis le dernier flush cloud réussi (callable ou absolu).
-  int _pendingLuxDeltaForCloud = 0;
+  /// Deltas LUX à pousser vers la callable, **par motif** (journal / plafonds serveur).
+  final Map<String, int> _pendingLuxByMotifForCloud = <String, int>{};
 
   // Avoid log spam when offline: we only emit a fail log periodically,
   // or when the pending amount changes.
   int _lastLuxCloudFailLogMicros = 0;
-  int? _lastLuxCloudFailPending;
+  String? _lastLuxCloudFailPending;
 
   int _luxCoins = 0;
   int get luxCoins => _luxCoins;
@@ -91,7 +91,14 @@ class EconomyService extends ChangeNotifier {
     notifyListeners();
   }
 
-  void addLuxCoins(int delta) {
+  /// [luxCloudMotif] : voir [LuxApplyMotifs] — aligné sur la callable `velourApplyLuxDelta`.
+  /// Si [recordCloudPending] est `false`, le solde local bouge mais aucune sync LUX
+  /// n’est planifiée (ex. miroir après crédit IAP déjà appliqué côté serveur).
+  void addLuxCoins(
+    int delta, {
+    required String luxCloudMotif,
+    bool recordCloudPending = true,
+  }) {
     if (delta == 0) return;
 
     int appliedDelta = delta;
@@ -111,20 +118,31 @@ class EconomyService extends ChangeNotifier {
     if (appliedDelta > 0) {
       pendingLuxAnimation += appliedDelta;
     }
-    _pendingLuxDeltaForCloud += appliedDelta;
+    if (recordCloudPending) {
+      final int prevP = _pendingLuxByMotifForCloud[luxCloudMotif] ?? 0;
+      _pendingLuxByMotifForCloud[luxCloudMotif] = prevP + appliedDelta;
+    }
     _economyLog(
       'lux_delta',
-      data: {'delta': appliedDelta, 'before': before, 'after': _luxCoins},
+      data: <String, Object?>{
+        'delta': appliedDelta,
+        'before': before,
+        'after': _luxCoins,
+        'motif': luxCloudMotif,
+        'cloudPending': recordCloudPending,
+      },
     );
     notifyListeners();
     unawaited(_persistLuxCoins());
-    _scheduleDebouncedLuxCloudSync();
+    if (recordCloudPending) {
+      _scheduleDebouncedLuxCloudSync();
+    }
   }
 
   /// Dépense LUX (mise, shop) — pas de plafond sur les montants négatifs.
-  void consumeLux(int amount) {
+  void consumeLux(int amount, {required String luxCloudMotif}) {
     if (amount <= 0) return;
-    addLuxCoins(-amount);
+    addLuxCoins(-amount, luxCloudMotif: luxCloudMotif);
   }
 
   ({int amount, bool silent}) takePendingLuxJuice() {
@@ -145,7 +163,9 @@ class EconomyService extends ChangeNotifier {
       pendingLuxAnimation += delta;
       _pendingLuxJuiceSilent = true;
     }
-    _pendingLuxDeltaForCloud += delta;
+    final int prevP =
+        _pendingLuxByMotifForCloud[LuxApplyMotifs.welcomeGrant] ?? 0;
+    _pendingLuxByMotifForCloud[LuxApplyMotifs.welcomeGrant] = prevP + delta;
     _economyLog('welcome_grant', data: {'lux': _luxCoins});
     notifyListeners();
     await _local.persistWelcomeGrant(_luxCoins);
@@ -156,7 +176,7 @@ class EconomyService extends ChangeNotifier {
     await _local.debugResetFirstLaunchWelcome();
     _luxCoins = 0;
     _firstLaunchPendingWelcome = true;
-    _pendingLuxDeltaForCloud = 0;
+    _pendingLuxByMotifForCloud.clear();
     _economyLog('debug_reset_welcome', data: const {});
     notifyListeners();
   }
@@ -169,7 +189,7 @@ class EconomyService extends ChangeNotifier {
     _firstLaunchPendingWelcome = true;
     pendingLuxAnimation = 0;
     _pendingLuxJuiceSilent = false;
-    _pendingLuxDeltaForCloud = 0;
+    _pendingLuxByMotifForCloud.clear();
     _luxCloudSyncDebounce?.cancel();
     _luxCloudSyncDebounce = null;
     _economyLog('hard_reset', data: const {});
@@ -181,7 +201,7 @@ class EconomyService extends ChangeNotifier {
     required int? pendingLux,
     required int? pendingHigh,
   }) async {
-    _pendingLuxDeltaForCloud = 0;
+    _pendingLuxByMotifForCloud.clear();
     final int mergedLux = math.max(
       math.max(_luxCoins, pulled.cloudLuxCoins),
       pendingLux ?? 0,
@@ -246,12 +266,29 @@ class EconomyService extends ChangeNotifier {
     _luxCloudSyncDebounce = Timer(const Duration(milliseconds: 650), () {
       unawaited(
         _drainPendingLuxCloudSync().then((_) {
-          if (_pendingLuxDeltaForCloud != 0) {
+          if (_hasPendingLuxCloudDeltas()) {
             _scheduleDebouncedLuxCloudSync();
           }
         }),
       );
     });
+  }
+
+  bool _hasPendingLuxCloudDeltas() {
+    for (final int v in _pendingLuxByMotifForCloud.values) {
+      if (v != 0) return true;
+    }
+    return false;
+  }
+
+  String? _firstPendingLuxCloudMotif() {
+    for (final String m in LuxApplyMotifs.cloudDrainOrder) {
+      if ((_pendingLuxByMotifForCloud[m] ?? 0) != 0) return m;
+    }
+    for (final MapEntry<String, int> e in _pendingLuxByMotifForCloud.entries) {
+      if (e.value != 0) return e.key;
+    }
+    return null;
   }
 
   /// Vide le tampon de deltas LUX via la callable (chunks côté serveur si plafond).
@@ -260,16 +297,26 @@ class EconomyService extends ChangeNotifier {
       'VELOUR_FORCE_OFFLINE',
       defaultValue: false,
     );
-    while (_pendingLuxDeltaForCloud != 0) {
-      final int d = _pendingLuxDeltaForCloud;
+    while (_hasPendingLuxCloudDeltas()) {
+      final String? motif = _firstPendingLuxCloudMotif();
+      if (motif == null) break;
+      final int pendingForMotif = _pendingLuxByMotifForCloud[motif] ?? 0;
+      if (pendingForMotif == 0) continue;
+
+      final int d = pendingForMotif;
+      final int step = FirestoreService.chunkLuxDeltaForCallable(d);
+      if (step == 0) break;
+
       final LuxDeltaApplyResult? r = await FirestoreService.instance
-          .tryApplyLuxDeltaViaCallable(
-            d,
-            motif: LuxApplyMotifs.velourClientSync,
-          );
+          .tryApplyLuxDeltaViaCallable(step, motif: motif);
       if (r != null && r.ok) {
-        final int applied = r.appliedDelta ?? d;
-        _pendingLuxDeltaForCloud -= applied;
+        final int applied = r.appliedDelta ?? step;
+        final int nextP = pendingForMotif - applied;
+        if (nextP == 0) {
+          _pendingLuxByMotifForCloud.remove(motif);
+        } else {
+          _pendingLuxByMotifForCloud[motif] = nextP;
+        }
         final int? serverLux = r.newLux;
         if (serverLux != null && serverLux != _luxCoins) {
           _luxCoins = math.max(_luxCoins, serverLux);
@@ -278,20 +325,29 @@ class EconomyService extends ChangeNotifier {
         }
         _economyLog(
           'lux_cloud_delta_ok',
-          data: {'requested': d, 'applied': applied, 'lux': _luxCoins},
+          data: <String, Object?>{
+            'motif': motif,
+            'requested': d,
+            'chunk': step,
+            'applied': applied,
+            'lux': _luxCoins,
+          },
         );
       } else {
         final int now = DateTime.now().microsecondsSinceEpoch;
-        final bool pendingChanged = _lastLuxCloudFailPending != d;
+        final String failKey = '$motif|$d';
+        final bool pendingChanged = _lastLuxCloudFailPending != failKey;
         final bool rateOk =
             (now - _lastLuxCloudFailLogMicros) > 5 * 1000 * 1000;
         if (pendingChanged || rateOk) {
           _lastLuxCloudFailLogMicros = now;
-          _lastLuxCloudFailPending = d;
+          _lastLuxCloudFailPending = failKey;
           _economyLog(
             'lux_cloud_delta_fail',
             data: <String, Object?>{
+              'motif': motif,
               'requested': d,
+              'chunk': step,
               'lux': _luxCoins,
               if (forceOffline) 'forcedOffline': true,
             },
@@ -299,7 +355,11 @@ class EconomyService extends ChangeNotifier {
         }
         VelourObservability.logEconomySecurity(
           'lux_cloud_drain_failed',
-          data: <String, Object?>{'pending': d, 'lux': _luxCoins},
+          data: <String, Object?>{
+            'motif': motif,
+            'pending': d,
+            'lux': _luxCoins,
+          },
         );
         FirestoreService.instance.queuePendingLuxCloudHint(_luxCoins);
         break;

@@ -140,6 +140,16 @@ class AppLocalizationsEn extends AppLocalizations {
       'Server unreachable (check network / App Check).';
 
   @override
+  String get settingsCopyDiagnosticsTitle => 'Copy diagnostics';
+
+  @override
+  String get settingsCopyDiagnosticsSubtitle =>
+      'Copy version, locale, player ID and server status';
+
+  @override
+  String get settingsCopyDiagnosticsSnack => 'Diagnostics copied.';
+
+  @override
   String get luxCloudRejectedUpdateRequired =>
       'LUX sync rejected. Please update the app. If it persists, copy your player ID in Settings → Info.';
 

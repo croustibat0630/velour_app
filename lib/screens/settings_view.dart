@@ -236,6 +236,52 @@ class SettingsView extends StatelessWidget {
                               ),
                               const _TileDivider(),
                               _ActionTile(
+                                icon: Icons.copy_all_rounded,
+                                title: l10n.settingsCopyDiagnosticsTitle,
+                                subtitle: l10n.settingsCopyDiagnosticsSubtitle,
+                                accent: accent,
+                                onTap: () {
+                                  unawaited(() async {
+                                    final BuildContext safeContext = context;
+                                    final PackageInfo pkg = await PackageInfo
+                                        .fromPlatform();
+                                    await FirestoreService.instance
+                                        .ensureAnonymousAuthReady();
+                                    final String uid =
+                                        FirestoreService.instance.uid ?? '';
+                                    final bool serverOk = await FirestoreService
+                                        .instance
+                                        .pingVelourHealth();
+                                    if (!safeContext.mounted) return;
+
+                                    final Locale loc = Localizations.localeOf(
+                                      safeContext,
+                                    );
+                                    final String diag = [
+                                      'Velour diagnostics',
+                                      'version=${pkg.version}+${pkg.buildNumber}',
+                                      'platform=${Theme.of(safeContext).platform}',
+                                      'locale=${loc.toLanguageTag()}',
+                                      'uid=${uid.isEmpty ? '(unavailable)' : uid}',
+                                      'serverHealth=${serverOk ? 'ok' : 'fail'}',
+                                    ].join('\n');
+
+                                    await Clipboard.setData(
+                                      ClipboardData(text: diag),
+                                    );
+                                    if (!safeContext.mounted) return;
+                                    ScaffoldMessenger.of(safeContext).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          l10n.settingsCopyDiagnosticsSnack,
+                                        ),
+                                      ),
+                                    );
+                                  }());
+                                },
+                              ),
+                              const _TileDivider(),
+                              _ActionTile(
                                 icon: Icons.auto_awesome_rounded,
                                 title: l10n.settingsCreditsTitle,
                                 subtitle: l10n.settingsCreditsSubtitle,

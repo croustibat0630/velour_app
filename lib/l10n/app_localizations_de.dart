@@ -141,6 +141,16 @@ class AppLocalizationsDe extends AppLocalizations {
       'Server nicht erreichbar (Netz / App Check).';
 
   @override
+  String get settingsCopyDiagnosticsTitle => 'Diagnose kopieren';
+
+  @override
+  String get settingsCopyDiagnosticsSubtitle =>
+      'Version, Locale, Spieler-ID und Serverstatus kopieren';
+
+  @override
+  String get settingsCopyDiagnosticsSnack => 'Diagnose kopiert.';
+
+  @override
   String get luxCloudRejectedUpdateRequired =>
       'LUX-Sync abgelehnt. Bitte App aktualisieren. Wenn es weiter passiert, kopiere deine Spieler-ID in Einstellungen → Info.';
 

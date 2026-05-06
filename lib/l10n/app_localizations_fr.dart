@@ -141,6 +141,16 @@ class AppLocalizationsFr extends AppLocalizations {
       'Serveur injoignable (réseau / App Check).';
 
   @override
+  String get settingsCopyDiagnosticsTitle => 'Copier diagnostic';
+
+  @override
+  String get settingsCopyDiagnosticsSubtitle =>
+      'Copie version, locale, ID joueur et état serveur';
+
+  @override
+  String get settingsCopyDiagnosticsSnack => 'Diagnostic copié.';
+
+  @override
   String get luxCloudRejectedUpdateRequired =>
       'Sync LUX refusée. Mets l’app à jour. Si ça persiste, copie ton ID joueur dans Paramètres → Infos.';
 

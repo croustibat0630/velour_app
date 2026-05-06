@@ -334,6 +334,24 @@ abstract class AppLocalizations {
   /// **'Server unreachable (check network / App Check).'**
   String get settingsPingServerFail;
 
+  /// No description provided for @settingsCopyDiagnosticsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy diagnostics'**
+  String get settingsCopyDiagnosticsTitle;
+
+  /// No description provided for @settingsCopyDiagnosticsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy version, locale, player ID and server status'**
+  String get settingsCopyDiagnosticsSubtitle;
+
+  /// No description provided for @settingsCopyDiagnosticsSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Diagnostics copied.'**
+  String get settingsCopyDiagnosticsSnack;
+
   /// No description provided for @luxCloudRejectedUpdateRequired.
   ///
   /// In en, this message translates to:

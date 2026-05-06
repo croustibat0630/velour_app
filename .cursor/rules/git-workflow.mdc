@@ -16,3 +16,7 @@ Après un **lot cohérent** de modifications (feature, correctif sensible, refac
 Préférer **un commit = une intention** (facilite review et `git bisect`). Éviter un énorme diff qui mélange formatage global et logique métier quand c’est évitable.
 
 Ne pas demander à l’utilisateur de « faire le git » à la place de l’agent si l’environnement permet `git_write` / réseau : exécuter `git add`, `git commit`, et `git push` quand c’est demandé ou à la fin d’une mission importante.
+
+## Builds store (Android AAB / iOS IPA)
+
+Avant **chaque** nouvelle livraison Play ou App Store / TestFlight : **incrémenter** dans `pubspec.yaml` le numéro après `+` (ex. `1.0.0+7` → `+8`). Ce chiffre est à la fois le **versionCode** Android et le **CFBundleVersion** iOS — il doit **toujours monter** ; sinon Play refuse l’upload. Après changement : `flutter pub get`, puis builds ; **commit** le bump de version avec le lot ou juste avant le push des artefacts.

@@ -1,8 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
-import 'audio_handler.dart';
-
 /// Centralized haptics gate to keep feedback consistent.
 class HapticsHandler {
   HapticsHandler._();
@@ -12,7 +10,7 @@ class HapticsHandler {
   final ValueNotifier<bool> enabled = ValueNotifier<bool>(true);
   bool _errorPatternRunning = false;
 
-  bool get _canRun => enabled.value && !AudioHandler.instance.muted.value;
+  bool get _canRun => enabled.value;
 
   void selectionClick() {
     if (!_canRun) return;

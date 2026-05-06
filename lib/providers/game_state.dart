@@ -621,6 +621,9 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
   static const int forgeMercySalvagePriceLux = 220;
   static const int forgeMercySalvageMaxCharges = 2;
 
+  /// Espacement entre cascades (lisibilité vs dynamisme).
+  static const Duration cascadeStepDelay = Duration(milliseconds: 200);
+
   void addLuxCoins(
     int delta, {
     required String luxCloudMotif,
@@ -1799,7 +1802,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
           }
           velourDebug('[Velour][Match] résolution terminée step=$chainStep');
           // Petit espacement (réduit ~30%) : laisse lire le feedback sans bloquer l'input.
-          await Future<void>.delayed(const Duration(milliseconds: 280));
+          await Future<void>.delayed(cascadeStepDelay);
           run = (isTrinityTutorialActive || closedTrinityTutorial)
               ? null
               : RackLogic.findBestRun(_slotItems);

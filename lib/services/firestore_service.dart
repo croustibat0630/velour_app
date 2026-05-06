@@ -29,6 +29,8 @@ typedef LuxDeltaApplyResult = ({
   int? newLux,
   int? prevLux,
   int? appliedDelta,
+  /// Code [FirebaseFunctionsException.code] si l’appel a échoué côté Functions.
+  String? functionErrorCode,
 });
 
 /// Accès Firestore / auth anonyme pour le profil joueur et le classement.
@@ -533,7 +535,13 @@ class FirestoreService {
       defaultValue: false,
     );
     if (delta == 0) {
-      return (ok: true, newLux: null, prevLux: null, appliedDelta: 0);
+      return (
+        ok: true,
+        newLux: null,
+        prevLux: null,
+        appliedDelta: 0,
+        functionErrorCode: null,
+      );
     }
     if (!_authReady || _uid == null) {
       return null;
@@ -558,7 +566,13 @@ class FirestoreService {
       });
       final Object? data = res.data;
       if (data is! Map) {
-        return (ok: false, newLux: null, prevLux: null, appliedDelta: null);
+        return (
+          ok: false,
+          newLux: null,
+          prevLux: null,
+          appliedDelta: null,
+          functionErrorCode: null,
+        );
       }
       final Map<String, dynamic> raw = Map<String, dynamic>.from(data);
       final bool ok = raw['ok'] == true;
@@ -571,6 +585,7 @@ class FirestoreService {
           newLux: newLux,
           prevLux: prevLux,
           appliedDelta: appliedDelta,
+          functionErrorCode: null,
         );
       }
       return (
@@ -578,6 +593,7 @@ class FirestoreService {
         newLux: newLux,
         prevLux: prevLux,
         appliedDelta: appliedDelta,
+        functionErrorCode: null,
       );
     } on FirebaseFunctionsException catch (e, st) {
       VelourObservability.logFirestoreFailure(
@@ -590,7 +606,13 @@ class FirestoreService {
           'code': e.code,
         },
       );
-      return null;
+      return (
+        ok: false,
+        newLux: null,
+        prevLux: null,
+        appliedDelta: null,
+        functionErrorCode: e.code,
+      );
     } catch (e, st) {
       VelourObservability.logFirestoreFailure(
         'velourApplyLuxDelta',

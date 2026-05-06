@@ -24,6 +24,12 @@ class EconomyService extends ChangeNotifier {
   EconomyService({GameStateLocalStore? localStore})
     : _local = localStore ?? const GameStateLocalStore();
 
+  /// Erreurs Functions où retenter le **même** delta est sans espoir (évite boucle drain).
+  static const Set<String> _luxCallableUnrecoverableCodes = <String>{
+    'invalid-argument',
+    'failed-precondition',
+  };
+
   final GameStateLocalStore _local;
 
   /// Plafond par **crédit** LUX positif (anti-injection côté client).
@@ -334,6 +340,29 @@ class EconomyService extends ChangeNotifier {
           },
         );
       } else {
+        final String? fe = r?.functionErrorCode;
+        if (fe != null && _luxCallableUnrecoverableCodes.contains(fe)) {
+          _pendingLuxByMotifForCloud.remove(motif);
+          _economyLog(
+            'lux_cloud_delta_unrecoverable',
+            data: <String, Object?>{
+              'motif': motif,
+              'chunk': step,
+              'firebaseCode': fe,
+              'lux': _luxCoins,
+            },
+          );
+          VelourObservability.logEconomySecurity(
+            'lux_cloud_unrecoverable_motif_dropped',
+            data: <String, Object?>{
+              'motif': motif,
+              'code': fe,
+              'chunk': step,
+            },
+          );
+          FirestoreService.instance.queuePendingLuxCloudHint(_luxCoins);
+          break;
+        }
         final int now = DateTime.now().microsecondsSinceEpoch;
         final String failKey = '$motif|$d';
         final bool pendingChanged = _lastLuxCloudFailPending != failKey;

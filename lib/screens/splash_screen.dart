@@ -23,9 +23,10 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen>
     with TickerProviderStateMixin {
-  static const Duration _minSplash = Duration(seconds: 2);
-  static const Duration _scanDuration = Duration(milliseconds: 1600);
-  static const Duration _breatheDuration = Duration(milliseconds: 1800);
+  /// Garde un minimum pour laisser le bootstrap / prefs finir sans écran noir trop bref.
+  static const Duration _minSplash = Duration(milliseconds: 900);
+  static const Duration _scanDuration = Duration(milliseconds: 1000);
+  static const Duration _breatheDuration = Duration(milliseconds: 1400);
 
   late final AnimationController _scan;
   late final AnimationController _breathe;
@@ -93,8 +94,8 @@ class _SplashScreenState extends State<SplashScreen>
 
   PageRouteBuilder<dynamic> _fadeToMainRoute() {
     return PageRouteBuilder<dynamic>(
-      transitionDuration: const Duration(milliseconds: 800),
-      reverseTransitionDuration: const Duration(milliseconds: 400),
+      transitionDuration: const Duration(milliseconds: 450),
+      reverseTransitionDuration: const Duration(milliseconds: 280),
       pageBuilder:
           (
             BuildContext context,

@@ -110,10 +110,27 @@ class EconomyService extends ChangeNotifier {
   void hydratePendingLuxByMotifFromDisk(Map<String, List<int>> pending) {
     if (pending.isEmpty) return;
     if (_pendingLuxByMotifForCloud.isNotEmpty) return;
-    _pendingLuxByMotifForCloud.addAll(pending);
+    // Sanitize legacy/corrupted queues: some motifs must never be negative.
+    final Map<String, List<int>> clean = <String, List<int>>{};
+    for (final MapEntry<String, List<int>> e in pending.entries) {
+      final String motif = e.key;
+      final List<int> q0 = e.value;
+      if (q0.isEmpty) continue;
+      List<int> q = q0.where((v) => v != 0).toList(growable: false);
+      if (q.isEmpty) continue;
+      if (motif == LuxApplyMotifs.welcomeGrant ||
+          motif == LuxApplyMotifs.dailyBonus) {
+        // Server rejects negative deltas for those motifs.
+        q = q.where((v) => v > 0).toList(growable: false);
+      }
+      if (q.isEmpty) continue;
+      clean[motif] = List<int>.from(q);
+    }
+    if (clean.isEmpty) return;
+    _pendingLuxByMotifForCloud.addAll(clean);
     _economyLog(
       'lux_pending_hydrate_disk',
-      data: <String, Object?>{'motifs': pending.length},
+      data: <String, Object?>{'motifs': clean.length},
     );
     _schedulePersistPendingLuxByMotif();
   }
@@ -203,22 +220,27 @@ class EconomyService extends ChangeNotifier {
     if (!_firstLaunchPendingWelcome) return;
     _firstLaunchPendingWelcome = false;
     final int before = _luxCoins;
-    _luxCoins = welcomeLuxGrant;
+    // Welcome grant must never decrease a player's balance.
+    _luxCoins = math.max(_luxCoins, welcomeLuxGrant);
     final int delta = _luxCoins - before;
     if (delta > 0) {
       pendingLuxAnimation += delta;
       _pendingLuxJuiceSilent = true;
     }
-    // (prevP unused) keep intent visible without aggregating.
-    final List<int> q =
-        _pendingLuxByMotifForCloud[LuxApplyMotifs.welcomeGrant] ?? <int>[];
-    q.add(delta);
-    _pendingLuxByMotifForCloud[LuxApplyMotifs.welcomeGrant] = q;
-    _schedulePersistPendingLuxByMotif();
+    if (delta > 0) {
+      // (prevP unused) keep intent visible without aggregating.
+      final List<int> q =
+          _pendingLuxByMotifForCloud[LuxApplyMotifs.welcomeGrant] ?? <int>[];
+      q.add(delta);
+      _pendingLuxByMotifForCloud[LuxApplyMotifs.welcomeGrant] = q;
+      _schedulePersistPendingLuxByMotif();
+    }
     _economyLog('welcome_grant', data: {'lux': _luxCoins});
     notifyListeners();
     await _local.persistWelcomeGrant(_luxCoins);
-    _scheduleDebouncedLuxCloudSync();
+    if (delta > 0) {
+      _scheduleDebouncedLuxCloudSync();
+    }
   }
 
   Future<void> debugResetFirstLaunchWelcome() async {

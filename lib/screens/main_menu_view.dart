@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:velour_app/l10n/app_localizations.dart';
@@ -35,6 +36,28 @@ class _MainMenuViewState extends State<MainMenuView>
   bool _namingDialogOpen = false;
   int _streakDays = 0;
   bool _dailyLuxClaimBusy = false;
+
+  void _startMenuBgmIfAllowed() {
+    if (kIsWeb) return; // Web: autoplay policy requires a user gesture.
+    if (_menuMusicStarted || _menuBgmUnlockInFlight) return;
+    _menuBgmUnlockInFlight = true;
+    unawaited(() async {
+      bool ok = false;
+      try {
+        ok = await AudioHandler.instance.resumeAudioThenStartMenuBgm();
+      } finally {
+        _menuBgmUnlockInFlight = false;
+      }
+      if (!mounted) return;
+      setState(() => _menuMusicStarted = ok);
+    }());
+  }
+
+  void _stopMenuBgmIfPlaying() {
+    if (!_menuMusicStarted) return;
+    _menuMusicStarted = false;
+    unawaited(AudioHandler.instance.stopMusic());
+  }
 
   Future<void> _refreshStreak() async {
     await StatsService.instance.load();
@@ -164,14 +187,21 @@ class _MainMenuViewState extends State<MainMenuView>
 
   @override
   void didPopNext() {
+    _startMenuBgmIfAllowed();
     _syncPendingLuxJuiceIfAny();
     unawaited(_refreshStreak());
   }
 
   @override
   void didPush() {
+    _startMenuBgmIfAllowed();
     _syncPendingLuxJuiceIfAny();
     unawaited(_refreshStreak());
+  }
+
+  @override
+  void didPushNext() {
+    _stopMenuBgmIfPlaying();
   }
 
   @override
@@ -207,7 +237,10 @@ class _MainMenuViewState extends State<MainMenuView>
 
     return Listener(
       behavior: HitTestBehavior.translucent,
-      onPointerDown: (_) => _onFirstPointerDown(),
+      // Web: need a user gesture to unlock audio.
+      onPointerDown: (_) {
+        if (kIsWeb) _onFirstPointerDown();
+      },
       child: Scaffold(
         body: Stack(
           fit: StackFit.expand,

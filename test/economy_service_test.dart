@@ -33,6 +33,7 @@ void main() {
         luxCloudMotif: LuxApplyMotifs.velourClientSync,
       );
       expect(e.luxCoins, 10 + EconomyService.maxLuxPerPositiveCredit);
+      e.dispose();
     },
   );
 
@@ -41,6 +42,7 @@ void main() {
     e.hydrateLuxAndWelcomeFromDisk(_disk(lux: 100));
     e.addLuxCoins(-150, luxCloudMotif: LuxApplyMotifs.shopSkin);
     expect(e.luxCoins, 0);
+    e.dispose();
   });
 
   test('grantWelcomeLuxIfPending applique welcomeLuxGrant', () async {
@@ -53,6 +55,28 @@ void main() {
     final juice = e.takePendingLuxJuice();
     expect(juice.amount, EconomyService.welcomeLuxGrant);
     expect(juice.silent, isTrue);
+    e.dispose();
+  });
+
+  test('grantWelcomeLuxIfPending ne doit jamais réduire le solde', () async {
+    final GameStateLocalStore store = const GameStateLocalStore();
+    final EconomyService e = EconomyService(localStore: store);
+    e.hydrateLuxAndWelcomeFromDisk(_disk(lux: 3200, firstLaunch: true));
+    expect(e.hasPendingWelcomeGift, isTrue);
+
+    await e.grantWelcomeLuxIfPending();
+
+    expect(e.hasPendingWelcomeGift, isFalse);
+    expect(e.luxCoins, 3200);
+    final juice = e.takePendingLuxJuice();
+    expect(juice.amount, 0);
+
+    // Welcome grant must not enqueue any negative/zero cloud deltas.
+    await Future<void>.delayed(const Duration(milliseconds: 700));
+    final Map<String, List<int>> loaded = await store
+        .loadPendingLuxByMotifForCloud();
+    expect(loaded[LuxApplyMotifs.welcomeGrant], isNull);
+    e.dispose();
   });
 
   test('mergeBootstrapFromCloud prend le max LUX et high score', () async {
@@ -73,6 +97,7 @@ void main() {
     );
     expect(e.luxCoins, 200);
     expect(e.highScore, 500);
+    e.dispose();
   });
 
   test(
@@ -101,6 +126,7 @@ void main() {
       final Map<String, List<int>> loaded = await store
           .loadPendingLuxByMotifForCloud();
       expect(loaded[LuxApplyMotifs.stakeReward], <int>[100]);
+      e.dispose();
     },
   );
 
@@ -117,6 +143,7 @@ void main() {
     await e.commitRunHighScoreIfBetter(30);
     expect(e.highScore, 42);
     expect(seen, 42);
+    e.dispose();
   });
 
   test('GameState.welcomeLuxGrant aligné sur EconomyService', () {

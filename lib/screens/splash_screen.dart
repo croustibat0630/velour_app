@@ -13,7 +13,7 @@ import '../services/velour_observability.dart';
 import '../theme/theme_engine.dart';
 import 'main_menu_view.dart';
 
-/// Écran d’accueil : fond noir, logo VELOUR avec balayage néon puis respiration légère.
+/// Écran d’accueil : fond noir, logo VELOUR avec un seul balayage néon puis menu.
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -22,27 +22,17 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen>
-    with TickerProviderStateMixin {
+    with SingleTickerProviderStateMixin {
   /// Garde un minimum pour laisser le bootstrap / prefs finir sans écran noir trop bref.
   static const Duration _minSplash = Duration(milliseconds: 900);
   static const Duration _scanDuration = Duration(milliseconds: 1000);
-  static const Duration _breatheDuration = Duration(milliseconds: 1400);
 
   late final AnimationController _scan;
-  late final AnimationController _breathe;
 
   @override
   void initState() {
     super.initState();
     _scan = AnimationController(vsync: this, duration: _scanDuration);
-    _breathe = AnimationController(vsync: this, duration: _breatheDuration);
-
-    _scan.addStatusListener((AnimationStatus status) {
-      if (status == AnimationStatus.completed && mounted) {
-        _breathe.repeat(reverse: true);
-      }
-    });
-
     _scan.forward();
     unawaited(_bootstrapThenNavigate());
   }
@@ -89,13 +79,14 @@ class _SplashScreenState extends State<SplashScreen>
     }
 
     if (!mounted) return;
-    await Navigator.of(context).pushReplacement(_fadeToMainRoute());
+    await Navigator.of(context).pushReplacement(_instantMainRoute());
   }
 
-  PageRouteBuilder<dynamic> _fadeToMainRoute() {
+  /// Pas de 2ᵉ « cinématique » : le menu remplace le splash sans fondu.
+  PageRouteBuilder<dynamic> _instantMainRoute() {
     return PageRouteBuilder<dynamic>(
-      transitionDuration: const Duration(milliseconds: 450),
-      reverseTransitionDuration: const Duration(milliseconds: 280),
+      transitionDuration: Duration.zero,
+      reverseTransitionDuration: Duration.zero,
       pageBuilder:
           (
             BuildContext context,
@@ -111,11 +102,7 @@ class _SplashScreenState extends State<SplashScreen>
             Animation<double> secondaryAnimation,
             Widget child,
           ) {
-            final Animation<double> curved = CurvedAnimation(
-              parent: animation,
-              curve: Curves.easeInOutCubic,
-            );
-            return FadeTransition(opacity: curved, child: child);
+            return child;
           },
     );
   }
@@ -123,7 +110,6 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void dispose() {
     _scan.dispose();
-    _breathe.dispose();
     super.dispose();
   }
 
@@ -137,15 +123,11 @@ class _SplashScreenState extends State<SplashScreen>
       backgroundColor: Colors.black,
       body: Center(
         child: AnimatedBuilder(
-          animation: Listenable.merge(<Listenable>[_scan, _breathe]),
+          animation: _scan,
           builder: (BuildContext context, Widget? child) {
             final double scanT = Curves.easeInOutCubic.transform(_scan.value);
-            final bool scanDone = _scan.isCompleted;
-            final double breathe = scanDone
-                ? (0.94 + 0.06 * Curves.easeInOutSine.transform(_breathe.value))
-                : 1.0;
             final double baseReveal = 0.08 + 0.88 * scanT;
-            final double opacity = (baseReveal * breathe).clamp(0.0, 1.0);
+            final double opacity = baseReveal.clamp(0.0, 1.0);
 
             final Color fill = Color.lerp(
               neon.withValues(alpha: 0.35),

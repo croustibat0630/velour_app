@@ -20,10 +20,11 @@ class SessionStakeResolution {
 SessionStakeResolution resolveSessionStakeOnGameOver({
   required SessionStakeKind sessionStake,
   required int gameLevel,
-  int highStakesTargetLevel = SessionStakeConstants.highStakesTargetLevel,
-  int royalTargetLevel = SessionStakeConstants.royalTargetLevel,
-  int highStakesWinLux = SessionStakeConstants.highStakesWinLux,
-  int royalWinLux = SessionStakeConstants.royalWinLux,
+  int highStakesTargetLevel =
+      SessionStakeConstants.defaultHighStakesTargetLevel,
+  int royalTargetLevel = SessionStakeConstants.defaultRoyalTargetLevel,
+  int highStakesWinLux = SessionStakeConstants.defaultHighStakesWinLux,
+  int royalWinLux = SessionStakeConstants.defaultRoyalWinLux,
 }) {
   final SessionStakeKind ended = sessionStake;
 

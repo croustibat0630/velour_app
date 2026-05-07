@@ -682,13 +682,13 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
   /// Prime royale : bonus LUX sur la prochaine **victoire** Royal uniquement.
   static const int forgeRoyalBountyPriceLux = 350;
   static const int forgeRoyalBountyBonusLux = 200;
-  static const int highStakesWinLux = SessionStakeConstants.highStakesWinLux;
-  static const int highStakesTargetLevel =
+  static int get highStakesWinLux => SessionStakeConstants.highStakesWinLux;
+  static int get highStakesTargetLevel =>
       SessionStakeConstants.highStakesTargetLevel;
 
-  static const int royalAnteLux = SessionStakeConstants.royalAnteLux;
-  static const int royalWinLux = SessionStakeConstants.royalWinLux;
-  static const int royalTargetLevel = SessionStakeConstants.royalTargetLevel;
+  static int get royalAnteLux => SessionStakeConstants.royalAnteLux;
+  static int get royalWinLux => SessionStakeConstants.royalWinLux;
+  static int get royalTargetLevel => SessionStakeConstants.royalTargetLevel;
 
   /// Recharge chrono pleine une fois quand le temps atteint zéro (hors tutoriels).
   static const int forgeChronoPulsePriceLux = 175;

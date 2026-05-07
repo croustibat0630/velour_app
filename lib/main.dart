@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -11,6 +12,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 import 'services/app_settings.dart';
+import 'services/remote_config_service.dart';
 import 'services/velour_audio_platform.dart';
 import 'providers/game_state.dart';
 import 'screens/game_screen.dart';
@@ -93,6 +95,7 @@ Future<void> main() async {
   await configureVelourAudioPipeline(activateSession: true);
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await velourActivateAppCheck();
+  unawaited(VelourRemoteConfig.instance.init());
 
   // Crashlytics : actif hors debug (release + profile, ex. TestFlight interne).
   await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(

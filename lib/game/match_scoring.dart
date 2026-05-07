@@ -18,8 +18,9 @@ abstract final class MatchScoring {
   static double sessionScoreMultiplier(
     SessionStakeKind stake,
     int gameLevel, {
-    int highStakesTargetLevel = SessionStakeConstants.highStakesTargetLevel,
-    int royalTargetLevel = SessionStakeConstants.royalTargetLevel,
+    int highStakesTargetLevel =
+        SessionStakeConstants.defaultHighStakesTargetLevel,
+    int royalTargetLevel = SessionStakeConstants.defaultRoyalTargetLevel,
   }) {
     return switch (stake) {
       SessionStakeKind.highStakes =>

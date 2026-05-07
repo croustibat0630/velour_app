@@ -8,6 +8,7 @@ import 'firestore_service.dart';
 import 'lux_apply_motifs.dart';
 import 'lux_credit_limits.dart';
 import '../utils/velour_audit_log.dart';
+import 'remote_config_service.dart';
 import 'velour_observability.dart';
 
 void _economyLog(String event, {Map<String, Object?> data = const {}}) {
@@ -47,10 +48,11 @@ class EconomyService extends ChangeNotifier {
   static const int maxLuxPerPositiveCredit =
       LuxCreditLimits.maxPositiveCreditPerApply;
 
-  static const int welcomeLuxGrant = 250;
+  static int get welcomeLuxGrant => VelourRemoteConfig.instance.welcomeLuxGrant;
 
   /// Bonus quotidien gratuit (aligné Cloud Function `daily_bonus`).
-  static const int dailyLuxBonusAmount = 50;
+  static int get dailyLuxBonusAmount =>
+      VelourRemoteConfig.instance.dailyLuxBonus;
 
   Timer? _luxCloudSyncDebounce;
   Timer? _pendingLuxPersistDebounce;

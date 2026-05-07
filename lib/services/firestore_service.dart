@@ -73,11 +73,13 @@ class FirestoreService {
       .orderBy('updatedAt', descending: false)
       .limit(10);
 
-  /// Un seul flux Firestore pour le Top 10 (partage entre écouteurs).
-  late final Stream<QuerySnapshot<Map<String, dynamic>>>
-  leaderboardTopTenStream = _leaderboardPublicTopTenQuery
-      .snapshots(includeMetadataChanges: true)
-      .asBroadcastStream();
+  /// Flux Top 10 : **getter** (nouveau [Stream] à chaque lecture).
+  ///
+  /// Ne pas mettre en cache un seul `snapshots().asBroadcastStream()` : après retour
+  /// menu, le dernier [StreamBuilder] annule l’écoute et un réabonnement au même
+  /// broadcast peut rester bloqué sans premier événement (« Chargement… » infini).
+  Stream<QuerySnapshot<Map<String, dynamic>>> get leaderboardTopTenStream =>
+      _leaderboardPublicTopTenQuery.snapshots(includeMetadataChanges: true);
 
   bool get isCloudReady => _authReady && _playerRef != null;
   String? get uid => _uid;

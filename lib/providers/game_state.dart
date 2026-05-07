@@ -132,7 +132,12 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     if (pulled == null && !FirestoreService.instance.isCloudReady) {
       return;
     }
-    if (pulled == null) return;
+    if (pulled == null) {
+      // Auth may be ready even if the pull failed; still try to offer Oracle naming
+      // in case a personal best happened before cloud was initialized.
+      unawaited(_oracleNaming.maybeOfferForNewHighScore(_economy.highScore));
+      return;
+    }
 
     try {
       final int pendingPositiveBudget = _economy
@@ -199,6 +204,10 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
         inventory: List<String>.from(_unlockedSkins),
         activeSkinId: _activeSkinId,
       );
+
+      // If a personal best occurred before cloud init (or when offline), we may have
+      // missed the initial offer. Re-check now that auth/doc exist.
+      unawaited(_oracleNaming.maybeOfferForNewHighScore(_economy.highScore));
     } catch (e, st) {
       VelourObservability.logFirestoreFailure(
         'bootstrapCloudAfterLocalLoad',

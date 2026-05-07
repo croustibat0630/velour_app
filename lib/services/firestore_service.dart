@@ -494,11 +494,11 @@ class FirestoreService {
         () => ref.get(),
       );
       final Map<String, dynamic>? d = me.data();
-      final String? pseudo = d?['pseudo'] as String?;
+      final String pseudoTrim = (d?['pseudo'] as String?)?.trim() ?? '';
       final bool needsName =
-          pseudo == null ||
-          pseudo.startsWith('Oracle_') ||
-          pseudo.startsWith('oracle_');
+          pseudoTrim.isEmpty ||
+          pseudoTrim.startsWith('Oracle_') ||
+          pseudoTrim.startsWith('oracle_');
       if (!needsName) return false;
 
       final QuerySnapshot<Map<String, dynamic>> top = await _firestoreRetry(

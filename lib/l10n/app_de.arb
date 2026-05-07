@@ -316,6 +316,12 @@
   "gameOverFinalScore": "ENDSCORE",
   "gameOverLuxWon": "LUX GEWONNEN",
   "gameOverPersonalBest": "NEUER PERSÖNLICHER REKORD",
+  "gameOverCareerRecordHint": "Karriere-Rekord (gespeichert): {high}",
+  "@gameOverCareerRecordHint": {
+    "placeholders": {
+      "high": {"type": "int"}
+    }
+  },
   "gameOverReplay": "NOCHMAL SPIELEN",
   "gameOverMainMenu": "HAUPTMENÜ",
   "gameOverPrestigeBonus": "PRESTIGE-BONUS",

@@ -1648,8 +1648,8 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     _cancelMatchScheduling();
     _stopTimeLoop();
     unawaited(_recordRunStatsIfNeeded());
-    _lastGameWasPersonalBest = _lux > _economy.highScore;
     _resolveSessionStakeOnGameOver();
+    _lastGameWasPersonalBest = _lux > _economy.highScore;
     _persistHighScoreIfNeeded();
     _playGameOverSound();
     AudioHandler.instance.cutAllAudio();
@@ -2279,8 +2279,8 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     _cancelMatchScheduling();
     if (!wasCritical) {
       unawaited(_recordRunStatsIfNeeded());
-      _lastGameWasPersonalBest = _lux > _economy.highScore;
       _resolveSessionStakeOnGameOver();
+      _lastGameWasPersonalBest = _lux > _economy.highScore;
       _playGameOverSound();
       AudioHandler.instance.cutAllAudio();
       _persistHighScoreIfNeeded();

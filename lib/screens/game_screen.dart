@@ -991,6 +991,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                               return GameOverOverlay(
                                 rawMatchLuxTotal: gs.runMatchLuxRawTotal,
                                 finalLux: gs.lux,
+                                careerHighScore: gs.highScore,
                                 finalLevel: gs.gameLevel,
                                 endedStakeKind: ended,
                                 prestigeMultiplier: prestigeMult,

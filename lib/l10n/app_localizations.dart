@@ -1011,6 +1011,12 @@ abstract class AppLocalizations {
   /// **'NEW PERSONAL BEST'**
   String get gameOverPersonalBest;
 
+  /// No description provided for @gameOverCareerRecordHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Career record (saved): {high}'**
+  String gameOverCareerRecordHint(int high);
+
   /// No description provided for @gameOverReplay.
   ///
   /// In en, this message translates to:

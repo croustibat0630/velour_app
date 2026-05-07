@@ -15,6 +15,9 @@ class GameOverOverlay extends StatefulWidget {
     super.key,
     required this.rawMatchLuxTotal,
     required this.finalLux,
+
+    /// Meilleur score déjà enregistré (disque / fusion cloud) avant cette partie.
+    required this.careerHighScore,
     required this.finalLevel,
     required this.endedStakeKind,
     required this.prestigeMultiplier,
@@ -33,6 +36,8 @@ class GameOverOverlay extends StatefulWidget {
 
   /// Score final in‑run (somme des gains avec multiplicateur actif le cas échéant).
   final int finalLux;
+
+  final int careerHighScore;
 
   final int finalLevel;
   final SessionStakeKind endedStakeKind;
@@ -491,6 +496,39 @@ class _GameOverOverlayState extends State<GameOverOverlay>
                                       scaleH: sH,
                                     );
                                   },
+                                ),
+                              ),
+                            ],
+                            if (!widget.isPersonalBest &&
+                                widget.careerHighScore > 0) ...[
+                              SizedBox(height: (14 * sH).clamp(12.0, 20.0)),
+                              enter(
+                                step++,
+                                Text(
+                                  l10n.gameOverCareerRecordHint(
+                                    widget.careerHighScore,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style:
+                                      Theme.of(
+                                        context,
+                                      ).textTheme.bodySmall?.copyWith(
+                                        fontSize: (12 * sT).clamp(11.0, 14.0),
+                                        height: 1.35,
+                                        fontWeight: FontWeight.w500,
+                                        color: Colors.white.withValues(
+                                          alpha: 0.58,
+                                        ),
+                                      ) ??
+                                      TextStyle(
+                                        fontSize: (12 * sT).clamp(11.0, 14.0),
+                                        height: 1.35,
+                                        color: Colors.white.withValues(
+                                          alpha: 0.58,
+                                        ),
+                                      ),
                                 ),
                               ),
                             ],

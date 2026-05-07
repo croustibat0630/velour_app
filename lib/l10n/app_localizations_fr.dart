@@ -539,6 +539,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get gameOverPersonalBest => 'NOUVEAU RECORD PERSONNEL';
 
   @override
+  String gameOverCareerRecordHint(int high) {
+    return 'Record carrière (enregistré) : $high';
+  }
+
+  @override
   String get gameOverReplay => 'REJOUER';
 
   @override

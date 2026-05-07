@@ -208,6 +208,12 @@
   "gameOverFinalScore": "SCORE FINAL",
   "gameOverLuxWon": "LUX REMPORTÉS",
   "gameOverPersonalBest": "NOUVEAU RECORD PERSONNEL",
+  "gameOverCareerRecordHint": "Record carrière (enregistré) : {high}",
+  "@gameOverCareerRecordHint": {
+    "placeholders": {
+      "high": {"type": "int"}
+    }
+  },
   "gameOverReplay": "REJOUER",
   "gameOverMainMenu": "MENU PRINCIPAL",
   "gameOverPrestigeBonus": "BONUS PRESTIGE",

@@ -306,6 +306,12 @@
   "gameOverFinalScore": "FINAL SCORE",
   "gameOverLuxWon": "LUX WON",
   "gameOverPersonalBest": "NEW PERSONAL BEST",
+  "gameOverCareerRecordHint": "Career record (saved): {high}",
+  "@gameOverCareerRecordHint": {
+    "placeholders": {
+      "high": {"type": "int"}
+    }
+  },
   "gameOverReplay": "PLAY AGAIN",
   "gameOverMainMenu": "MAIN MENU",
   "gameOverPrestigeBonus": "PRESTIGE BONUS",

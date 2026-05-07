@@ -547,6 +547,11 @@ class AppLocalizationsDe extends AppLocalizations {
   String get gameOverPersonalBest => 'NEUER PERSÖNLICHER REKORD';
 
   @override
+  String gameOverCareerRecordHint(int high) {
+    return 'Karriere-Rekord (gespeichert): $high';
+  }
+
+  @override
   String get gameOverReplay => 'NOCHMAL SPIELEN';
 
   @override

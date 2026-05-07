@@ -30,11 +30,18 @@ computeMyDenseWorldRankFromFirestore(
           .toList();
     },
   );
-  final AggregateQuerySnapshot sameAgg = await db
-      .collection(scoresCollection)
-      .where('highScore', isEqualTo: myScore)
-      .count()
-      .get();
-  final int same = sameAgg.count ?? 0;
-  return (denseRank: dense, tiedWithOthersSameScore: same > 1);
+  bool tied = false;
+  try {
+    final AggregateQuerySnapshot sameAgg = await db
+        .collection(scoresCollection)
+        .where('highScore', isEqualTo: myScore)
+        .count()
+        .get();
+    final int same = sameAgg.count ?? 0;
+    tied = same > 1;
+  } catch (_) {
+    // Count aggregates can fail on some clients/network paths; rank still valid.
+    tied = false;
+  }
+  return (denseRank: dense, tiedWithOthersSameScore: tied);
 }

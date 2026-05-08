@@ -26,6 +26,8 @@ class OracleNamingService extends ChangeNotifier {
   /// Rappelé par [EconomyService] après commit d’un nouveau record (awaited).
   Future<void> maybeOfferForNewHighScore(int newHighScore) async {
     if (_visible) return;
+    // Évite d'agresser au premier lancement / bootstrap (score 0, menu pas encore “joué”).
+    if (newHighScore <= 0) return;
     final bool offer = await FirestoreService.instance
         .shouldOfferOracleNamingForNewHighScore(newHighScore);
     if (!offer) return;

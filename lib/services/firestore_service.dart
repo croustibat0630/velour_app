@@ -487,6 +487,8 @@ class FirestoreService {
 
   /// `true` si le joueur doit voir la cérémonie de nom (pseudo placeholder + top 10).
   Future<bool> shouldOfferOracleNamingForNewHighScore(int newHighScore) async {
+    // Ne jamais proposer avant la première partie (ex: bootstrap / menu initial).
+    if (newHighScore <= 0) return false;
     final DocumentReference<Map<String, dynamic>>? ref = _playerRef;
     if (!_authReady || ref == null) return false;
     try {

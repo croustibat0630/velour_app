@@ -2,11 +2,13 @@ import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import 'package:velour_app/l10n/app_localizations.dart';
 
 import '../../providers/game_state.dart';
 import '../../services/audio_handler.dart';
 import '../../utils/responsive.dart';
+import '../oracle_naming_dialog.dart';
 import 'dark_matte_overlay.dart';
 import 'menu_text_button.dart';
 
@@ -182,6 +184,7 @@ class _GameOverOverlayState extends State<GameOverOverlay>
   @override
   Widget build(BuildContext context) {
     final AppLocalizations l10n = AppLocalizations.of(context)!;
+    final GameState gs = context.watch<GameState>();
     final double sH = Responsive.heightScale(context);
     final double sT = Responsive.textScale(context);
     final Color titleNeon = _titleAccent();
@@ -567,6 +570,30 @@ class _GameOverOverlayState extends State<GameOverOverlay>
                                 ),
                               ),
                             ],
+                            if (gs.shouldShowNamingDialog) ...[
+                              SizedBox(height: (14 * sH).clamp(10.0, 18.0)),
+                              enter(
+                                step++,
+                                _OracleNamingBanner(
+                                  scaleH: sH,
+                                  scaleT: sT,
+                                  accent: widget.recordAccentColor,
+                                  onNameNow: () async {
+                                    final bool? sealed = await showDialog<bool>(
+                                      context: context,
+                                      barrierDismissible: true,
+                                      builder: (_) =>
+                                          const OracleNamingDialog(),
+                                    );
+                                    if (!context.mounted) return;
+                                    if (sealed == true) {
+                                      // On laisse la navigation à l'utilisateur (menu/classement).
+                                    }
+                                  },
+                                  onLater: () => gs.dismissNamingDialog(),
+                                ),
+                              ),
+                            ],
                             SizedBox(height: (32 * sH).clamp(24.0, 40.0)),
                             _enterCta(
                               Material(
@@ -642,6 +669,181 @@ class _GameOverOverlayState extends State<GameOverOverlay>
           ),
         ),
       ],
+    );
+  }
+}
+
+class _OracleNamingBanner extends StatelessWidget {
+  const _OracleNamingBanner({
+    required this.scaleH,
+    required this.scaleT,
+    required this.accent,
+    required this.onNameNow,
+    required this.onLater,
+  });
+
+  final double scaleH;
+  final double scaleT;
+  final Color accent;
+  final Future<void> Function() onNameNow;
+  final VoidCallback onLater;
+
+  @override
+  Widget build(BuildContext context) {
+    final double sH = scaleH;
+    final double sT = scaleT;
+    final Color a = accent;
+    final double r = (18 * sH).clamp(16.0, 20.0);
+    final EdgeInsets pad = EdgeInsets.fromLTRB(
+      (14 * sH).clamp(12.0, 18.0),
+      (12 * sH).clamp(10.0, 16.0),
+      (14 * sH).clamp(12.0, 18.0),
+      (12 * sH).clamp(10.0, 16.0),
+    );
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(r),
+      child: Stack(
+        children: [
+          BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+            child: const SizedBox.expand(),
+          ),
+          DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  const Color(0xFF0B0D12).withValues(alpha: 0.80),
+                  const Color(0xFF05070C).withValues(alpha: 0.70),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(r),
+              border: Border.all(color: a.withValues(alpha: 0.22), width: 1),
+              boxShadow: [
+                BoxShadow(
+                  color: a.withValues(alpha: 0.14),
+                  blurRadius: 28,
+                  spreadRadius: 1,
+                  offset: const Offset(0, 10),
+                ),
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.42),
+                  blurRadius: 14,
+                  offset: const Offset(0, 16),
+                ),
+              ],
+            ),
+            child: Padding(
+              padding: pad,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: IconButton(
+                      tooltip: 'Fermer',
+                      visualDensity: VisualDensity.compact,
+                      onPressed: onLater,
+                      icon: Icon(
+                        Icons.close_rounded,
+                        size: (18 * sT).clamp(16.0, 22.0),
+                        color: Colors.white.withValues(alpha: 0.55),
+                      ),
+                    ),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.auto_awesome_rounded,
+                        size: (16 * sT).clamp(14.0, 20.0),
+                        color: a.withValues(alpha: 0.92),
+                        shadows: [
+                          Shadow(
+                            color: a.withValues(alpha: 0.35),
+                            blurRadius: 14,
+                          ),
+                        ],
+                      ),
+                      SizedBox(width: (10 * sH).clamp(8.0, 12.0)),
+                      Text(
+                        'ENTRÉE AU CLASSEMENT',
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          letterSpacing: 3.2,
+                          fontWeight: FontWeight.w800,
+                          fontSize: (11.5 * sT).clamp(10.5, 13.0),
+                          color: a.withValues(alpha: 0.92),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: (8 * sH).clamp(6.0, 12.0)),
+                  Text(
+                    'Scelle ton nom pour apparaître dans le classement mondial.',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      height: 1.35,
+                      letterSpacing: 0.6,
+                      color: Colors.white.withValues(alpha: 0.64),
+                      fontSize: (12 * sT).clamp(11.0, 13.5),
+                    ),
+                  ),
+                  SizedBox(height: (12 * sH).clamp(10.0, 16.0)),
+                  FilledButton(
+                    onPressed: () async => onNameNow(),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: Colors.black.withValues(alpha: 0.42),
+                      foregroundColor: a.withValues(alpha: 0.96),
+                      padding: EdgeInsets.symmetric(
+                        vertical: (12 * sH).clamp(10.0, 14.0),
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      side: BorderSide(color: a.withValues(alpha: 0.52)),
+                    ),
+                    child: Text(
+                      'NOMMER',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        letterSpacing: 2.4,
+                        fontWeight: FontWeight.w900,
+                        fontSize: (11.5 * sT).clamp(10.5, 13.0),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            top: 0,
+            height: (1.0 * sH).clamp(1.0, 2.0),
+            child: IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.transparent,
+                      a.withValues(alpha: 0.55),
+                      Colors.transparent,
+                    ],
+                    stops: const [0.0, 0.5, 1.0],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -469,10 +469,13 @@ class _PodiumGlyph extends StatelessWidget {
   Widget build(BuildContext context) {
     if (denseRank > 3) return const SizedBox.shrink();
     final AppLocalizations l10n = AppLocalizations.of(context)!;
-    final IconData icon = denseRank == 1
-        ? Icons.emoji_events_rounded
-        : Icons.military_tech_rounded;
-    final double size = (19 * scaleT).clamp(17.0, 24.0);
+    final IconData icon = switch (denseRank) {
+      1 => Icons.emoji_events_rounded, // coupe
+      2 => Icons.workspace_premium_rounded, // médaille (argent)
+      3 => Icons.military_tech_rounded, // médaille (bronze)
+      _ => Icons.military_tech_rounded,
+    };
+    final double size = (22 * scaleT).clamp(20.0, 28.0);
     final bool isFirst = denseRank == 1;
     final String semLabel = switch (denseRank) {
       1 => l10n.leaderboardPodiumFirst,
@@ -485,19 +488,81 @@ class _PodiumGlyph extends StatelessWidget {
       child: Icon(
         icon,
         size: size,
-        color: accent.withValues(alpha: 0.94),
+        color: accent.withValues(alpha: 0.96),
         shadows: <Shadow>[
           Shadow(
-            color: accent.withValues(alpha: isFirst ? 0.52 : 0.38),
-            blurRadius: isFirst ? 16 : 11,
-            offset: const Offset(0, 0.5),
+            color: accent.withValues(alpha: isFirst ? 0.58 : 0.44),
+            blurRadius: isFirst ? 18 : 13,
+            offset: const Offset(0, 0.6),
           ),
           Shadow(
-            color: accent.withValues(alpha: 0.14),
-            blurRadius: 3,
-            offset: const Offset(0, 1.5),
+            color: Colors.black.withValues(alpha: 0.35),
+            blurRadius: 8,
+            offset: const Offset(0, 2.5),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _PodiumBadge extends StatelessWidget {
+  const _PodiumBadge({
+    required this.denseRank,
+    required this.size,
+    required this.accent,
+    required this.scaleT,
+  });
+
+  final int denseRank;
+  final double size;
+  final Color accent;
+  final double scaleT;
+
+  @override
+  Widget build(BuildContext context) {
+    if (denseRank > 3) return const SizedBox.shrink();
+    final bool isFirst = denseRank == 1;
+    final double glow = isFirst ? 0.30 : 0.22;
+    return SizedBox(
+      width: size,
+      height: size,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: RadialGradient(
+            center: const Alignment(0, -0.25),
+            radius: 0.95,
+            colors: [
+              accent.withValues(alpha: glow),
+              const Color(0xFF000000).withValues(alpha: 0.55),
+            ],
+          ),
+          border: Border.all(
+            color: accent.withValues(alpha: isFirst ? 0.62 : 0.50),
+            width: 1.15,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: accent.withValues(alpha: isFirst ? 0.30 : 0.22),
+              blurRadius: isFirst ? 22 : 16,
+              spreadRadius: isFirst ? 2 : 1,
+              offset: const Offset(0, 3),
+            ),
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.45),
+              blurRadius: 10,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Center(
+          child: _PodiumGlyph(
+            denseRank: denseRank,
+            accent: accent,
+            scaleT: scaleT * 1.05,
+          ),
+        ),
       ),
     );
   }
@@ -540,6 +605,7 @@ class _LeaderboardTile extends StatelessWidget {
     final ({Color accent, bool glow}) a = _accentForRank();
     final Color accent = a.accent;
     final bool glow = a.glow;
+    final bool isPodium = denseRank <= 3;
 
     final double tilePadH = (14 * scaleH).clamp(12.0, 18.0);
     final double tilePadV = (12 * scaleH).clamp(10.0, 14.0);
@@ -573,25 +639,25 @@ class _LeaderboardTile extends StatelessWidget {
       ),
       child: Row(
         children: [
-          _RankBadge(
-            label: rankLabel,
-            size: rankSize,
-            accent: accent,
-            glow: glow,
-            scaleT: scaleT,
-          ),
+          if (isPodium)
+            _PodiumBadge(
+              denseRank: denseRank,
+              size: rankSize,
+              accent: accent,
+              scaleT: scaleT,
+            )
+          else
+            _RankBadge(
+              label: rankLabel,
+              size: rankSize,
+              accent: accent,
+              glow: glow,
+              scaleT: scaleT,
+            ),
           SizedBox(width: (12 * scaleH).clamp(10.0, 14.0)),
           Expanded(
             child: Row(
               children: [
-                if (denseRank <= 3) ...[
-                  _PodiumGlyph(
-                    denseRank: denseRank,
-                    accent: accent,
-                    scaleT: scaleT,
-                  ),
-                  SizedBox(width: (8 * scaleH).clamp(6.0, 10.0)),
-                ],
                 Expanded(
                   child: Text(
                     username,
@@ -727,6 +793,7 @@ class _YourRankBar extends StatelessWidget {
   final int yourLux;
 
   static const Color _cyan = Color(0xFF00E5FF);
+  static const Color _gold = Color(0xFFFFD700);
 
   @override
   Widget build(BuildContext context) {
@@ -739,15 +806,22 @@ class _YourRankBar extends StatelessWidget {
       color: Colors.transparent,
       child: DecoratedBox(
         decoration: BoxDecoration(
-          color: const Color(0xFF05060A).withValues(alpha: 0.92),
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              const Color(0xFF070812).withValues(alpha: 0.78),
+              const Color(0xFF05060A).withValues(alpha: 0.94),
+            ],
+          ),
           border: Border(
-            top: BorderSide(color: Colors.white.withValues(alpha: 0.07)),
+            top: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
           ),
           boxShadow: [
             BoxShadow(
-              color: _cyan.withValues(alpha: 0.08),
-              blurRadius: 36,
-              spreadRadius: 4,
+              color: _cyan.withValues(alpha: 0.10),
+              blurRadius: 46,
+              spreadRadius: 6,
             ),
           ],
         ),
@@ -766,23 +840,43 @@ class _YourRankBar extends StatelessWidget {
                       fontSize: labelSize,
                       letterSpacing: 3.2,
                       fontWeight: FontWeight.w600,
-                      color: Colors.white.withValues(alpha: 0.55),
+                      color: Colors.white.withValues(alpha: 0.62),
                     ),
                   ),
                 ),
-                Text(
-                  rankLabel,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.robotoMono(
-                    fontSize: valueSize,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.6,
-                    color: _cyan.withValues(alpha: 0.92),
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(999),
+                    color: Colors.black.withValues(alpha: 0.30),
+                    border: Border.all(color: _cyan.withValues(alpha: 0.30)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: _cyan.withValues(alpha: 0.16),
+                        blurRadius: 18,
+                        spreadRadius: 1,
+                      ),
+                    ],
+                  ),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: (10 * scaleH).clamp(8.0, 12.0),
+                      vertical: (6 * scaleH).clamp(5.0, 8.0),
+                    ),
+                    child: Text(
+                      rankLabel,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.robotoMono(
+                        fontSize: valueSize,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.6,
+                        color: _cyan.withValues(alpha: 0.94),
+                      ),
+                    ),
                   ),
                 ),
                 SizedBox(width: (14 * scaleH).clamp(10.0, 16.0)),
-                _LuxAmount(lux: yourLux, accent: _cyan, fontSize: valueSize),
+                _LuxAmount(lux: yourLux, accent: _gold, fontSize: valueSize),
               ],
             ),
           ),

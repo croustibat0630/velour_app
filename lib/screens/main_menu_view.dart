@@ -16,7 +16,7 @@ import '../utils/velour_route_observer.dart';
 import '../widgets/ui/dark_matte_overlay.dart';
 import '../widgets/ui/menu_text_button.dart';
 import '../widgets/ui/lux_score_displayer.dart';
-import '../widgets/oracle_naming_dialog.dart';
+import '../widgets/ui/velour_snackbar.dart';
 import 'preparation_view.dart';
 
 class MainMenuView extends StatefulWidget {
@@ -33,7 +33,6 @@ class _MainMenuViewState extends State<MainMenuView>
   bool _menuMusicStarted = false;
   bool _menuBgmUnlockInFlight = false;
   int? _overrideInitialValue;
-  bool _namingDialogOpen = false;
   int _streakDays = 0;
   bool _dailyLuxClaimBusy = false;
 
@@ -73,32 +72,46 @@ class _MainMenuViewState extends State<MainMenuView>
     try {
       final DailyLuxClaimOutcome outcome = await gs.claimDailyLuxBonus();
       if (!mounted) return;
-      final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
       switch (outcome) {
         case DailyLuxClaimOutcome.successServerApplied:
-          messenger.showSnackBar(
-            SnackBar(content: Text(l10n.menuDailyLuxBonusSuccess)),
+          showVelourSnackBar(
+            context,
+            l10n.menuDailyLuxBonusSuccess,
+            accent: const Color(0xFFFFD700),
+            icon: Icons.check_circle_outline_rounded,
           );
           break;
         case DailyLuxClaimOutcome.successQueuedOffline:
-          messenger.showSnackBar(
-            SnackBar(content: Text(l10n.menuDailyLuxBonusQueued)),
+          showVelourSnackBar(
+            context,
+            l10n.menuDailyLuxBonusQueued,
+            accent: const Color(0xFFFFD700),
+            icon: Icons.cloud_queue_rounded,
           );
           break;
         case DailyLuxClaimOutcome.alreadySyncedServerSide:
-          messenger.showSnackBar(
-            SnackBar(content: Text(l10n.menuDailyLuxBonusSynced)),
+          showVelourSnackBar(
+            context,
+            l10n.menuDailyLuxBonusSynced,
+            accent: const Color(0xFFFFD700),
+            icon: Icons.cloud_done_rounded,
           );
           break;
         case DailyLuxClaimOutcome.alreadyClaimedToday:
-          messenger.showSnackBar(
-            SnackBar(content: Text(l10n.menuDailyLuxBonusAlready)),
+          showVelourSnackBar(
+            context,
+            l10n.menuDailyLuxBonusAlready,
+            accent: const Color(0xFFFFD700),
+            icon: Icons.info_outline_rounded,
           );
           break;
         case DailyLuxClaimOutcome.networkUnavailable:
         case DailyLuxClaimOutcome.callableFailed:
-          messenger.showSnackBar(
-            SnackBar(content: Text(l10n.menuDailyLuxBonusRetry)),
+          showVelourSnackBar(
+            context,
+            l10n.menuDailyLuxBonusRetry,
+            accent: const Color(0xFF00E5FF),
+            icon: Icons.wifi_off_rounded,
           );
           break;
       }
@@ -212,28 +225,6 @@ class _MainMenuViewState extends State<MainMenuView>
     final double scaleH = Responsive.compactHeightScale(context);
     final bool tightHeight = scaleH < 1.0;
     const Color gold = Color(0xFFFFD700);
-
-    if (gs.shouldShowNamingDialog && !_namingDialogOpen) {
-      _namingDialogOpen = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
-        if (!mounted) return;
-        final bool? sealed = await showDialog<bool>(
-          context: context,
-          barrierDismissible: false,
-          builder: (_) => const OracleNamingDialog(),
-        );
-        if (!mounted) return;
-        _namingDialogOpen = false;
-        // Succès : montrer tout de suite le classement (où le nom apparaît).
-        if (sealed == true) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (!mounted) return;
-            Navigator.of(context).pushNamed('/leaderboard');
-          });
-        }
-        unawaited(_refreshStreak());
-      });
-    }
 
     return Listener(
       behavior: HitTestBehavior.translucent,

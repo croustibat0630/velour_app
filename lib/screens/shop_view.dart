@@ -12,6 +12,7 @@ import '../services/lux_apply_motifs.dart';
 import '../services/lux_iap_service.dart';
 import '../utils/responsive.dart';
 import '../widgets/ui/dark_matte_overlay.dart';
+import '../widgets/ui/velour_snackbar.dart';
 
 String _luxIapErrorSnack(AppLocalizations l10n, LuxIapBuyOutcome r) {
   switch (r.kind) {
@@ -168,7 +169,7 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
     try {
       final LuxIapBuyOutcome r = await LuxIapService.instance
           .buyVaultConsumable(productId);
-      if (!mounted) return;
+      if (!context.mounted) return;
       switch (r.kind) {
         case LuxIapBuyKind.success:
           final int grant = r.luxAmount > 0 ? r.luxAmount : luxAmount;
@@ -179,29 +180,54 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
           );
           break;
         case LuxIapBuyKind.cancelled:
-          messenger?.showSnackBar(
-            SnackBar(content: Text(l10n.shopIapCancelled)),
-          );
+          if (messenger != null) {
+            showVelourSnackBar(
+              context,
+              l10n.shopIapCancelled,
+              accent: const Color(0xFFC9D3E6),
+              icon: Icons.do_not_disturb_alt_rounded,
+            );
+          }
           break;
         case LuxIapBuyKind.unavailable:
-          messenger?.showSnackBar(
-            SnackBar(content: Text(l10n.shopIapUnavailable)),
-          );
+          if (messenger != null) {
+            showVelourSnackBar(
+              context,
+              l10n.shopIapUnavailable,
+              accent: const Color(0xFFFFD700),
+              icon: Icons.storefront_rounded,
+            );
+          }
           break;
         case LuxIapBuyKind.productsUnavailable:
-          messenger?.showSnackBar(
-            SnackBar(content: Text(l10n.shopIapProductsUnavailable)),
-          );
+          if (messenger != null) {
+            showVelourSnackBar(
+              context,
+              l10n.shopIapProductsUnavailable,
+              accent: const Color(0xFFFFD700),
+              icon: Icons.inventory_2_rounded,
+            );
+          }
           break;
         case LuxIapBuyKind.busy:
-          messenger?.showSnackBar(
-            SnackBar(content: Text(_luxIapErrorSnack(l10n, r))),
-          );
+          if (messenger != null) {
+            showVelourSnackBar(
+              context,
+              _luxIapErrorSnack(l10n, r),
+              accent: const Color(0xFF00E5FF),
+              icon: Icons.hourglass_top_rounded,
+            );
+          }
           break;
         case LuxIapBuyKind.error:
-          messenger?.showSnackBar(
-            SnackBar(content: Text(_luxIapErrorSnack(l10n, r))),
-          );
+          if (messenger != null) {
+            showVelourSnackBar(
+              context,
+              _luxIapErrorSnack(l10n, r),
+              accent: const Color(0xFFE49BFF),
+              icon: Icons.error_outline_rounded,
+            );
+          }
           break;
       }
     } finally {
@@ -592,29 +618,22 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
                                       switch (r) {
                                         case ForgePurchaseOutcome
                                             .insufficientLux:
-                                          ScaffoldMessenger.of(
+                                          showVelourSnackBar(
                                             context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                sl10n.shopSnackInsufficientLux,
-                                              ),
-                                            ),
+                                            sl10n.shopSnackInsufficientLux,
+                                            accent: const Color(0xFFFFD700),
+                                            icon: Icons.lock_outline_rounded,
                                           );
                                         case ForgePurchaseOutcome
                                             .purchasedChronoPulse:
                                           break;
                                         case ForgePurchaseOutcome
                                             .chronoPulseStackFull:
-                                          ScaffoldMessenger.of(
+                                          showVelourSnackBar(
                                             context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                sl10n
-                                                    .shopSnackForgeChronoPulseFull,
-                                              ),
-                                            ),
+                                            sl10n.shopSnackForgeChronoPulseFull,
+                                            accent: const Color(0xFF00E0ED),
+                                            icon: Icons.layers_rounded,
                                           );
                                         default:
                                           break;
@@ -649,29 +668,23 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
                                       switch (r) {
                                         case ForgePurchaseOutcome
                                             .insufficientLux:
-                                          ScaffoldMessenger.of(
+                                          showVelourSnackBar(
                                             context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                sl10n.shopSnackInsufficientLux,
-                                              ),
-                                            ),
+                                            sl10n.shopSnackInsufficientLux,
+                                            accent: const Color(0xFFFF6B4A),
+                                            icon: Icons.lock_outline_rounded,
                                           );
                                         case ForgePurchaseOutcome
                                             .purchasedMercySalvage:
                                           break;
                                         case ForgePurchaseOutcome
                                             .mercySalvageStackFull:
-                                          ScaffoldMessenger.of(
+                                          showVelourSnackBar(
                                             context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                sl10n
-                                                    .shopSnackForgeMercySalvageFull,
-                                              ),
-                                            ),
+                                            sl10n
+                                                .shopSnackForgeMercySalvageFull,
+                                            accent: const Color(0xFFFF6B4A),
+                                            icon: Icons.layers_rounded,
                                           );
                                         default:
                                           break;
@@ -716,29 +729,22 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
                                       switch (r) {
                                         case ForgePurchaseOutcome
                                             .insufficientLux:
-                                          ScaffoldMessenger.of(
+                                          showVelourSnackBar(
                                             context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                sl10n.shopSnackInsufficientLux,
-                                              ),
-                                            ),
+                                            sl10n.shopSnackInsufficientLux,
+                                            accent: const Color(0xFFFFD700),
+                                            icon: Icons.lock_outline_rounded,
                                           );
                                         case ForgePurchaseOutcome
                                             .purchasedInsurance:
                                           break;
                                         case ForgePurchaseOutcome
                                             .insuranceStackFull:
-                                          ScaffoldMessenger.of(
+                                          showVelourSnackBar(
                                             context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                sl10n
-                                                    .shopSnackForgeInsuranceFull,
-                                              ),
-                                            ),
+                                            sl10n.shopSnackForgeInsuranceFull,
+                                            accent: const Color(0xFFFFD700),
+                                            icon: Icons.layers_rounded,
                                           );
                                         default:
                                           break;
@@ -771,29 +777,23 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
                                       switch (r) {
                                         case ForgePurchaseOutcome
                                             .insufficientLux:
-                                          ScaffoldMessenger.of(
+                                          showVelourSnackBar(
                                             context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                sl10n.shopSnackInsufficientLux,
-                                              ),
-                                            ),
+                                            sl10n.shopSnackInsufficientLux,
+                                            accent: const Color(0xFFE49BFF),
+                                            icon: Icons.lock_outline_rounded,
                                           );
                                         case ForgePurchaseOutcome
                                             .purchasedRoyalBounty:
                                           break;
                                         case ForgePurchaseOutcome
                                             .royalBountyAlreadyActive:
-                                          ScaffoldMessenger.of(
+                                          showVelourSnackBar(
                                             context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                sl10n
-                                                    .shopSnackForgeRoyalBountyActive,
-                                              ),
-                                            ),
+                                            sl10n
+                                                .shopSnackForgeRoyalBountyActive,
+                                            accent: const Color(0xFFE49BFF),
+                                            icon: Icons.info_outline_rounded,
                                           );
                                         default:
                                           break;

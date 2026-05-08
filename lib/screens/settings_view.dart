@@ -16,6 +16,7 @@ import '../providers/game_state.dart';
 import '../utils/responsive.dart';
 import '../widgets/ui/dark_matte_overlay.dart';
 import '../widgets/ui/universal_back_button.dart';
+import '../widgets/ui/velour_snackbar.dart';
 import '../utils/velour_release_links.dart';
 
 Future<void> _openPrivacyPolicyUrl(
@@ -26,16 +27,22 @@ Future<void> _openPrivacyPolicyUrl(
   final Uri? uri = Uri.tryParse(raw);
   if (uri == null || !(uri.isScheme('https') || uri.isScheme('http'))) {
     if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(l10n.settingsPrivacyPolicyLaunchFail)),
+    showVelourSnackBar(
+      context,
+      l10n.settingsPrivacyPolicyLaunchFail,
+      accent: const Color(0xFFFFD700),
+      icon: Icons.link_off_rounded,
     );
     return;
   }
   final bool ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
   if (!context.mounted) return;
   if (!ok) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(l10n.settingsPrivacyPolicyLaunchFail)),
+    showVelourSnackBar(
+      context,
+      l10n.settingsPrivacyPolicyLaunchFail,
+      accent: const Color(0xFFFFD700),
+      icon: Icons.link_off_rounded,
     );
   }
 }
@@ -211,14 +218,11 @@ class SettingsView extends StatelessWidget {
                                         FirestoreService.instance.uid;
                                     if (!context.mounted) return;
                                     if (uid == null || uid.isEmpty) {
-                                      ScaffoldMessenger.of(
+                                      showVelourSnackBar(
                                         context,
-                                      ).showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            l10n.settingsCopyPlayerIdFailed,
-                                          ),
-                                        ),
+                                        l10n.settingsCopyPlayerIdFailed,
+                                        accent: const Color(0xFFFFD700),
+                                        icon: Icons.error_outline_rounded,
                                       );
                                       return;
                                     }
@@ -226,12 +230,11 @@ class SettingsView extends StatelessWidget {
                                       ClipboardData(text: uid),
                                     );
                                     if (!context.mounted) return;
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          l10n.settingsCopyPlayerIdSnack(uid),
-                                        ),
-                                      ),
+                                    showVelourSnackBar(
+                                      context,
+                                      l10n.settingsCopyPlayerIdSnack(uid),
+                                      accent: const Color(0xFFFFD700),
+                                      icon: Icons.copy_all_rounded,
                                     );
                                   }());
                                 },
@@ -248,14 +251,17 @@ class SettingsView extends StatelessWidget {
                                         .instance
                                         .pingVelourHealth();
                                     if (!context.mounted) return;
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          ok
-                                              ? l10n.settingsPingServerOk
-                                              : l10n.settingsPingServerFail,
-                                        ),
-                                      ),
+                                    showVelourSnackBar(
+                                      context,
+                                      ok
+                                          ? l10n.settingsPingServerOk
+                                          : l10n.settingsPingServerFail,
+                                      accent: ok
+                                          ? const Color(0xFF00E5FF)
+                                          : const Color(0xFFE49BFF),
+                                      icon: ok
+                                          ? Icons.cloud_done_rounded
+                                          : Icons.cloud_off_rounded,
                                     );
                                   }());
                                 },
@@ -296,14 +302,11 @@ class SettingsView extends StatelessWidget {
                                       ClipboardData(text: diag),
                                     );
                                     if (!safeContext.mounted) return;
-                                    ScaffoldMessenger.of(
+                                    showVelourSnackBar(
                                       safeContext,
-                                    ).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          l10n.settingsCopyDiagnosticsSnack,
-                                        ),
-                                      ),
+                                      l10n.settingsCopyDiagnosticsSnack,
+                                      accent: const Color(0xFFFFD700),
+                                      icon: Icons.copy_all_rounded,
                                     );
                                   }());
                                 },
@@ -349,14 +352,11 @@ class SettingsView extends StatelessWidget {
                                           .read<GameState>()
                                           .fullHardReset();
                                       if (!context.mounted) return;
-                                      ScaffoldMessenger.of(
+                                      showVelourSnackBar(
                                         context,
-                                      ).showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            l10n.settingsResetSnack,
-                                          ),
-                                        ),
+                                        l10n.settingsResetSnack,
+                                        accent: const Color(0xFFFF4D4D),
+                                        icon: Icons.restart_alt_rounded,
                                       );
                                     }());
                                   },

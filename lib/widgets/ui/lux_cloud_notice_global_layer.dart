@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:velour_app/l10n/app_localizations.dart';
 
 import '../../providers/game_state.dart';
+import 'velour_snackbar.dart';
 
 /// Affiche un SnackBar global quand une sync LUX est abandonnée (erreur Functions
 /// irrécupérable) afin d’éviter un “silent fail” pour le joueur.
@@ -61,8 +62,12 @@ class _LuxCloudNoticeGlobalLayerState extends State<LuxCloudNoticeGlobalLayer> {
       _ => l10n.luxCloudRejectedGeneric,
     };
 
-    messenger.showSnackBar(
-      SnackBar(content: Text(text), duration: const Duration(seconds: 4)),
+    showVelourSnackBar(
+      context,
+      text,
+      duration: const Duration(seconds: 4),
+      accent: const Color(0xFFE49BFF),
+      icon: Icons.cloud_off_rounded,
     );
   }
 

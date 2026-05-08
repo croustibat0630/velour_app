@@ -181,12 +181,11 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     // Menu / BGM must not bleed into active gameplay.
     AudioHandler.instance.stopMusic();
     AudioHandler.instance.resetSelectAudioWake();
-    // Force pool initialization ASAP so the first match isn't silent.
-    // (Still safe on Web because we arrive here via user gesture navigation.)
-    unawaited(AudioHandler.instance.preloadGameSfx());
-    // Web: if cold-start preload failed, warm pooled SFX after navigation (user gesture path).
+    // Un seul préload après le frame : [AudioHandler.preloadGameSfx] sérialise
+    // les appels ; un double déclenchement concurrent pouvait bloquer iOS
+    // (deux setSource sur les mêmes players).
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      AudioHandler.instance.preloadGameSfx();
+      unawaited(AudioHandler.instance.preloadGameSfx());
       if (!mounted) return;
       context.read<GameState>().startGame();
     });

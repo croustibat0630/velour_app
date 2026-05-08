@@ -28,6 +28,12 @@ class AudioHandler {
   static const int _matchPolyphonyWeb = 1;
   static const int _matchPolyphonyApple = 1;
 
+  /// Plafond par player : en dessous du timeout interne d’audioplayers (~30s)
+  /// pour échouer vite ; évite les blocages si deux préloads se chevauchent.
+  static const Duration _pooledSfxLoadTimeout = Duration(seconds: 12);
+
+  Future<void>? _preloadGameSfxFuture;
+
   final AudioPlayer _bgm = AudioPlayer(playerId: 'velour_bgm');
 
   final List<AudioPlayer> _sfxMatchPool = <AudioPlayer>[];
@@ -181,22 +187,50 @@ class AudioHandler {
     required AudioPlayer player,
     required String fileName,
   }) async {
-    if (!kIsWeb) {
-      await player.setAudioContext(velourGameAudioContext());
+    Future<void> work() async {
+      if (!kIsWeb) {
+        await player.setAudioContext(velourGameAudioContext());
+      }
+      await player.setPlayerMode(PlayerMode.lowLatency);
+      await player.setReleaseMode(ReleaseMode.stop);
+      await player.setSource(_sourceFor(fileName));
+      await _warmUpSfxDecoder(player);
+      await player.setVolume(1.0);
     }
-    await player.setPlayerMode(PlayerMode.lowLatency);
-    await player.setReleaseMode(ReleaseMode.stop);
-    await player.setSource(_sourceFor(fileName));
-    await _warmUpSfxDecoder(player);
-    await player.setVolume(1.0);
+
+    await work().timeout(
+      _pooledSfxLoadTimeout,
+      onTimeout: () {
+        velourAudioTrace(
+          'AudioHandler._setupPooledSfx timeout file=$fileName '
+          'after ${_pooledSfxLoadTimeout.inSeconds}s',
+        );
+        throw TimeoutException('pooled sfx', _pooledSfxLoadTimeout);
+      },
+    );
   }
 
   /// Précharge match (pool) + perfect (mono pool).
-  Future<void> preloadGameSfx() async {
+  ///
+  /// Une seule exécution à la fois : plusieurs appels concurrents (ex. double
+  /// [preloadGameSfx] depuis [GameScreen]) rejoignent la même [Future] et
+  /// n’entrelacent pas les [setSource] sur les mêmes [AudioPlayer].
+  Future<void> preloadGameSfx() {
+    return _preloadGameSfxFuture ??= _preloadGameSfxOnce().whenComplete(
+      () => _preloadGameSfxFuture = null,
+    );
+  }
+
+  Future<void> _preloadGameSfxOnce() async {
     try {
       if (_disabled) return;
       await configure();
       if (_disabled) return;
+      if (!kIsWeb) {
+        try {
+          await configureVelourAudioPipeline(activateSession: true);
+        } catch (_) {}
+      }
 
       try {
         await _ensureMatchPool();

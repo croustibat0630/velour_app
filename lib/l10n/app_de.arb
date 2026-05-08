@@ -478,6 +478,9 @@
   },
   "gameHudScore": "SCORE",
   "gameHudTime": "ZEIT",
+  "gameHudPerfectHeatLabel": "HEAT",
+  "gameHudPerfectHeatNearFloater": " KNAPP",
+  "gameHudPerfectHeatRebound": "COMEBACK",
   "gameHudLevelShort": "LV {level}",
   "@gameHudLevelShort": {
     "placeholders": {

@@ -762,6 +762,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gameHudTime => 'TIME';
 
   @override
+  String get gameHudPerfectHeatLabel => 'HEAT';
+
+  @override
+  String get gameHudPerfectHeatNearFloater => ' NEAR';
+
+  @override
+  String get gameHudPerfectHeatRebound => 'REBOUND';
+
+  @override
   String gameHudLevelShort(int level) {
     return 'LV $level';
   }

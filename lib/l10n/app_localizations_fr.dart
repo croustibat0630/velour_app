@@ -760,6 +760,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String get gameHudTime => 'TEMPS';
 
   @override
+  String get gameHudPerfectHeatLabel => 'HEAT';
+
+  @override
+  String get gameHudPerfectHeatNearFloater => ' PRESQUE';
+
+  @override
+  String get gameHudPerfectHeatRebound => 'REPRISE';
+
+  @override
   String gameHudLevelShort(int level) {
     return 'NIV $level';
   }

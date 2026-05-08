@@ -458,27 +458,45 @@ class NeonScoreBoard extends StatelessWidget {
                             child: ValueListenableBuilder<double>(
                               valueListenable: gs.timeBar,
                               builder: (context, timerV, _) {
-                                return Semantics(
-                                  label:
-                                      '${l10n.gameHudTime}: '
-                                      '${(timerV * 100).round()}%',
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      _HudBarLabel(
-                                        text: l10n.gameHudTime,
-                                        style: barLabelStyle,
+                                return AnimatedBuilder(
+                                  animation: gs,
+                                  builder: (context, _) {
+                                    return Semantics(
+                                      label:
+                                          '${l10n.gameHudTime}: '
+                                          '${(timerV * 100).round()}%',
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.end,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          _HudBarLabel(
+                                            text: l10n.gameHudTime,
+                                            style: barLabelStyle,
+                                          ),
+                                          const SizedBox(height: 2),
+                                          _PerfectHeatFreezeHighlight(
+                                            freezeTick:
+                                                gs.perfectHeatFreezeTick,
+                                            child: NeonTimerBar(
+                                              value: timerV,
+                                              height: barThickness * 2,
+                                              skinPrimary:
+                                                  gs.currentSkin.primaryColor,
+                                            ),
+                                          ),
+                                          if (gs.perfectHeatMechanicsActive)
+                                            _PerfectHeatHudRow(
+                                              gameState: gs,
+                                              l10n: l10n,
+                                              scaleT: scaleT,
+                                              scaleH: scaleH,
+                                              barThickness: barThickness,
+                                            ),
+                                        ],
                                       ),
-                                      const SizedBox(height: 2),
-                                      NeonTimerBar(
-                                        value: timerV,
-                                        height: barThickness * 2,
-                                        skinPrimary:
-                                            gs.currentSkin.primaryColor,
-                                      ),
-                                    ],
-                                  ),
+                                    );
+                                  },
                                 );
                               },
                             ),
@@ -792,6 +810,183 @@ class _LevelPulseTextState extends State<_LevelPulseText>
           ),
         );
       },
+    );
+  }
+}
+
+/// Anneau cyan bref quand le palier 4 fige le drain chrono.
+class _PerfectHeatFreezeHighlight extends StatefulWidget {
+  const _PerfectHeatFreezeHighlight({
+    required this.freezeTick,
+    required this.child,
+  });
+
+  final int freezeTick;
+  final Widget child;
+
+  @override
+  State<_PerfectHeatFreezeHighlight> createState() =>
+      _PerfectHeatFreezeHighlightState();
+}
+
+class _PerfectHeatFreezeHighlightState
+    extends State<_PerfectHeatFreezeHighlight>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ring = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 520),
+  );
+
+  @override
+  void didUpdateWidget(covariant _PerfectHeatFreezeHighlight oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.freezeTick != oldWidget.freezeTick && widget.freezeTick > 0) {
+      _ring.forward(from: 0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _ring.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _ring,
+      builder: (context, _) {
+        final double u = Curves.easeOut.transform(_ring.value);
+        final double edgeA = (1.0 - u) * 0.95;
+        if (edgeA < 0.02 && _ring.isCompleted) {
+          return widget.child;
+        }
+        return Stack(
+          fit: StackFit.passthrough,
+          children: [
+            widget.child,
+            Positioned.fill(
+              child: IgnorePointer(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(
+                      color: const Color(0xFF7CF9FF).withValues(alpha: edgeA),
+                      width: 1.6,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+/// Jauge 5 segments + compteur prestige au-delà du palier 5.
+class _PerfectHeatHudRow extends StatelessWidget {
+  const _PerfectHeatHudRow({
+    required this.gameState,
+    required this.l10n,
+    required this.scaleT,
+    required this.scaleH,
+    required this.barThickness,
+  });
+
+  final GameState gameState;
+  final AppLocalizations l10n;
+  final double scaleT;
+  final double scaleH;
+  final double barThickness;
+
+  static const Color _heatPink = Color(0xFFFF6FD8);
+  static const Color _heatGold = Color(0xFFFFD45A);
+
+  @override
+  Widget build(BuildContext context) {
+    final GameState gs = gameState;
+    final int tier = gs.perfectHeatTier;
+    final bool rebound = gs.perfectHeatReboundAvailable && tier == 0;
+    final int consec = gs.perfectHeatConsecutivePerfects;
+    final double segH = math.max(3.0, barThickness * 0.9);
+
+    return Padding(
+      padding: EdgeInsets.only(top: 5 * scaleH),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                l10n.gameHudPerfectHeatLabel,
+                style: GoogleFonts.montserrat(
+                  fontSize: (9 * scaleT).clamp(8.0, 11.0),
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 1.4,
+                  color: Colors.white.withValues(alpha: 0.55),
+                ),
+              ),
+              if (tier >= 5 && consec > 5)
+                Text(
+                  ' ×$consec',
+                  style: GoogleFonts.montserrat(
+                    fontSize: (9 * scaleT).clamp(8.0, 11.0),
+                    fontWeight: FontWeight.w700,
+                    color: _heatGold.withValues(alpha: 0.88),
+                  ),
+                ),
+            ],
+          ),
+          SizedBox(height: 2 * scaleH),
+          SizedBox(
+            width: double.infinity,
+            child: Row(
+              children: List<Widget>.generate(5, (int i) {
+                final Color dim = Colors.white.withValues(alpha: 0.12);
+                final Color hot = Color.lerp(_heatPink, _heatGold, i / 4.0)!;
+                final bool lit = tier > 0 && i < tier;
+                return Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.only(left: i == 0 ? 0 : 2),
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(2),
+                        color: lit ? hot.withValues(alpha: 0.92) : dim,
+                        boxShadow: lit
+                            ? <BoxShadow>[
+                                BoxShadow(
+                                  color: hot.withValues(alpha: 0.40),
+                                  blurRadius: 5,
+                                ),
+                              ]
+                            : null,
+                      ),
+                      child: SizedBox(height: segH),
+                    ),
+                  ),
+                );
+              }),
+            ),
+          ),
+          if (rebound)
+            Padding(
+              padding: EdgeInsets.only(top: 3 * scaleH),
+              child: Text(
+                l10n.gameHudPerfectHeatRebound,
+                style: GoogleFonts.montserrat(
+                  fontSize: (9 * scaleT).clamp(8.0, 11.0),
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1.2,
+                  color: const Color(0xFFFFB74D).withValues(alpha: 0.95),
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

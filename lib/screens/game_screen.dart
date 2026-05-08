@@ -126,6 +126,9 @@ int _gameScreenStaticUiFingerprint(GameState gs) {
   parts.add(gs.sessionStakeFooterLine.index);
   parts.add(gs.lastOracleInsuranceRefundLux);
   parts.add(gs.replaySuggestedStake?.index ?? -1);
+  parts.add(gs.perfectHeatUiTick);
+  parts.add(gs.perfectHeatGhostFlashTick);
+  parts.add(gs.perfectHeatFreezeTick);
 
   return Object.hashAll(parts);
 }
@@ -810,6 +813,9 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                           position: _floating!.position,
                           color: neonColor(_floating!.colorId),
                           spectacularBurst: _floating!.isNarrativePerfectBurst,
+                          textColorOverride: _floating!.textColorOverride,
+                          appendPerfectHeatNear:
+                              _floating!.appendPerfectHeatNear,
                         ),
                       ),
                     ),
@@ -853,6 +859,14 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                               flashRadius: itemSize * 0.95,
                             ),
                           ),
+                        ),
+                      ),
+                    ),
+                  if (gameState.perfectHeatMechanicsActive)
+                    Positioned.fill(
+                      child: IgnorePointer(
+                        child: _PerfectHeatGhostFlash(
+                          tick: gameState.perfectHeatGhostFlashTick,
                         ),
                       ),
                     ),
@@ -1592,6 +1606,8 @@ class _FloatingText extends StatefulWidget {
     required this.position,
     required this.color,
     this.spectacularBurst = false,
+    this.textColorOverride,
+    this.appendPerfectHeatNear = false,
   });
 
   final String text;
@@ -1602,6 +1618,8 @@ class _FloatingText extends StatefulWidget {
   final Offset position;
   final Color color;
   final bool spectacularBurst;
+  final Color? textColorOverride;
+  final bool appendPerfectHeatNear;
 
   @override
   State<_FloatingText> createState() => _FloatingTextState();
@@ -1623,7 +1641,7 @@ class _FloatingTextState extends State<_FloatingText>
   @override
   Widget build(BuildContext context) {
     final AppLocalizations l10n = AppLocalizations.of(context)!;
-    final String displayText = widget.narrativeFloatKey != null
+    String displayText = widget.narrativeFloatKey != null
         ? resolveNarrativeFloating(l10n, widget.narrativeFloatKey!)
         : (widget.runtimeLuxKind != null && widget.runtimeGain != null)
         ? resolveRuntimeLuxFloat(
@@ -1633,6 +1651,9 @@ class _FloatingTextState extends State<_FloatingText>
             widget.runtimeChainMult,
           )
         : widget.text;
+    if (widget.appendPerfectHeatNear) {
+      displayText += l10n.gameHudPerfectHeatNearFloater;
+    }
     final bool burst = widget.spectacularBurst;
     const Color gold = Color(0xFFFFD700);
     return Stack(
@@ -1680,10 +1701,12 @@ class _FloatingTextState extends State<_FloatingText>
                     fontSize: 18,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 1.2,
-                    color: widget.color.withValues(alpha: 0.95),
+                    color: (widget.textColorOverride ?? widget.color)
+                        .withValues(alpha: 0.95),
                     shadows: [
                       Shadow(
-                        color: widget.color.withValues(alpha: 0.55),
+                        color: (widget.textColorOverride ?? widget.color)
+                            .withValues(alpha: 0.55),
                         blurRadius: 12,
                       ),
                     ],
@@ -2615,6 +2638,63 @@ class _SequenceCompletedFlashState extends State<_SequenceCompletedFlash>
               ),
             ),
           ],
+        );
+      },
+    );
+  }
+}
+
+/// Flash léger palier 5 Perfect Heat (ghost LUX).
+class _PerfectHeatGhostFlash extends StatefulWidget {
+  const _PerfectHeatGhostFlash({required this.tick});
+
+  final int tick;
+
+  @override
+  State<_PerfectHeatGhostFlash> createState() => _PerfectHeatGhostFlashState();
+}
+
+class _PerfectHeatGhostFlashState extends State<_PerfectHeatGhostFlash>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 220),
+  );
+
+  @override
+  void didUpdateWidget(covariant _PerfectHeatGhostFlash oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.tick != oldWidget.tick && widget.tick > 0) {
+      _c.forward(from: 0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _c,
+      builder: (context, _) {
+        final double t = Curves.easeOut.transform(_c.value);
+        final double a = (1 - t) * 0.22;
+        if (a < 0.002) return const SizedBox.shrink();
+        return DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: RadialGradient(
+              center: const Alignment(0, -0.15),
+              radius: 1.1,
+              colors: [
+                Colors.white.withValues(alpha: a),
+                const Color(0x00000000),
+              ],
+              stops: const [0.0, 1.0],
+            ),
+          ),
         );
       },
     );

@@ -1377,6 +1377,24 @@ abstract class AppLocalizations {
   /// **'TIME'**
   String get gameHudTime;
 
+  /// No description provided for @gameHudPerfectHeatLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'HEAT'**
+  String get gameHudPerfectHeatLabel;
+
+  /// No description provided for @gameHudPerfectHeatNearFloater.
+  ///
+  /// In en, this message translates to:
+  /// **' NEAR'**
+  String get gameHudPerfectHeatNearFloater;
+
+  /// No description provided for @gameHudPerfectHeatRebound.
+  ///
+  /// In en, this message translates to:
+  /// **'REBOUND'**
+  String get gameHudPerfectHeatRebound;
+
   /// No description provided for @gameHudLevelShort.
   ///
   /// In en, this message translates to:

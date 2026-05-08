@@ -103,6 +103,8 @@ class FloatingTextFx {
     this.runtimeLuxKind,
     this.runtimeGain,
     this.runtimeChainMult,
+    this.textColorOverride,
+    this.appendPerfectHeatNear = false,
   });
 
   final String id;
@@ -121,6 +123,12 @@ class FloatingTextFx {
   final RuntimeLuxFloatKind? runtimeLuxKind;
   final int? runtimeGain;
   final String? runtimeChainMult;
+
+  /// Couleur néon du floater (ex. « NEAR » en jaune). Si null → thème par [colorId].
+  final Color? textColorOverride;
+
+  /// Suffixe « near-miss » Perfect Heat sur le libellé runtime LUX.
+  final bool appendPerfectHeatNear;
 }
 
 /// Petit « +1 » tutoriel narratif : part de la gemme vers le haut / la zone score.

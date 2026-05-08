@@ -14,6 +14,7 @@ import '../game/board_spawn_logic.dart';
 import '../game/forge_shop_logic.dart';
 import '../game/match_scoring.dart';
 import '../game/match_feedback.dart';
+import '../game/perfect_heat_logic.dart';
 import '../game/rack_logic.dart';
 import '../game/run_timer_logic.dart';
 import '../game/session_stake_constants.dart';
@@ -503,6 +504,156 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
 
   int _gameOverFlashTick = 0;
   int get gameOverFlashTick => _gameOverFlashTick;
+
+  // --- Perfect Heat (série de Perfects, bonus temps / LUX) ---
+  int _heatTier = 1;
+  int _heatConsecutivePerfects = 0;
+  bool _heatReboundAvailable = false;
+  bool _heatReboundPendingFromTimerDeath = false;
+  final Set<int> _heatRescueConsumedTiers = <int>{};
+  DateTime? _heatFreezeEnd;
+  int _heatFreezeTick = 0;
+  int _heatGhostFlashTick = 0;
+  int _perfectHeatUiTick = 0;
+
+  /// Même périmètre que les consos Forge en run : pas pendant tutoriels scriptés.
+  bool get perfectHeatMechanicsActive => _canUseForgeRunConsumables;
+
+  /// 0 = série brisée (attente REBOUND), 1–5 = palier courant.
+  int get perfectHeatTier => _heatTier;
+
+  int get perfectHeatConsecutivePerfects => _heatConsecutivePerfects;
+
+  bool get perfectHeatReboundAvailable => _heatReboundAvailable;
+
+  int get perfectHeatFreezeTick => _heatFreezeTick;
+
+  int get perfectHeatGhostFlashTick => _heatGhostFlashTick;
+
+  int get perfectHeatUiTick => _perfectHeatUiTick;
+
+  bool get perfectHeatFreezeActive =>
+      _heatFreezeEnd != null && DateTime.now().isBefore(_heatFreezeEnd!);
+
+  void _initPerfectHeatForFreshReset() {
+    _heatTier = 1;
+    _heatConsecutivePerfects = 0;
+    _heatReboundAvailable = false;
+    _heatReboundPendingFromTimerDeath = false;
+    _heatRescueConsumedTiers.clear();
+    _heatFreezeEnd = null;
+    _perfectHeatUiTick++;
+  }
+
+  int _heatBonusTierForPerfect() {
+    if (_heatReboundAvailable && _heatTier == 0) return 2;
+    return _heatTier.clamp(1, 5);
+  }
+
+  void _applyHeatDecayNonPerfect(MatchKind kind, RunBasis basis, int runCount) {
+    if (!perfectHeatMechanicsActive) return;
+    if (_heatReboundAvailable && _heatTier == 0) {
+      _heatReboundAvailable = false;
+      _heatReboundPendingFromTimerDeath = false;
+    }
+    if (_heatTier <= 0) return;
+    if (PerfectHeatLogic.isNearMiss(kind, basis, runCount)) {
+      _heatTier = math.max(1, _heatTier - 1);
+    } else if (PerfectHeatLogic.isBadMiss(kind, basis, runCount)) {
+      _heatTier = math.max(1, _heatTier - 2);
+    } else {
+      return;
+    }
+    _heatConsecutivePerfects = 0;
+    _perfectHeatUiTick++;
+  }
+
+  void _applyHeatPerfectTimeRefillAfterRefund(
+    int bonusTier,
+    double timeSnapshotBeforeMatchRefund,
+  ) {
+    if (!perfectHeatMechanicsActive) return;
+    final double baseFrac = PerfectHeatLogic.timeRefillFractionOfRemaining(
+      bonusTier,
+    );
+    if (baseFrac <= 0) return;
+    bool rescue = false;
+    if (bonusTier >= 3 &&
+        bonusTier <= 5 &&
+        timeSnapshotBeforeMatchRefund < 0.15 &&
+        !_heatRescueConsumedTiers.contains(bonusTier)) {
+      rescue = true;
+      _heatRescueConsumedTiers.add(bonusTier);
+    }
+    final double v = timeBar.value;
+    final double delta = PerfectHeatLogic.heatTimeRefillDelta(
+      timeBarValueAfterBaseRefund: v,
+      baseRefillFraction: baseFrac,
+      rescueDouble: rescue,
+      timeDrainPerSecond: _timeDrainPerSecond,
+    );
+    if (delta > 0) {
+      timeBar.value = (v + delta).clamp(0.0, 1.0);
+    }
+  }
+
+  void _scheduleHeatFreezeRefresh() {
+    _heatFreezeEnd = DateTime.now().add(const Duration(milliseconds: 500));
+    _heatFreezeTick++;
+    notifyListeners();
+  }
+
+  void _applyHeatPerfectTimeEffects(
+    int bonusTier,
+    double timeSnapshotBeforeMatchRefund,
+  ) {
+    if (!perfectHeatMechanicsActive) return;
+    if (bonusTier == 4) {
+      _scheduleHeatFreezeRefresh();
+      return;
+    }
+    _applyHeatPerfectTimeRefillAfterRefund(
+      bonusTier,
+      timeSnapshotBeforeMatchRefund,
+    );
+  }
+
+  void _advanceHeatAfterPerfect() {
+    if (!perfectHeatMechanicsActive) return;
+    if (_heatReboundAvailable && _heatTier == 0) {
+      _heatTier = 2;
+      _heatReboundAvailable = false;
+      _heatReboundPendingFromTimerDeath = false;
+    } else if (_heatTier == 0) {
+      _heatTier = 1;
+    } else {
+      final int next = _heatTier + 1;
+      _heatTier = next.clamp(1, 5);
+    }
+    _heatConsecutivePerfects++;
+    _perfectHeatUiTick++;
+  }
+
+  void _breakPerfectHeatDeadlockInternal() {
+    if (!perfectHeatMechanicsActive) return;
+    _heatTier = 0;
+    _heatConsecutivePerfects = 0;
+    _heatReboundAvailable = false;
+    _heatReboundPendingFromTimerDeath = false;
+    _heatRescueConsumedTiers.clear();
+    _heatFreezeEnd = null;
+    _perfectHeatUiTick++;
+  }
+
+  void _breakPerfectHeatTimerGameOverInternal() {
+    if (!perfectHeatMechanicsActive) return;
+    _heatReboundPendingFromTimerDeath = true;
+    _heatTier = 0;
+    _heatConsecutivePerfects = 0;
+    _heatRescueConsumedTiers.clear();
+    _heatFreezeEnd = null;
+    _perfectHeatUiTick++;
+  }
 
   bool _paused = false;
   bool get paused => _paused;
@@ -1349,6 +1500,18 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     _lastLuxBarLogLux = null;
     _gameOverFlashTick = 0;
 
+    if (_heatReboundPendingFromTimerDeath) {
+      _heatReboundPendingFromTimerDeath = false;
+      _heatReboundAvailable = true;
+      _heatTier = 0;
+      _heatConsecutivePerfects = 0;
+      _heatRescueConsumedTiers.clear();
+      _heatFreezeEnd = null;
+      _perfectHeatUiTick++;
+    } else {
+      _initPerfectHeatForFreshReset();
+    }
+
     _initBoardItems();
     // Ne pas relancer le chrono ici : hors [GameScreen] (menu, splash) ça ferait
     // tourner [Timer.periodic] 50 ms inutilement. Le timer repart via [startGame]
@@ -1585,6 +1748,9 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
       final double dt = now.difference(last).inMilliseconds / 1000.0;
       if (dt <= 0) return;
 
+      if (perfectHeatFreezeActive) {
+        return;
+      }
       final double next = RunTimerLogic.nextTimeBarAfterTick(
         currentValue: timeBar.value,
         timeDrainPerSecond: _timeDrainPerSecond,
@@ -1645,6 +1811,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     _deferredTimerGameOver = false;
     _isGameOver = true;
     _criticalFailure = true;
+    _breakPerfectHeatTimerGameOverInternal();
     _cancelMatchScheduling();
     _stopTimeLoop();
     unawaited(_recordRunStatsIfNeeded());
@@ -2031,7 +2198,15 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     );
 
     final int rawGain = MatchScoring.rawLuxGain(basis, runCount);
-    _runMatchLuxRawTotal += rawGain;
+    final double timeSnapshotBeforeMatchRefund = timeBar.value;
+    final int? heatBonusTier =
+        (basis == RunBasis.perfect && perfectHeatMechanicsActive)
+        ? _heatBonusTierForPerfect()
+        : null;
+    final int scoringRaw = heatBonusTier != null
+        ? PerfectHeatLogic.applyLuxPercentBonus(rawGain, heatBonusTier)
+        : rawGain;
+    _runMatchLuxRawTotal += scoringRaw;
     final int levelBeforeGain = _gameLevel;
     final double scoreMult = MatchScoring.sessionScoreMultiplier(
       _sessionStake,
@@ -2040,7 +2215,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
       royalTargetLevel: royalTargetLevel,
     );
     final int gain = MatchScoring.roundChainedLux(
-      rawGain,
+      scoringRaw,
       scoreMult,
       chainScoreMult,
     );
@@ -2065,6 +2240,24 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
       // Temps : paliers gérés dans [NarrativeTutorialService.applyAfterMatch].
     } else {
       timeBar.value = (timeBar.value + _matchTimeRefund).clamp(0.0, 1.0);
+    }
+
+    if (heatBonusTier != null) {
+      _applyHeatPerfectTimeEffects(
+        heatBonusTier,
+        timeSnapshotBeforeMatchRefund,
+      );
+      if (heatBonusTier == 5) {
+        _heatGhostFlashTick++;
+        try {
+          if (HapticsHandler.instance.enabled.value) {
+            HapticFeedback.mediumImpact();
+          }
+        } catch (_) {}
+      }
+      _advanceHeatAfterPerfect();
+    } else if (perfectHeatMechanicsActive && basis != RunBasis.perfect) {
+      _applyHeatDecayNonPerfect(kind, basis, runCount);
     }
 
     // "Sequence Completed" est réservé au tutoriel (trinité).
@@ -2110,6 +2303,9 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
         _narrativeRunEngaged &&
         _narrativeTutorial.isStep3Perfect &&
         basis == RunBasis.perfect;
+    final bool perfectHeatNear =
+        perfectHeatMechanicsActive &&
+        PerfectHeatLogic.isNearMiss(kind, basis, runCount);
     // Parfait narratif : la bannière centrale porte le message — pas de floater
     // (évite triple +500 et laisse disparaître l’ancien +150 au même tick).
     if (narrativePerfectFloat) {
@@ -2127,6 +2323,8 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
         runtimeLuxKind: runtimeLuxKind,
         runtimeGain: runtimeLuxKind != null ? gain : null,
         runtimeChainMult: runtimeChainMult,
+        textColorOverride: perfectHeatNear ? const Color(0xFFFFB74D) : null,
+        appendPerfectHeatNear: perfectHeatNear,
       );
       _floatingTick++;
     }
@@ -2278,6 +2476,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     _criticalFailure = true;
     _cancelMatchScheduling();
     if (!wasCritical) {
+      _breakPerfectHeatDeadlockInternal();
       unawaited(_recordRunStatsIfNeeded());
       _resolveSessionStakeOnGameOver();
       _lastGameWasPersonalBest = _lux > _economy.highScore;

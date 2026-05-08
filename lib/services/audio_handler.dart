@@ -28,11 +28,26 @@ class AudioHandler {
   static const int _matchPolyphonyWeb = 1;
   static const int _matchPolyphonyApple = 1;
 
-  /// Plafond par player : en dessous du timeout interne d’audioplayers (~30s)
-  /// pour échouer vite ; évite les blocages si deux préloads se chevauchent.
+  /// Plafond par player : **doit** rester aligné avec [AudioPlayer.preparationTimeout]
+  /// (installé dans [configure]) — sinon audioplayers garde 30s en interne et une
+  /// TimeoutException « fantôme » peut remonter à Crashlytics après notre await.
   static const Duration _pooledSfxLoadTimeout = Duration(seconds: 12);
 
   Future<void>? _preloadGameSfxFuture;
+  static bool _installedAudioplayersTimeouts = false;
+
+  static void _installAudioplayersTimeoutGuards() {
+    if (_installedAudioplayersTimeouts) return;
+    _installedAudioplayersTimeouts = true;
+    AudioPlayer.preparationTimeout = _pooledSfxLoadTimeout;
+    AudioPlayer.seekingTimeout = _pooledSfxLoadTimeout;
+  }
+
+  /// Idempotent — appeler au cold start avant tout [AudioPlayer.setSource]
+  /// (ex. depuis [main]) pour éviter le défaut 30s du package sur la Future « prepared ».
+  static void installAudioplayersTimeoutGuardsEarly() {
+    _installAudioplayersTimeoutGuards();
+  }
 
   final AudioPlayer _bgm = AudioPlayer(playerId: 'velour_bgm');
 
@@ -79,6 +94,7 @@ class AudioHandler {
   }
 
   Future<void> configure() async {
+    _installAudioplayersTimeoutGuards();
     if (_configured) return;
     _configured = true;
     try {

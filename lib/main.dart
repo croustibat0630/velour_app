@@ -12,6 +12,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 import 'services/app_settings.dart';
+import 'services/audio_handler.dart';
 import 'services/remote_config_service.dart';
 import 'services/velour_audio_platform.dart';
 import 'providers/game_state.dart';
@@ -91,6 +92,9 @@ Future<void> velourActivateAppCheck() async {
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized(); // Indispensable
+  // Réduit le timeout interne « preparation » d’audioplayers (30s par défaut) pour
+  // éviter des TimeoutException fantômes remontées à Crashlytics après nos awaits.
+  AudioHandler.installAudioplayersTimeoutGuardsEarly();
   // iOS / Android : AVAudioSession + contexte audioplayers (respectSilence: false).
   await configureVelourAudioPipeline(activateSession: true);
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);

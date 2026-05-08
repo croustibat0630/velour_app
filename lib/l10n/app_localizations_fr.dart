@@ -801,4 +801,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String gameHudForgeMercyA11y(int count) {
     return 'Clémence de l\'Oracle, $count charges';
   }
+
+  @override
+  String get gameHudTimeResolvingA11y =>
+      'Résolution du combo, gemmes figées un instant.';
 }

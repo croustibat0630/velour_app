@@ -811,4 +811,8 @@ class AppLocalizationsDe extends AppLocalizations {
   String gameHudForgeMercyA11y(int count) {
     return 'Orakelgnade, $count Ladungen';
   }
+
+  @override
+  String get gameHudTimeResolvingA11y =>
+      'Combo wird gewertet, Steine kurz gesperrt.';
 }

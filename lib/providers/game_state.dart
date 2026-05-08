@@ -391,6 +391,10 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
   /// Verrou pipeline match + particules / cascades (pas d’interaction joueur).
   bool get isProcessingMatch => _isProcessingMatch;
 
+  /// Délai avant résolution ou résolution en cours — utile HUD (feedback chrono bas).
+  bool get isMatchResolutionActive =>
+      _awaitingScheduledMatch || _isProcessingMatch;
+
   /// Base drain at level 1 (~33s to empty at 1.0 bar).
   static const double _baseTimeDrainPerSecond = 0.030;
 

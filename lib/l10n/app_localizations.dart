@@ -1442,6 +1442,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Oracle mercy, {count} charges'**
   String gameHudForgeMercyA11y(int count);
+
+  /// No description provided for @gameHudTimeResolvingA11y.
+  ///
+  /// In en, this message translates to:
+  /// **'Combo resolving, gems locked briefly.'**
+  String get gameHudTimeResolvingA11y;
 }
 
 class _AppLocalizationsDelegate

@@ -461,10 +461,16 @@ class NeonScoreBoard extends StatelessWidget {
                                 return AnimatedBuilder(
                                   animation: gs,
                                   builder: (context, _) {
+                                    final bool resolutionCue =
+                                        gs.isMatchResolutionActive &&
+                                        timerV <= 0.20;
                                     return Semantics(
-                                      label:
-                                          '${l10n.gameHudTime}: '
-                                          '${(timerV * 100).round()}%',
+                                      label: resolutionCue
+                                          ? '${l10n.gameHudTime}: '
+                                                '${(timerV * 100).round()}%. '
+                                                '${l10n.gameHudTimeResolvingA11y}'
+                                          : '${l10n.gameHudTime}: '
+                                                '${(timerV * 100).round()}%',
                                       child: Column(
                                         crossAxisAlignment:
                                             CrossAxisAlignment.end,
@@ -475,14 +481,17 @@ class NeonScoreBoard extends StatelessWidget {
                                             style: barLabelStyle,
                                           ),
                                           const SizedBox(height: 2),
-                                          _PerfectHeatFreezeHighlight(
-                                            freezeTick:
-                                                gs.perfectHeatFreezeTick,
-                                            child: NeonTimerBar(
-                                              value: timerV,
-                                              height: barThickness * 2,
-                                              skinPrimary:
-                                                  gs.currentSkin.primaryColor,
+                                          _MatchResolutionChronoCue(
+                                            active: resolutionCue,
+                                            child: _PerfectHeatFreezeHighlight(
+                                              freezeTick:
+                                                  gs.perfectHeatFreezeTick,
+                                              child: NeonTimerBar(
+                                                value: timerV,
+                                                height: barThickness * 2,
+                                                skinPrimary:
+                                                    gs.currentSkin.primaryColor,
+                                              ),
                                             ),
                                           ),
                                           if (gs.perfectHeatMechanicsActive)
@@ -879,6 +888,92 @@ class _PerfectHeatFreezeHighlightState
               ),
             ),
           ],
+        );
+      },
+    );
+  }
+}
+
+/// Pulse ambre discret sur la jauge TEMPS quand le combo se résout avec peu de temps restant
+/// (évite la sensation de « jeu figé » sans affaiblir le verrou d’input).
+class _MatchResolutionChronoCue extends StatefulWidget {
+  const _MatchResolutionChronoCue({required this.active, required this.child});
+
+  final bool active;
+  final Widget child;
+
+  @override
+  State<_MatchResolutionChronoCue> createState() =>
+      _MatchResolutionChronoCueState();
+}
+
+class _MatchResolutionChronoCueState extends State<_MatchResolutionChronoCue>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _pulse = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 340),
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    _syncPulse();
+  }
+
+  @override
+  void didUpdateWidget(covariant _MatchResolutionChronoCue oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.active != oldWidget.active) {
+      _syncPulse();
+    }
+  }
+
+  void _syncPulse() {
+    if (widget.active) {
+      if (!_pulse.isAnimating) {
+        _pulse.repeat(reverse: true);
+      }
+    } else {
+      _pulse
+        ..stop()
+        ..reset();
+    }
+  }
+
+  @override
+  void dispose() {
+    _pulse.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!widget.active) {
+      return widget.child;
+    }
+    return AnimatedBuilder(
+      animation: _pulse,
+      builder: (context, _) {
+        final double u = Curves.easeInOut.transform(_pulse.value);
+        final double a = 0.24 + 0.50 * u;
+        return Container(
+          padding: const EdgeInsets.all(1.4),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(
+              color: const Color(0xFFFFB74D).withValues(alpha: a),
+              width: 1.05,
+            ),
+            boxShadow: <BoxShadow>[
+              BoxShadow(
+                color: const Color(
+                  0xFFFF8A34,
+                ).withValues(alpha: 0.14 + 0.20 * u),
+                blurRadius: 10,
+              ),
+            ],
+          ),
+          child: widget.child,
         );
       },
     );

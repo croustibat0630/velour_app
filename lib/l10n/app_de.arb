@@ -519,5 +519,6 @@
     "placeholders": {
       "count": {"type": "int"}
     }
-  }
+  },
+  "gameHudTimeResolvingA11y": "Combo wird gewertet, Steine kurz gesperrt."
 }

@@ -803,4 +803,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String gameHudForgeMercyA11y(int count) {
     return 'Oracle mercy, $count charges';
   }
+
+  @override
+  String get gameHudTimeResolvingA11y =>
+      'Combo resolving, gems locked briefly.';
 }

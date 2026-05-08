@@ -370,5 +370,6 @@
     "placeholders": {
       "count": {"type": "int"}
     }
-  }
+  },
+  "gameHudTimeResolvingA11y": "Résolution du combo, gemmes figées un instant."
 }

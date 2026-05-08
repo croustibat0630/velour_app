@@ -483,6 +483,14 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     }
   }
 
+  /// Interrompt l’animation / timer « level up » (chrono mort, deadlock, reset).
+  void _resetLevelTransitionState() {
+    _levelTransitionTimer?.cancel();
+    _levelTransitionTimer = null;
+    _isLevelTransitionInProgress = false;
+    _pendingLevelUpNeedLux = null;
+  }
+
   /// À appeler quand l'animation "Level Up" se termine (ou via timer de secours).
   void commitLevelTransitionIfAny() {
     if (!_isLevelTransitionInProgress) return;
@@ -1508,10 +1516,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     _replaySuggestedStake = null;
     _gameLevel = 1;
     _luxAtLevelStart = 0;
-    _isLevelTransitionInProgress = false;
-    _pendingLevelUpNeedLux = null;
-    _levelTransitionTimer?.cancel();
-    _levelTransitionTimer = null;
+    _resetLevelTransitionState();
     _sequenceTick = 0;
     _luxComboFlashTick = 0;
     _comboFloater = null;
@@ -1601,10 +1606,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     _floatingTick++;
     _matchParticleFx = null;
     _matchParticleTick++;
-    _isLevelTransitionInProgress = false;
-    _pendingLevelUpNeedLux = null;
-    _levelTransitionTimer?.cancel();
-    _levelTransitionTimer = null;
+    _resetLevelTransitionState();
 
     final bool narrativeFromMenuThisInit =
         _guidedTutorialReplayPending &&
@@ -1796,6 +1798,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
           velourDebug(
             '[Velour][Timer] chrono à zéro pendant pipeline match — gameOver différé',
           );
+          notifyListeners();
           return;
         }
         timeBar.value = next;
@@ -1806,6 +1809,16 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
         return;
       }
       timeBar.value = next;
+
+      // Filet : si le verrou pipeline a été relâché sans flush (race rare), exécuter le game over différé.
+      if (_deferredTimerGameOver &&
+          !_paused &&
+          !_criticalFailure &&
+          !_isProcessingMatch &&
+          !_awaitingScheduledMatch &&
+          timeBar.value <= 0.0) {
+        _tryFlushDeferredTimerGameOver();
+      }
     });
   }
 
@@ -1844,6 +1857,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     _deferredTimerGameOver = false;
     _isGameOver = true;
     _criticalFailure = true;
+    _resetLevelTransitionState();
     _breakPerfectHeatTimerGameOverInternal();
     _cancelMatchScheduling();
     _stopTimeLoop();
@@ -2557,6 +2571,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     _isGameOver = true;
     final bool wasCritical = _criticalFailure;
     _criticalFailure = true;
+    _resetLevelTransitionState();
     _cancelMatchScheduling();
     if (!wasCritical) {
       _breakPerfectHeatDeadlockInternal();

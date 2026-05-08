@@ -978,6 +978,19 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                       },
                     ),
                   ),
+                  if (gameState.isLevelTransitionInProgress)
+                    Positioned.fill(
+                      child: IgnorePointer(
+                        child: _LevelUpFlash(
+                          tick: gameState.levelUpFlashTick,
+                          level: gameState.gameLevel,
+                        ),
+                      ),
+                    ),
+                  if (gameState.isLevelTransitionInProgress)
+                    const Positioned.fill(
+                      child: IgnorePointer(child: _LevelUpLuxBurst()),
+                    ),
                   if (gameState.criticalFailure)
                     Positioned.fill(
                       child: Stack(
@@ -1051,19 +1064,6 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                           ),
                         ],
                       ),
-                    ),
-                  if (gameState.isLevelTransitionInProgress)
-                    Positioned.fill(
-                      child: IgnorePointer(
-                        child: _LevelUpFlash(
-                          tick: gameState.levelUpFlashTick,
-                          level: gameState.gameLevel,
-                        ),
-                      ),
-                    ),
-                  if (gameState.isLevelTransitionInProgress)
-                    const Positioned.fill(
-                      child: IgnorePointer(child: _LevelUpLuxBurst()),
                     ),
                   if (!gameState.isTrinityTutorialComplete &&
                       gameState.sequenceTick > 0)

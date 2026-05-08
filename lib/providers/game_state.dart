@@ -9,14 +9,17 @@ import 'game_state_types.dart';
 export 'game_state_types.dart';
 
 import '../game/board_config.dart';
+import '../game/board_flow_policy.dart';
 import '../game/board_layout_logic.dart';
 import '../game/board_spawn_logic.dart';
+import '../game/meta_progression_policy.dart';
 import '../game/forge_shop_logic.dart';
 import '../game/match_scoring.dart';
 import '../game/match_feedback.dart';
 import '../game/perfect_heat_logic.dart';
 import '../game/rack_logic.dart';
 import '../game/run_timer_logic.dart';
+import '../game/timer_tension_logic.dart';
 import '../game/session_stake_constants.dart';
 import '../game/session_stake_resolution.dart';
 import '../game/tutorial_board_placer.dart';
@@ -245,10 +248,14 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
 
   double get itemSize => _itemSize;
   double get slotSize => _slotSize;
-  // Let board caps actually tighten (was 9, which nullified [BoardConfig.boardCapForLevel]).
-  static const int _minBoardGems = 7;
-
   final math.Random _rng = math.Random();
+
+  /// Dernière action joueur (tap plateau) — tension chrono « idle hurry ».
+  DateTime? _lastPlayerActionAt;
+
+  /// Dernier échantillon de perf pour DDA (LUX/min entre matchs).
+  DateTime? _lastMatchPerfSampleAt;
+  double _perfEmaLuxPerMinute = MetaProgressionPolicy.neutralLuxPerMinute;
 
   final List<GameItem> _boardItems = <GameItem>[];
   final List<GameItem> _slotItems = <GameItem>[];
@@ -432,7 +439,11 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     return 7;
   }
 
-  int _luxRequiredForNextLevel() => (_gameLevel * 1500 * 1.2).round();
+  int _luxRequiredForNextLevel() =>
+      MetaProgressionPolicy.luxRequiredForNextLevel(
+        gameLevel: _gameLevel,
+        perfEmaLuxPerMinute: _perfEmaLuxPerMinute,
+      );
 
   int _levelUpFlashTick = 0;
   int get levelUpFlashTick => _levelUpFlashTick;
@@ -1500,6 +1511,10 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     _lastLuxBarLogLux = null;
     _gameOverFlashTick = 0;
 
+    _lastPlayerActionAt = DateTime.now();
+    _lastMatchPerfSampleAt = null;
+    _perfEmaLuxPerMinute = MetaProgressionPolicy.neutralLuxPerMinute;
+
     if (_heatReboundPendingFromTimerDeath) {
       _heatReboundPendingFromTimerDeath = false;
       _heatReboundAvailable = true;
@@ -1530,6 +1545,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
       _startTimeLoop();
     }
     _runStartedAt ??= DateTime.now();
+    _lastPlayerActionAt = DateTime.now();
     _runHighScoreBaseline = _economy.highScore;
     // If layout is already known but board hasn't been seeded (e.g. reset before layout),
     // seed now.
@@ -1751,9 +1767,17 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
       if (perfectHeatFreezeActive) {
         return;
       }
+      final double clutch = TimerTensionLogic.drainMultiplierForBarFraction(
+        timeBar.value,
+      );
+      final Duration idleDt = now.difference(_lastPlayerActionAt ?? now);
+      final double hurry = TimerTensionLogic.idleHurryMultiplier(
+        sinceLastPlayerAction: idleDt,
+      );
+      final double effectiveDrain = _timeDrainPerSecond * clutch * hurry;
       final double next = RunTimerLogic.nextTimeBarAfterTick(
         currentValue: timeBar.value,
-        timeDrainPerSecond: _timeDrainPerSecond,
+        timeDrainPerSecond: effectiveDrain,
         dtSeconds: dt,
       );
       if (next <= 0.0) {
@@ -1824,13 +1848,16 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     notifyListeners();
   }
 
-  int get _targetBoardCap => BoardConfig.boardCapForLevel(_gameLevel);
+  int get _targetBoardCap => BoardConfig.boardCapForLevel(
+    _gameLevel,
+    heatTierClamp0to5: perfectHeatMechanicsActive ? _heatTier.clamp(0, 5) : 0,
+  );
 
   void _fillBoardToCap() {
     if (isTrinityTutorialChronoFrozen || isNarrativeTutorialChronoFrozen) {
       return;
     }
-    final int cap = math.max(_minBoardGems, _targetBoardCap);
+    final int cap = math.max(BoardConfig.absoluteMinBoardGems, _targetBoardCap);
     final int missing = cap - _boardItems.length;
     if (missing <= 0) return;
     _spawnBoardItems(missing);
@@ -1867,9 +1894,25 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
         typeId = rolled.typeId;
         colorId = rolled.colorId;
       } else {
-        final int t0 = 1 + _rng.nextInt(maxShapeId);
+        final int heatClamp = perfectHeatMechanicsActive
+            ? _heatTier.clamp(0, 5)
+            : 0;
+        final int t0 = BoardFlowPolicy.useUnderrepresentedShapePick(heatClamp)
+            ? BoardSpawnLogic.pickWeightedTypeId(
+                maxShapeId: maxShapeId,
+                typePopulationCounts: BoardSpawnLogic.mergeShapeCounts(
+                  _boardItems,
+                  _slotItems,
+                ),
+                rng: _rng,
+              )
+            : 1 + _rng.nextInt(maxShapeId);
         final int c0 = _pickColorId();
         final bool spawnBiasActive = _gameLevel > 1 && timeBar.value < 0.8;
+        final double biasChance = BoardFlowPolicy.slotCompletionBiasChance(
+          heatTierClamp0to5: heatClamp,
+          timeBarFraction: timeBar.value,
+        );
         final ({int typeId, int colorId}) biased =
             BoardSpawnLogic.maybeApplySlotCompletionBias(
               typeId: t0,
@@ -1877,6 +1920,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
               biasMayApply: spawnBiasActive,
               roll01: _rng.nextDouble(),
               pair: RackLogic.slotPairNeedingThirdCopy(_slotItems),
+              biasChance: biasChance,
             );
         if (biased.typeId != t0 || biased.colorId != c0) {
           velourDebug(
@@ -1993,6 +2037,8 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     if (!_narrativeTutorial.shouldAcceptBoardSelect(id)) {
       return;
     }
+
+    _lastPlayerActionAt = DateTime.now();
 
     final GameItem item = _boardItems[idx];
     if (_isNarrativeTutorialCoreSteps) {
@@ -2220,6 +2266,22 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
       chainScoreMult,
     );
     _lux += gain;
+
+    if (_canUseForgeRunConsumables) {
+      final DateTime perfT = DateTime.now();
+      if (_lastMatchPerfSampleAt != null) {
+        final double gapMin =
+            perfT.difference(_lastMatchPerfSampleAt!).inMilliseconds / 60000.0;
+        if (gapMin > 1e-5) {
+          final double sample = (gain / gapMin).clamp(0.0, 14000.0);
+          _perfEmaLuxPerMinute = MetaProgressionPolicy.emaLuxPerMinute(
+            previousEma: _perfEmaLuxPerMinute,
+            sampleLuxPerMinute: sample,
+          );
+        }
+      }
+      _lastMatchPerfSampleAt = perfT;
+    }
 
     // Nouveau record en direct (une seule fois par run).
     if (!_recordVibrateFired &&

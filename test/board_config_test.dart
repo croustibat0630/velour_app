@@ -10,4 +10,15 @@ void main() {
     expect(BoardConfig.boardCapForLevel(5), 3);
     expect(BoardConfig.boardCapForLevel(99), 3);
   });
+
+  test('Heat palier 5 : +1 gemme cible (plafonné)', () {
+    expect(
+      BoardConfig.boardCapForLevel(5, heatTierClamp0to5: 5),
+      greaterThan(BoardConfig.boardCapForLevel(5)),
+    );
+    expect(
+      BoardConfig.boardCapForLevel(5, heatTierClamp0to5: 5),
+      lessThanOrEqualTo(8),
+    );
+  });
 }

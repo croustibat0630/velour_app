@@ -24,6 +24,21 @@ abstract final class BoardSpawnLogic {
     return counts;
   }
 
+  /// Compte les occurrences de chaque [typeId] sur plateau + rack.
+  static Map<int, int> mergeShapeCounts(
+    Iterable<GameItem> board,
+    Iterable<GameItem> slots,
+  ) {
+    final Map<int, int> counts = <int, int>{};
+    for (final GameItem e in board) {
+      counts[e.typeId] = (counts[e.typeId] ?? 0) + 1;
+    }
+    for (final GameItem e in slots) {
+      counts[e.typeId] = (counts[e.typeId] ?? 0) + 1;
+    }
+    return counts;
+  }
+
   /// Triangle (typeId 3) toujours glace cyan pour lisibilité.
   static int clampTriangleColor(int typeId, int colorId) {
     if (typeId == 3) return 1;
@@ -57,15 +72,36 @@ abstract final class BoardSpawnLogic {
     return 1;
   }
 
-  /// Biais « compléter la paire en slots » : `roll01` sous [spawnCompletionBiasChance] et [pair] non null.
+  /// Tirage de [typeId] 1..[maxShapeId] pondéré par sous-représentation (1/(1+count)).
+  static int pickWeightedTypeId({
+    required int maxShapeId,
+    required Map<int, int> typePopulationCounts,
+    required Random rng,
+  }) {
+    final List<double> w = List<double>.generate(maxShapeId, (int i) {
+      final int id = i + 1;
+      final int c = typePopulationCounts[id] ?? 0;
+      return 1.0 / (1.0 + c.toDouble());
+    });
+    final double sum = w.fold(0.0, (double a, double b) => a + b);
+    double r = rng.nextDouble() * sum;
+    for (int i = 0; i < maxShapeId; i++) {
+      r -= w[i];
+      if (r <= 0) return i + 1;
+    }
+    return 1;
+  }
+
+  /// Biais « compléter la paire en slots » : `roll01` sous [biasChance] et [pair] non null.
   static ({int typeId, int colorId}) maybeApplySlotCompletionBias({
     required int typeId,
     required int colorId,
     required bool biasMayApply,
     required double roll01,
     ({int typeId, int colorId})? pair,
+    double biasChance = spawnCompletionBiasChance,
   }) {
-    if (biasMayApply && roll01 < spawnCompletionBiasChance && pair != null) {
+    if (biasMayApply && roll01 < biasChance && pair != null) {
       return (typeId: pair.typeId, colorId: pair.colorId);
     }
     return (typeId: typeId, colorId: colorId);

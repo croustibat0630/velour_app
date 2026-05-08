@@ -5,6 +5,19 @@ import 'package:velour_app/game/board_spawn_logic.dart';
 import 'package:velour_app/models/game_item.dart';
 
 void main() {
+  test('mergeShapeCounts agrège plateau + rack', () {
+    final List<GameItem> board = <GameItem>[
+      GameItem(id: 'a', typeId: 1, colorId: 2, position: Offset.zero),
+      GameItem(id: 'b', typeId: 1, colorId: 3, position: Offset.zero),
+    ];
+    final List<GameItem> slots = <GameItem>[
+      GameItem(id: 'c', typeId: 2, colorId: 3, position: Offset.zero),
+    ];
+    final Map<int, int> m = BoardSpawnLogic.mergeShapeCounts(board, slots);
+    expect(m[1], 2);
+    expect(m[2], 1);
+  });
+
   test('mergeColorCounts agrège plateau + rack', () {
     final List<GameItem> board = <GameItem>[
       GameItem(id: 'a', typeId: 1, colorId: 2, position: Offset.zero),

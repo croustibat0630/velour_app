@@ -862,11 +862,19 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                         ),
                       ),
                     ),
+                  // Flash palier 5 : uniquement au-dessus de la zone de spawn des gemmes
+                  // (évite de voiler le plateau sous stress).
                   if (gameState.perfectHeatMechanicsActive)
-                    Positioned.fill(
+                    Positioned(
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      height: boardSpawnMinY,
                       child: IgnorePointer(
-                        child: _PerfectHeatGhostFlash(
-                          tick: gameState.perfectHeatGhostFlashTick,
+                        child: ClipRect(
+                          child: _PerfectHeatGhostFlash(
+                            tick: gameState.perfectHeatGhostFlashTick,
+                          ),
                         ),
                       ),
                     ),
@@ -1703,13 +1711,30 @@ class _FloatingTextState extends State<_FloatingText>
                     letterSpacing: 1.2,
                     color: (widget.textColorOverride ?? widget.color)
                         .withValues(alpha: 0.95),
-                    shadows: [
-                      Shadow(
-                        color: (widget.textColorOverride ?? widget.color)
-                            .withValues(alpha: 0.55),
-                        blurRadius: 12,
-                      ),
-                    ],
+                    shadows: widget.textColorOverride != null
+                        ? <Shadow>[
+                            Shadow(
+                              color: Colors.black.withValues(alpha: 0.92),
+                              blurRadius: 2,
+                              offset: const Offset(0, 1),
+                            ),
+                            Shadow(
+                              color: Colors.black.withValues(alpha: 0.55),
+                              blurRadius: 8,
+                            ),
+                            Shadow(
+                              color: (widget.textColorOverride ?? widget.color)
+                                  .withValues(alpha: 0.45),
+                              blurRadius: 10,
+                            ),
+                          ]
+                        : <Shadow>[
+                            Shadow(
+                              color: (widget.textColorOverride ?? widget.color)
+                                  .withValues(alpha: 0.55),
+                              blurRadius: 12,
+                            ),
+                          ],
                   );
             return Positioned(
               left: p.dx,
@@ -2658,7 +2683,7 @@ class _PerfectHeatGhostFlashState extends State<_PerfectHeatGhostFlash>
     with SingleTickerProviderStateMixin {
   late final AnimationController _c = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 220),
+    duration: const Duration(milliseconds: 150),
   );
 
   @override
@@ -2681,15 +2706,15 @@ class _PerfectHeatGhostFlashState extends State<_PerfectHeatGhostFlash>
       animation: _c,
       builder: (context, _) {
         final double t = Curves.easeOut.transform(_c.value);
-        final double a = (1 - t) * 0.22;
-        if (a < 0.002) return const SizedBox.shrink();
+        final double a = (1 - t) * 0.075;
+        if (a < 0.001) return const SizedBox.shrink();
         return DecoratedBox(
           decoration: BoxDecoration(
             gradient: RadialGradient(
-              center: const Alignment(0, -0.15),
-              radius: 1.1,
+              center: const Alignment(0, -0.55),
+              radius: 0.95,
               colors: [
-                Colors.white.withValues(alpha: a),
+                const Color(0xFFFFF8E6).withValues(alpha: a),
                 const Color(0x00000000),
               ],
               stops: const [0.0, 1.0],

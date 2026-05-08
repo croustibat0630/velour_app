@@ -857,8 +857,8 @@ class _PerfectHeatFreezeHighlightState
       animation: _ring,
       builder: (context, _) {
         final double u = Curves.easeOut.transform(_ring.value);
-        final double edgeA = (1.0 - u) * 0.95;
-        if (edgeA < 0.02 && _ring.isCompleted) {
+        final double edgeA = (1.0 - u) * 0.55;
+        if (edgeA < 0.015 && _ring.isCompleted) {
           return widget.child;
         }
         return Stack(
@@ -872,7 +872,7 @@ class _PerfectHeatFreezeHighlightState
                     borderRadius: BorderRadius.circular(999),
                     border: Border.all(
                       color: const Color(0xFF7CF9FF).withValues(alpha: edgeA),
-                      width: 1.6,
+                      width: 1.1,
                     ),
                   ),
                 ),

@@ -11,6 +11,13 @@ import '../services/remote_config_service.dart';
 abstract final class MetaProgressionPolicy {
   MetaProgressionPolicy._();
 
+  static double _tanh(double x) {
+    if (x > 20) return 1.0;
+    if (x < -20) return -1.0;
+    final double e2x = math.exp(2 * x);
+    return (e2x - 1.0) / (e2x + 1.0);
+  }
+
   /// Valeur neutre au reset (évite un DDA extrême avant le 1er match).
   static double get neutralLuxPerMinute =>
       VelourRemoteConfig.instance.metaNeutralLuxPerMinute;
@@ -42,14 +49,19 @@ abstract final class MetaProgressionPolicy {
     final double wave =
         1.0 + waveStrength * math.sin((level - 1) * math.pi / 3.5);
     final double neutral = rc.metaNeutralLuxPerMinute;
-    final double centered =
+    // DDA « invisible » : compression tanh + plage de besoin resserrée (±3 %).
+    final double rawCentered =
         ((perfEmaLuxPerMinute - neutral) / rc.metaDdaCenterDivisor.toDouble())
-            .clamp(-1.0, 1.0);
+            .clamp(-1.35, 1.35);
+    final double centered = _tanh(rawCentered * 0.72);
     final double dda = 1.0 + ddaStrength * centered;
     final double combined = base * wave * dda;
     final int need = combined.round();
-    final int minNeed = (base * 0.92).round();
-    final int maxNeed = (base * 1.10).round();
+    // Borner autour du coût « vague » (sans DDA), pas seulement `base` : sinon la
+    // sinusoïde pousse déjà au-delà de base±3 % et tout s'écrête → plus d'effet DDA.
+    final double anchor = base * wave;
+    final int minNeed = (anchor * 0.97).round();
+    final int maxNeed = (anchor * 1.03).round();
     return need.clamp(minNeed, maxNeed);
   }
 }

@@ -67,11 +67,11 @@ class VelourRemoteConfig {
     kBoardFlowRescueFloorPct: 36,
     kBoardFlowBiasClampMinPct: 8,
     kBoardFlowBiasClampMaxPct: 45,
-    kMetaWavePermille: 55,
-    kMetaDdaPermille: 42,
+    kMetaWavePermille: 42,
+    kMetaDdaPermille: 22,
     kMetaNeutralEmaLuxPerMin: 280,
-    kMetaEmaAlphaPermille: 140,
-    kMetaDdaDivisor: 420,
+    kMetaEmaAlphaPermille: 90,
+    kMetaDdaDivisor: 520,
   };
 
   FirebaseRemoteConfig? _rc;
@@ -217,14 +217,11 @@ class VelourRemoteConfig {
       _int(
         kMetaWavePermille,
         _defaults[kMetaWavePermille]! as int,
-      ).clamp(0, 120) /
+      ).clamp(0, 80) /
       1000.0;
 
   double get metaDdaStrength =>
-      _int(
-        kMetaDdaPermille,
-        _defaults[kMetaDdaPermille]! as int,
-      ).clamp(0, 120) /
+      _int(kMetaDdaPermille, _defaults[kMetaDdaPermille]! as int).clamp(0, 55) /
       1000.0;
 
   double get metaNeutralLuxPerMinute => _int(

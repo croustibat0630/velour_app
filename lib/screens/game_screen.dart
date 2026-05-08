@@ -92,6 +92,7 @@ int _gameScreenStaticUiFingerprint(GameState gs) {
   parts.add(op.time);
 
   parts.add(gs.criticalFailure);
+  parts.add(gs.hasDeferredTimerGameOver);
   parts.add(gs.isProcessingMatch);
   parts.add(gs.isNarrativeTutorialActive);
   parts.add(gs.narrativePhase.index);

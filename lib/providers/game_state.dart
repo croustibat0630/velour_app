@@ -289,6 +289,10 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
   /// Le chrono est tombé à zéro pendant [_awaitingScheduledMatch] / [_isProcessingMatch].
   bool _deferredTimerGameOver = false;
 
+  /// Exposé pour l’empreinte UI du jeu : sans ça, [notifyListeners] peut être ignoré
+  /// alors que le chrono est déjà à zéro (game over différé).
+  bool get hasDeferredTimerGameOver => _deferredTimerGameOver;
+
   /// Dernier jour UTC où le joueur a réclamé le bonus LUX quotidien (`yyyy-MM-dd`).
   String? _lastDailyLuxClaimUtcDay;
   DateTime? _runStartedAt;
@@ -1852,6 +1856,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
       velourDebug(
         '[Velour][GameOver] appel ignoré (match en cours / check armé) — différé',
       );
+      notifyListeners();
       return;
     }
     _deferredTimerGameOver = false;
@@ -1861,14 +1866,17 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     _breakPerfectHeatTimerGameOverInternal();
     _cancelMatchScheduling();
     _stopTimeLoop();
-    unawaited(_recordRunStatsIfNeeded());
-    _resolveSessionStakeOnGameOver();
-    _lastGameWasPersonalBest = _lux > _economy.highScore;
-    _persistHighScoreIfNeeded();
-    _playGameOverSound();
-    AudioHandler.instance.cutAllAudio();
-    _gameOverFlashTick++;
-    notifyListeners();
+    try {
+      unawaited(_recordRunStatsIfNeeded());
+      _resolveSessionStakeOnGameOver();
+      _lastGameWasPersonalBest = _lux > _economy.highScore;
+      _persistHighScoreIfNeeded();
+      _playGameOverSound();
+      AudioHandler.instance.cutAllAudio();
+      _gameOverFlashTick++;
+    } finally {
+      notifyListeners();
+    }
   }
 
   int get _targetBoardCap => BoardConfig.boardCapForLevel(
@@ -2132,6 +2140,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     if (_paused) return;
     if (_criticalFailure) {
       _deferredTimerGameOver = false;
+      notifyListeners();
       return;
     }
     if (_isProcessingMatch || _awaitingScheduledMatch) return;
@@ -2141,6 +2150,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
       velourDebug(
         '[Velour][Timer] gameOver différé annulé (temps > 0 après résolution)',
       );
+      notifyListeners();
       return;
     }
     if (_tryConsumeChronoPulseRefill()) {

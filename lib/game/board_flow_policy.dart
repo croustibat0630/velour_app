@@ -1,10 +1,11 @@
 import 'dart:math' as math;
 
+import '../services/remote_config_service.dart';
 import 'board_spawn_logic.dart';
 
 /// Politique « flow » plateau : ajuste les probas de spawn selon Perfect Heat et tension temps.
 ///
-/// Les constantes restent locales (pas Remote Config ici) pour garder la logique pure testable.
+/// Seuils paliers / clamp : [VelourRemoteConfig] (Firebase Remote Config).
 abstract final class BoardFlowPolicy {
   BoardFlowPolicy._();
 
@@ -16,23 +17,25 @@ abstract final class BoardFlowPolicy {
     required int heatTierClamp0to5,
     required double timeBarFraction,
   }) {
+    final VelourRemoteConfig rc = VelourRemoteConfig.instance;
     final int h = heatTierClamp0to5.clamp(0, 5);
     final double t = timeBarFraction.clamp(0.0, 1.0);
     double p = BoardSpawnLogic.spawnCompletionBiasChance;
     if (h >= 5) {
-      p = 0.20;
+      p = rc.boardFlowBiasT5;
     } else if (h >= 4) {
-      p = 0.24;
+      p = rc.boardFlowBiasT4;
     } else if (h >= 3) {
-      p = 0.27;
+      p = rc.boardFlowBiasT3;
     }
     if (h <= 2 && t < 0.22) {
-      p = math.max(p, 0.36);
+      p = math.max(p, rc.boardFlowRescueFloor);
     }
-    return p.clamp(0.08, 0.45);
+    return p.clamp(rc.boardFlowBiasClampMin, rc.boardFlowBiasClampMax);
   }
 
   /// Tirage de forme plus « équilibré » quand la chaleur est haute (évite l’uniforme pur).
   static bool useUnderrepresentedShapePick(int heatTierClamp0to5) =>
-      heatTierClamp0to5.clamp(0, 5) >= 4;
+      heatTierClamp0to5.clamp(0, 5) >=
+      VelourRemoteConfig.instance.boardFlowUnderrepMinHeat;
 }

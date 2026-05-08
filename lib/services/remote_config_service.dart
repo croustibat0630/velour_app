@@ -67,11 +67,11 @@ class VelourRemoteConfig {
     kBoardFlowRescueFloorPct: 36,
     kBoardFlowBiasClampMinPct: 8,
     kBoardFlowBiasClampMaxPct: 45,
-    kMetaWavePermille: 42,
-    kMetaDdaPermille: 22,
+    kMetaWavePermille: 55,
+    kMetaDdaPermille: 42,
     kMetaNeutralEmaLuxPerMin: 280,
-    kMetaEmaAlphaPermille: 90,
-    kMetaDdaDivisor: 520,
+    kMetaEmaAlphaPermille: 140,
+    kMetaDdaDivisor: 420,
   };
 
   FirebaseRemoteConfig? _rc;

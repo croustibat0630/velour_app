@@ -281,6 +281,11 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
   /// True pendant la résolution d’un match (anim + score + remboursement temps).
   bool _isProcessingMatch = false;
 
+  /// Incrémenté à chaque nouvelle planification ou annulation : un [Timer] annulé
+  /// ne retire pas un callback `async` déjà lancé — les callbacks « en retard »
+  /// doivent sortir sans toucher au plateau (sinon verrous / états incohérents).
+  int _matchPipelineGeneration = 0;
+
   /// Le chrono est tombé à zéro pendant [_awaitingScheduledMatch] / [_isProcessingMatch].
   bool _deferredTimerGameOver = false;
 
@@ -2099,6 +2104,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
   void _cancelMatchScheduling() {
     _matchTimer?.cancel();
     _matchTimer = null;
+    _matchPipelineGeneration++;
     _awaitingScheduledMatch = false;
     _tryFlushDeferredTimerGameOver();
   }
@@ -2129,10 +2135,16 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
   void _scheduleMatchCheck() {
     if (_criticalFailure) return;
     _matchTimer?.cancel();
+    _matchTimer = null;
+    _matchPipelineGeneration++;
+    final int pipelineToken = _matchPipelineGeneration;
     _awaitingScheduledMatch = true;
 
     _matchTimer = Timer(_effectiveMatchDelay, () async {
+      bool pipelineStale() => pipelineToken != _matchPipelineGeneration;
+
       try {
+        if (pipelineStale()) return;
         final RackRun? initial = RackLogic.findBestRun(_slotItems);
         if (initial == null) {
           _recomputeAlerts();
@@ -2144,6 +2156,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
         int chainStep = 0;
         RackRun? run = initial;
         while (run != null && chainStep < 40) {
+          if (pipelineStale()) return;
           chainStep++;
           final bool isCascade = chainStep > 1;
           final double chainMult = RackLogic.chainScoreMultiplier(chainStep);
@@ -2174,9 +2187,11 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
             // Relâche le verrou dès la mutation d'état terminée (input "snappy").
             _isProcessingMatch = false;
           }
+          if (pipelineStale()) return;
           velourDebug('[Velour][Match] résolution terminée step=$chainStep');
           // Petit espacement (réduit ~30%) : laisse lire le feedback sans bloquer l'input.
           await Future<void>.delayed(cascadeStepDelay);
+          if (pipelineStale()) return;
           run = (isTrinityTutorialActive || closedTrinityTutorial)
               ? null
               : RackLogic.findBestRun(_slotItems);
@@ -2187,8 +2202,10 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
           );
         }
       } finally {
-        _awaitingScheduledMatch = false;
-        _tryFlushDeferredTimerGameOver();
+        if (pipelineToken == _matchPipelineGeneration) {
+          _awaitingScheduledMatch = false;
+          _tryFlushDeferredTimerGameOver();
+        }
       }
     });
   }

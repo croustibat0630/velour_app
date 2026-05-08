@@ -478,9 +478,9 @@
   },
   "gameHudScore": "SCORE",
   "gameHudTime": "ZEIT",
-  "gameHudPerfectHeatLabel": "HEAT",
+  "gameHudPerfectHeatLabel": "HITZE",
   "gameHudPerfectHeatNearFloater": " KNAPP",
-  "gameHudPerfectHeatRebound": "COMEBACK",
+  "gameHudPerfectHeatRebound": "2. CHANCE",
   "gameHudLevelShort": "LV {level}",
   "@gameHudLevelShort": {
     "placeholders": {

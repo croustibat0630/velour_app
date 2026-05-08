@@ -335,9 +335,9 @@
   },
   "gameHudScore": "SCORE",
   "gameHudTime": "TEMPS",
-  "gameHudPerfectHeatLabel": "HEAT",
+  "gameHudPerfectHeatLabel": "FEU",
   "gameHudPerfectHeatNearFloater": " PRESQUE",
-  "gameHudPerfectHeatRebound": "REPRISE",
+  "gameHudPerfectHeatRebound": "REBOND",
   "gameHudLevelShort": "NIV {level}",
   "@gameHudLevelShort": {
     "placeholders": {

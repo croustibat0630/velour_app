@@ -901,8 +901,16 @@ class _PerfectHeatHudRow extends StatelessWidget {
   final double scaleH;
   final double barThickness;
 
-  static const Color _heatPink = Color(0xFFFF6FD8);
-  static const Color _heatGold = Color(0xFFFFD45A);
+  /// Palier 1→5 : rose néon → corail → ambre → or → pic blanc-doré.
+  static const List<Color> _heatSegmentLit = <Color>[
+    Color(0xFFFF4D9D),
+    Color(0xFFFF6A4A),
+    Color(0xFFFFB02E),
+    Color(0xFFFFE24D),
+    Color(0xFFFFF2B8),
+  ];
+
+  static const Color _prestigeGold = Color(0xFFFFEA9B);
 
   @override
   Widget build(BuildContext context) {
@@ -911,6 +919,7 @@ class _PerfectHeatHudRow extends StatelessWidget {
     final bool rebound = gs.perfectHeatReboundAvailable && tier == 0;
     final int consec = gs.perfectHeatConsecutivePerfects;
     final double segH = math.max(3.0, barThickness * 0.9);
+    final Color dimTrack = const Color(0xFF1E2D45).withValues(alpha: 0.72);
 
     return Padding(
       padding: EdgeInsets.only(top: 5 * scaleH),
@@ -927,7 +936,14 @@ class _PerfectHeatHudRow extends StatelessWidget {
                   fontSize: (9 * scaleT).clamp(8.0, 11.0),
                   fontWeight: FontWeight.w600,
                   letterSpacing: 1.4,
-                  color: Colors.white.withValues(alpha: 0.55),
+                  color: Colors.white.withValues(alpha: 0.58),
+                  shadows: [
+                    Shadow(
+                      color: Colors.black.withValues(alpha: 0.55),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1),
+                    ),
+                  ],
                 ),
               ),
               if (tier >= 5 && consec > 5)
@@ -936,7 +952,14 @@ class _PerfectHeatHudRow extends StatelessWidget {
                   style: GoogleFonts.montserrat(
                     fontSize: (9 * scaleT).clamp(8.0, 11.0),
                     fontWeight: FontWeight.w700,
-                    color: _heatGold.withValues(alpha: 0.88),
+                    letterSpacing: 0.6,
+                    color: _prestigeGold.withValues(alpha: 0.92),
+                    shadows: [
+                      Shadow(
+                        color: const Color(0xFFFFB74D).withValues(alpha: 0.35),
+                        blurRadius: 8,
+                      ),
+                    ],
                   ),
                 ),
             ],
@@ -946,21 +969,31 @@ class _PerfectHeatHudRow extends StatelessWidget {
             width: double.infinity,
             child: Row(
               children: List<Widget>.generate(5, (int i) {
-                final Color dim = Colors.white.withValues(alpha: 0.12);
-                final Color hot = Color.lerp(_heatPink, _heatGold, i / 4.0)!;
                 final bool lit = tier > 0 && i < tier;
+                final Color hot = _heatSegmentLit[i];
                 return Expanded(
                   child: Padding(
                     padding: EdgeInsets.only(left: i == 0 ? 0 : 2),
                     child: DecoratedBox(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(2),
-                        color: lit ? hot.withValues(alpha: 0.92) : dim,
+                        border: Border.all(
+                          color: lit
+                              ? hot.withValues(alpha: 0.55)
+                              : Colors.white.withValues(alpha: 0.06),
+                          width: 0.8,
+                        ),
+                        color: lit ? hot.withValues(alpha: 0.94) : dimTrack,
                         boxShadow: lit
                             ? <BoxShadow>[
                                 BoxShadow(
-                                  color: hot.withValues(alpha: 0.40),
-                                  blurRadius: 5,
+                                  color: hot.withValues(alpha: 0.48),
+                                  blurRadius: 6,
+                                  spreadRadius: 0.2,
+                                ),
+                                BoxShadow(
+                                  color: hot.withValues(alpha: 0.22),
+                                  blurRadius: 14,
                                 ),
                               ]
                             : null,
@@ -980,8 +1013,19 @@ class _PerfectHeatHudRow extends StatelessWidget {
                 style: GoogleFonts.montserrat(
                   fontSize: (9 * scaleT).clamp(8.0, 11.0),
                   fontWeight: FontWeight.w800,
-                  letterSpacing: 1.2,
-                  color: const Color(0xFFFFB74D).withValues(alpha: 0.95),
+                  letterSpacing: 1.1,
+                  color: const Color(0xFFFFCC80).withValues(alpha: 0.96),
+                  shadows: [
+                    Shadow(
+                      color: const Color(0xFFFF6E40).withValues(alpha: 0.45),
+                      blurRadius: 10,
+                    ),
+                    Shadow(
+                      color: Colors.black.withValues(alpha: 0.5),
+                      blurRadius: 3,
+                      offset: const Offset(0, 1),
+                    ),
+                  ],
                 ),
               ),
             ),

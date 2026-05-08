@@ -143,6 +143,10 @@ class GameScreen extends StatefulWidget {
 
 class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   GameState? _gameStateListenee;
+
+  /// [GameState.timeBar] n’appelle pas [GameState.notifyListeners] : sans écoute
+  /// dédiée, l’empreinte statique du jeu peut rester figée alors que le chrono est vide.
+  ValueNotifier<double>? _timeBarListenee;
   late final AnimationController _shakeController;
   late final AnimationController _flashController;
   late final AnimationController _bgDrift;
@@ -223,6 +227,26 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   void _detachGameStateListener() {
     _gameStateListenee?.removeListener(_handleGameStateForFx);
     _gameStateListenee = null;
+  }
+
+  void _detachTimeBarListener() {
+    _timeBarListenee?.removeListener(_handleTimeBarShell);
+    _timeBarListenee = null;
+  }
+
+  void _attachTimeBarListener(GameState gs) {
+    if (identical(_timeBarListenee, gs.timeBar)) return;
+    _detachTimeBarListener();
+    _timeBarListenee = gs.timeBar..addListener(_handleTimeBarShell);
+  }
+
+  void _handleTimeBarShell() {
+    if (!mounted) return;
+    final GameState gs = context.read<GameState>();
+    // Dernières % du chrono : resync plateau / AbsorbPointer / pause (hors empreinte GameState).
+    if (gs.timeBar.value <= 0.08) {
+      setState(() {});
+    }
   }
 
   /// Réactions HUD/FX/audio : hors du corps de [build], déclenchées par notifies du [GameState].
@@ -307,7 +331,9 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     final GameState gs = context.read<GameState>();
     if (_gameStateListenee != gs) {
       _detachGameStateListener();
+      _detachTimeBarListener();
       _gameStateListenee = gs..addListener(_handleGameStateForFx);
+      _attachTimeBarListener(gs);
       // Initialise à partir de l'état courant (évite une frame « stale » après hot-restart).
       _handleGameStateForFx();
     }
@@ -316,6 +342,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   @override
   void dispose() {
     _detachGameStateListener();
+    _detachTimeBarListener();
     _shakeController.dispose();
     _flashController.dispose();
     _matchParticleController.dispose();

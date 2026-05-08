@@ -2594,6 +2594,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
       _stopTimeLoop();
       _gameOverFlashTick++;
     }
+    notifyListeners();
   }
 
   // --- Audio ---

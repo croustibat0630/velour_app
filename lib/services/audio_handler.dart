@@ -28,10 +28,13 @@ class AudioHandler {
   static const int _matchPolyphonyWeb = 1;
   static const int _matchPolyphonyApple = 1;
 
-  /// Plafond par player : **doit** rester aligné avec [AudioPlayer.preparationTimeout]
-  /// (installé dans [configure]) — sinon audioplayers garde 30s en interne et une
-  /// TimeoutException « fantôme » peut remonter à Crashlytics après notre await.
+  /// Plafond pour `setSource` + config player : **doit** rester aligné avec
+  /// [AudioPlayer.preparationTimeout] (installé dans [configure]).
   static const Duration _pooledSfxLoadTimeout = Duration(seconds: 12);
+
+  /// `resume()` du warm-up peut pendre sur iOS sans route audio idéale — ne pas
+  /// l’inclure dans [_pooledSfxLoadTimeout] (sinon 12s atteint pendant le warm-up).
+  static const Duration _pooledSfxWarmTimeout = Duration(seconds: 4);
 
   Future<void>? _preloadGameSfxFuture;
   static bool _installedAudioplayersTimeouts = false;
@@ -203,27 +206,40 @@ class AudioHandler {
     required AudioPlayer player,
     required String fileName,
   }) async {
-    Future<void> work() async {
+    Future<void> loadCore() async {
       if (!kIsWeb) {
         await player.setAudioContext(velourGameAudioContext());
       }
       await player.setPlayerMode(PlayerMode.lowLatency);
       await player.setReleaseMode(ReleaseMode.stop);
       await player.setSource(_sourceFor(fileName));
-      await _warmUpSfxDecoder(player);
-      await player.setVolume(1.0);
     }
 
-    await work().timeout(
+    await loadCore().timeout(
       _pooledSfxLoadTimeout,
       onTimeout: () {
         velourAudioTrace(
-          'AudioHandler._setupPooledSfx timeout file=$fileName '
+          'AudioHandler._setupPooledSfx setSource timeout file=$fileName '
           'after ${_pooledSfxLoadTimeout.inSeconds}s',
         );
-        throw TimeoutException('pooled sfx', _pooledSfxLoadTimeout);
+        throw TimeoutException('pooled sfx setSource', _pooledSfxLoadTimeout);
       },
     );
+
+    try {
+      await _warmUpSfxDecoder(player).timeout(_pooledSfxWarmTimeout);
+    } on TimeoutException {
+      velourAudioTrace(
+        'AudioHandler._warmUpSfxDecoder timeout file=$fileName '
+        'after ${_pooledSfxWarmTimeout.inSeconds}s',
+      );
+    } catch (_) {
+      // Best-effort warm-up (session / simulateur).
+    }
+
+    try {
+      await player.setVolume(1.0);
+    } catch (_) {}
   }
 
   /// Précharge match (pool) + perfect (mono pool).

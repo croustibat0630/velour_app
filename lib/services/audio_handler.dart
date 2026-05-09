@@ -132,7 +132,14 @@ class AudioHandler {
     try {
       await configure();
       if (_disabled) return;
-      await preloadGameSfx();
+      // Web : précharger sous contrôle (geste navigateur). Darwin : ne pas bloquer
+      // le splash sur une chaîne `setSource` qui peut prendre >10s après hot restart
+      // simulateur — [preloadGameSfx] rejoue au menu / à l’écran jeu sous le verrou.
+      if (kIsWeb) {
+        await preloadGameSfx();
+      } else {
+        unawaited(preloadGameSfx());
+      }
     } catch (_) {
       // Cold start : ne pas désactiver tout le pipeline pour une erreur partielle.
     }
@@ -245,19 +252,41 @@ class AudioHandler {
       await player.setSource(_sourceFor(fileName));
     }
 
-    try {
-      await loadCore().timeout(_pooledSfxLoadTimeout);
-    } on TimeoutException {
+    Future<bool> runLoadOnce() async {
+      try {
+        await loadCore().timeout(_pooledSfxLoadTimeout);
+        return true;
+      } on TimeoutException {
+        return false;
+      } catch (e, st) {
+        velourAudioTrace(
+          'AudioHandler._setupPooledSfx loadCore failed file=$fileName err=$e',
+        );
+        velourAudioTrace('$st');
+        return false;
+      }
+    }
+
+    bool loaded = await runLoadOnce();
+    if (!loaded && applePooled) {
+      velourAudioTrace(
+        'AudioHandler._setupPooledSfx Darwin retry file=$fileName '
+        'after ${_pooledSfxLoadTimeout.inSeconds}s timeout',
+      );
+      try {
+        await configureVelourAudioPipeline(activateSession: true, force: true);
+      } catch (_) {}
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+      try {
+        await player.stop();
+      } catch (_) {}
+      loaded = await runLoadOnce();
+    }
+    if (!loaded) {
       velourAudioTrace(
         'AudioHandler._setupPooledSfx setSource TIMEOUT file=$fileName '
         'after ${_pooledSfxLoadTimeout.inSeconds}s',
       );
-      return false;
-    } catch (e, st) {
-      velourAudioTrace(
-        'AudioHandler._setupPooledSfx loadCore failed file=$fileName err=$e',
-      );
-      velourAudioTrace('$st');
       return false;
     }
 
@@ -307,6 +336,9 @@ class AudioHandler {
         // alors que [configureVelourAudioPipeline] seul ne suffit pas.
         if (!kIsWeb) {
           await _unlockAudioCore();
+          // Laisse le simulateur iOS finir de relâcher les lecteurs one-shot
+          // avant les `setSource` pool (réduit les timeouts en rafale après hot restart).
+          await Future<void>.delayed(const Duration(milliseconds: 160));
         } else {
           await configure();
         }

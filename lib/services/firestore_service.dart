@@ -594,7 +594,8 @@ class FirestoreService {
         'idempotencyKey': resolvedKey,
       },
     );
-    try {
+
+    Future<LuxDeltaApplyResult?> callOnce() async {
       final FirebaseFunctions fns = FirebaseFunctions.instanceFor(
         app: Firebase.app(),
         region: cloudFunctionsRegion,
@@ -661,7 +662,36 @@ class FirestoreService {
         appliedDelta: appliedDelta,
         functionErrorCode: null,
       );
+    }
+
+    try {
+      return await callOnce();
     } on FirebaseFunctionsException catch (e, st) {
+      // Common on iOS simulator/dev: auth token may not be ready/valid yet.
+      // Attempt a single auth refresh + retry to avoid "server unreachable" UX.
+      if (e.code == 'unauthenticated') {
+        _firestoreAudit(
+          'lux_apply.retry_auth',
+          data: <String, Object?>{
+            'delta': delta,
+            'motif': motif,
+            'code': e.code,
+          },
+        );
+        try {
+          await ensureAnonymousAuthReady();
+          await FirebaseAuth.instance.currentUser?.getIdToken(true);
+          final LuxDeltaApplyResult? retry = await callOnce();
+          return retry;
+        } catch (e2, st2) {
+          VelourObservability.logFirestoreFailure(
+            'velourApplyLuxDelta.retry_auth',
+            error: e2,
+            stackTrace: st2,
+            context: <String, Object?>{'delta': delta, 'motif': motif},
+          );
+        }
+      }
       _firestoreAudit(
         'lux_apply.exception',
         data: <String, Object?>{

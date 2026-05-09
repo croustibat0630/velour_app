@@ -91,12 +91,27 @@ class VelourRemoteConfig {
       );
 
       // Best-effort: ne pas bloquer le lancement du jeu.
-      await rc.fetchAndActivate().timeout(
+      final bool activated = await rc.fetchAndActivate().timeout(
         const Duration(seconds: 6),
-        onTimeout: () => false,
+        onTimeout: () {
+          debugPrint(
+            '[VelourRemoteConfig] fetchAndActivate timed out after 6s; '
+            'embedded defaults apply until the next successful fetch.',
+          );
+          return false;
+        },
       );
-    } catch (_) {
-      // Silent: defaults will be used.
+      if (!activated) {
+        debugPrint(
+          '[VelourRemoteConfig] fetchAndActivate returned false (no new config '
+          'or fetch skipped); values may stay on defaults or a prior activation.',
+        );
+      }
+    } catch (e, st) {
+      debugPrint(
+        '[VelourRemoteConfig] init failed, using embedded defaults: $e',
+      );
+      debugPrint('$st');
     }
   }
 

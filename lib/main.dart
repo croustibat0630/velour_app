@@ -7,6 +7,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:velour_app/l10n/app_localizations.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -92,6 +93,28 @@ Future<void> velourActivateAppCheck() async {
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized(); // Indispensable
+  // iOS simulator App Check: `flutter run` doesn't reliably propagate process
+  // env vars to the iOS app. Use a native bridge so we can set the debug token
+  // before Firebase config, without committing secrets.
+  const String debugAppCheckToken = String.fromEnvironment(
+    'VELOUR_APP_CHECK_DEBUG_TOKEN',
+    defaultValue: '',
+  );
+  if (!kIsWeb &&
+      !kReleaseMode &&
+      debugAppCheckToken.isNotEmpty &&
+      (defaultTargetPlatform == TargetPlatform.iOS ||
+          defaultTargetPlatform == TargetPlatform.macOS)) {
+    try {
+      const MethodChannel ch = MethodChannel('velour/app_check');
+      await ch.invokeMethod<void>('setDebugToken', <String, Object?>{
+        'token': debugAppCheckToken,
+      });
+    } catch (e) {
+      debugPrint('App Check debug token bridge failed: $e');
+    }
+  }
+
   // Réduit le timeout interne « preparation » d’audioplayers (30s par défaut) pour
   // éviter des TimeoutException fantômes remontées à Crashlytics après nos awaits.
   AudioHandler.installAudioplayersTimeoutGuardsEarly();

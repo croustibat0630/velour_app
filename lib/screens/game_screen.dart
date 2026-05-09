@@ -191,7 +191,13 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     // Un seul préload après le frame : [AudioHandler.preloadGameSfx] sérialise
     // les appels ; un double déclenchement concurrent pouvait bloquer iOS
     // (deux setSource sur les mêmes players).
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    //
+    // Sur iPhone, `stop()` BGM + `setSource` pool en parallèle peut faire expirer
+    // tout le préload (logs Darwin retry puis TIMEOUT sur tap/match/perfect).
+    // On attend la fin du stop avant de lancer le préload.
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await AudioHandler.instance.stopMusic();
+      if (!mounted) return;
       unawaited(AudioHandler.instance.preloadGameSfx());
       if (!mounted) return;
       context.read<GameState>().startGame();

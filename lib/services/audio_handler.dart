@@ -343,8 +343,9 @@ class AudioHandler {
           // après sous le même verrou — un double `setSource` sur [_sfxTap] faisait
           // souvent expirer la pile iOS (simulateur) après réglages / replace route.
           await _unlockAudioCore(preloadPooledTapChannel: false);
-          // Laisse iOS finir de relâcher les lecteurs one-shot avant les `setSource` pool.
-          await Future<void>.delayed(const Duration(milliseconds: 160));
+          // Laisse iOS finir de relâcher les lecteurs one-shot + le moteur AVAudioPlayer
+          // avant les `setSource` pool (160ms insuffisait sur device : timeouts en chaîne).
+          await Future<void>.delayed(const Duration(milliseconds: 420));
         } else {
           await configure();
         }

@@ -348,13 +348,21 @@ class AudioHandler {
         }
         if (_disabled) return;
 
+        // Darwin : charger le tap **avant** le pool match — sur simulateur, plusieurs
+        // `setSource` match d’affilée peuvent faire échouer le tap si l’ordre est inversé.
+        if (!kIsWeb) {
+          _tapReady = await _loadTapPooledWithDarwinRebuildIfNeeded();
+        }
+
         try {
           await _populateMatchPoolIfNeeded();
         } catch (_) {
           _matchPoolReady = false;
         }
 
-        _tapReady = await _loadTapPooledWithDarwinRebuildIfNeeded();
+        if (kIsWeb) {
+          _tapReady = await _loadTapPooledWithDarwinRebuildIfNeeded();
+        }
 
         _perfectPoolReady = await _setupPooledSfxCore(
           player: _sfxPerfect,
@@ -442,17 +450,24 @@ class AudioHandler {
     _sfxTap = AudioPlayer(playerId: 'velour_sfx_tap_$_darwinTapPlayerSeq');
   }
 
-  /// Un `AudioPlayer` Darwin peut rester bloqué après timeout `setSource` : recréation.
+  /// Un `AudioPlayer` Darwin peut rester bloqué après timeout `setSource` : recréation
+  /// + pipeline + délais avant nouveaux essais (simulateur iOS / navigation).
   Future<bool> _loadTapPooledWithDarwinRebuildIfNeeded() async {
     bool ok = await _setupPooledSfxCore(player: _sfxTap, fileName: _tapFile);
-    if (!ok && _darwinPooledSfx) {
+    if (ok || !_darwinPooledSfx) return ok;
+    for (int pass = 0; pass < 2; pass++) {
       velourAudioTrace(
-        'AudioHandler: rebuild tap player after pooled load failure',
+        'AudioHandler: rebuild tap player pass=${pass + 1} after pooled load failure',
       );
       await _rebuildDarwinTapPlayer();
+      try {
+        await configureVelourAudioPipeline(activateSession: true, force: true);
+      } catch (_) {}
+      await Future<void>.delayed(Duration(milliseconds: pass == 0 ? 320 : 700));
       ok = await _setupPooledSfxCore(player: _sfxTap, fileName: _tapFile);
+      if (ok) return true;
     }
-    return ok;
+    return false;
   }
 
   Future<void> _ensureTapReadyCore() async {

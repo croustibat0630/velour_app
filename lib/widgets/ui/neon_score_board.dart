@@ -1037,6 +1037,23 @@ class _PerfectHeatHudRow extends StatelessWidget {
         ),
       ],
     );
+    final TextStyle perfectHeatBonusByBarStyle = GoogleFonts.montserrat(
+      fontSize: (8.2 * scaleT).clamp(7.0, 10.2),
+      fontWeight: FontWeight.w700,
+      letterSpacing: 0.3,
+      color: const Color(0xFFFFE082).withValues(alpha: 0.96),
+      shadows: [
+        Shadow(
+          color: const Color(0xFFFF8A34).withValues(alpha: 0.38),
+          blurRadius: 6,
+        ),
+        Shadow(
+          color: Colors.black.withValues(alpha: 0.55),
+          blurRadius: 3,
+          offset: const Offset(0, 1),
+        ),
+      ],
+    );
 
     return Padding(
       padding: EdgeInsets.only(top: 5 * scaleH),
@@ -1089,34 +1106,6 @@ class _PerfectHeatHudRow extends StatelessWidget {
                     ],
                   ),
                 ),
-                if (showHudBonus)
-                  Flexible(
-                    child: Text(
-                      l10n.gameHudPerfectHeatHudBonus(luxPctHud, multHud),
-                      textAlign: TextAlign.end,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.montserrat(
-                        fontSize: (8.5 * scaleT).clamp(7.5, 10.5),
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.35,
-                        color: const Color(0xFFFFE082).withValues(alpha: 0.95),
-                        shadows: [
-                          Shadow(
-                            color: const Color(
-                              0xFFFF8A34,
-                            ).withValues(alpha: 0.35),
-                            blurRadius: 6,
-                          ),
-                          Shadow(
-                            color: Colors.black.withValues(alpha: 0.55),
-                            blurRadius: 3,
-                            offset: const Offset(0, 1),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
               ],
             ),
           ),
@@ -1173,7 +1162,19 @@ class _PerfectHeatHudRow extends StatelessWidget {
                     child: Text(
                       multHud,
                       maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: perfectHeatTier1MultCaptionStyle,
+                    ),
+                  )
+                else if (showHudBonus)
+                  Padding(
+                    padding: EdgeInsets.only(left: 5 * scaleH),
+                    child: Text(
+                      l10n.gameHudPerfectHeatHudBonus(luxPctHud, multHud),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.end,
+                      style: perfectHeatBonusByBarStyle,
                     ),
                   ),
               ],

@@ -696,6 +696,14 @@ class FirestoreService {
           appCheckTokenKind = (t == null || t.isEmpty) ? 'missing' : 'present';
         } catch (appCheckErr) {
           appCheckTokenKind = 'error:${appCheckErr.runtimeType}';
+          _firestoreAudit(
+            'lux_apply.app_check_error',
+            data: <String, Object?>{
+              'delta': delta,
+              'motif': motif,
+              'error': appCheckErr.toString(),
+            },
+          );
         }
 
         String? idTokenState;

@@ -23,6 +23,8 @@ import FirebaseAppCheck
         }
         // The iOS App Check debug provider reads this key to reuse a stable token.
         UserDefaults.standard.set(token, forKey: "FIRAAppCheckDebugToken")
+        // Some SDK paths look at the process environment variable instead.
+        setenv("FIRAAppCheckDebugToken", token, 1)
         AppCheck.setAppCheckProviderFactory(AppCheckDebugProviderFactory())
         result(nil)
       }

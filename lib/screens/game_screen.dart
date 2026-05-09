@@ -28,6 +28,7 @@ import 'package:velour_app/services/audio_handler.dart';
 import 'package:velour_app/services/haptics_handler.dart';
 import 'package:velour_app/widgets/items/gem_shape_paths.dart';
 import 'package:velour_app/game/particle_system.dart';
+import 'package:velour_app/utils/velour_accessibility.dart';
 import 'dart:math' as math;
 
 /// Empreinte du rendu « plateau + chrome » de [GameScreen].
@@ -214,7 +215,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     _bgDrift = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 22),
-    )..repeat(reverse: true);
+    );
 
     final math.Random r = math.Random(42);
     _dust = List<Offset>.generate(
@@ -238,10 +239,15 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     // Shake trigger
     if (gs.shakeTick != _lastShakeTick) {
       _lastShakeTick = gs.shakeTick;
-      _shakeStrength = gs.shakeStrength;
-      _shakeController
-        ..reset()
-        ..forward();
+      if (velourReduceMotion(context)) {
+        _shakeStrength = 0;
+        _shakeController.reset();
+      } else {
+        _shakeStrength = gs.shakeStrength;
+        _shakeController
+          ..reset()
+          ..forward();
+      }
     }
 
     if (gs.floatingTick != _lastFloatingTick) {
@@ -262,10 +268,15 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
           _matchParticle!,
           _matchParticle!.id.hashCode,
         );
-        _matchParticleController.duration = _matchParticle!.perfectLuxBurst
-            ? const Duration(milliseconds: 640)
-            : const Duration(milliseconds: 520);
-        _matchParticleController.forward(from: 0);
+        if (velourReduceMotion(context)) {
+          _matchParticleController.duration = const Duration(milliseconds: 1);
+          _matchParticleController.value = 1.0;
+        } else {
+          _matchParticleController.duration = _matchParticle!.perfectLuxBurst
+              ? const Duration(milliseconds: 640)
+              : const Duration(milliseconds: 520);
+          _matchParticleController.forward(from: 0);
+        }
         // Perf: le flash global est désactivé (coûteux + source de « white stuck »).
       } else {
         _luxDustSeeds = const <LuxDustSeed>[];
@@ -304,9 +315,21 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     }
   }
 
+  void _syncBgDriftMotion() {
+    if (!mounted) return;
+    if (velourReduceMotion(context)) {
+      if (_bgDrift.isAnimating) {
+        _bgDrift.stop();
+      }
+    } else if (!_bgDrift.isAnimating) {
+      _bgDrift.repeat(reverse: true);
+    }
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    _syncBgDriftMotion();
     final GameState gs = context.read<GameState>();
     if (_gameStateListenee != gs) {
       _detachGameStateListener();
@@ -319,6 +342,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   @override
   void dispose() {
     _detachGameStateListener();
+    _bgDrift.stop();
     _shakeController.dispose();
     _flashController.dispose();
     _matchParticleController.dispose();
@@ -351,8 +375,9 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
         _matchParticleController,
       ]),
       builder: (BuildContext context, Widget? _) {
+        final bool reduceMotion = velourReduceMotion(context);
         return Transform.translate(
-          offset: _shakeOffset(),
+          offset: reduceMotion ? Offset.zero : _shakeOffset(),
           child: Scaffold(
             backgroundColor: const Color(0xFF0A0A0F),
             body: SafeArea(
@@ -861,7 +886,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                             ),
                           ),
                         ),
-                      if (_matchParticle != null)
+                      if (!reduceMotion && _matchParticle != null)
                         Positioned.fill(
                           child: IgnorePointer(
                             child: RepaintBoundary(
@@ -882,7 +907,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                         ),
                       // Flash palier 5 : uniquement au-dessus de la zone de spawn des gemmes
                       // (évite de voiler le plateau sous stress).
-                      if (gameState.perfectHeatMechanicsActive)
+                      if (!reduceMotion && gameState.perfectHeatMechanicsActive)
                         Positioned(
                           top: 0,
                           left: 0,
@@ -973,7 +998,11 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                             })
                             op = gameState.narrativeHudOpacities;
                             return AnimatedOpacity(
-                              duration: const Duration(milliseconds: 900),
+                              duration: Duration(
+                                milliseconds: velourReduceMotion(context)
+                                    ? 0
+                                    : 900,
+                              ),
                               curve: Curves.easeOutCubic,
                               opacity:
                                   gameState.isNarrativeTutorialActive &&
@@ -1001,7 +1030,8 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                           },
                         ),
                       ),
-                      if (gameState.perfectHeatSurgeTierDisplay > 0)
+                      if (!reduceMotion &&
+                          gameState.perfectHeatSurgeTierDisplay > 0)
                         Positioned.fill(
                           child: IgnorePointer(
                             child: _PerfectHeatSurgeFlash(
@@ -1010,7 +1040,8 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                             ),
                           ),
                         ),
-                      if (gameState.isLevelTransitionInProgress)
+                      if (!reduceMotion &&
+                          gameState.isLevelTransitionInProgress)
                         Positioned.fill(
                           child: IgnorePointer(
                             child: _LevelUpFlash(
@@ -1019,7 +1050,8 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                             ),
                           ),
                         ),
-                      if (gameState.isLevelTransitionInProgress)
+                      if (!reduceMotion &&
+                          gameState.isLevelTransitionInProgress)
                         const Positioned.fill(
                           child: IgnorePointer(child: _LevelUpLuxBurst()),
                         ),
@@ -1028,9 +1060,10 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                           child: Stack(
                             fit: StackFit.expand,
                             children: [
-                              _GameOverRedFlash(
-                                tick: gameState.gameOverFlashTick,
-                              ),
+                              if (!reduceMotion)
+                                _GameOverRedFlash(
+                                  tick: gameState.gameOverFlashTick,
+                                ),
                               Builder(
                                 builder: (context) {
                                   final GameState gs = gameState;
@@ -1101,7 +1134,8 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                             ],
                           ),
                         ),
-                      if (!gameState.isTrinityTutorialComplete &&
+                      if (!reduceMotion &&
+                          !gameState.isTrinityTutorialComplete &&
                           gameState.sequenceTick > 0)
                         Positioned.fill(
                           child: IgnorePointer(
@@ -1110,22 +1144,24 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                             ),
                           ),
                         ),
-                      Positioned.fill(
-                        child: IgnorePointer(
-                          ignoring: _flashController.value == 0,
-                          child: AnimatedBuilder(
-                            animation: _flashController,
-                            builder: (context, _) {
-                              final double v = Curves.easeInOutCubic.transform(
-                                _flashController.value,
-                              );
-                              return ColoredBox(
-                                color: Colors.white.withValues(alpha: 0.40 * v),
-                              );
-                            },
+                      if (!reduceMotion)
+                        Positioned.fill(
+                          child: IgnorePointer(
+                            ignoring: _flashController.value == 0,
+                            child: AnimatedBuilder(
+                              animation: _flashController,
+                              builder: (context, _) {
+                                final double v = Curves.easeInOutCubic
+                                    .transform(_flashController.value);
+                                return ColoredBox(
+                                  color: Colors.white.withValues(
+                                    alpha: 0.40 * v,
+                                  ),
+                                );
+                              },
+                            ),
                           ),
                         ),
-                      ),
                       // Lueur "plafonnier" (haut de l'écran)
                       Positioned(
                         left: 0,

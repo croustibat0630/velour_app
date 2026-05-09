@@ -10,6 +10,7 @@ import '../providers/game_state.dart';
 import '../services/audio_handler.dart';
 import '../theme/theme_engine.dart';
 import '../utils/responsive.dart';
+import '../utils/velour_accessibility.dart';
 import '../utils/velour_route_observer.dart';
 import '../widgets/ui/dark_matte_overlay.dart';
 import '../widgets/ui/universal_back_button.dart';
@@ -411,7 +412,9 @@ class _PreparationViewState extends State<PreparationView> with RouteAware {
                     ),
                   ),
                   AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 220),
+                    duration: Duration(
+                      milliseconds: velourReduceMotion(context) ? 0 : 220,
+                    ),
                     switchInCurve: Curves.easeOutCubic,
                     switchOutCurve: Curves.easeInCubic,
                     child: _selectedStake == null
@@ -470,27 +473,34 @@ class _ConfirmSessionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FilledButton(
-      onPressed: onPressed,
-      style: FilledButton.styleFrom(
-        elevation: 0,
-        padding: EdgeInsets.symmetric(vertical: 16 * scale, horizontal: 20),
-        backgroundColor: const Color(0xFF0C0C10),
-        foregroundColor: accent.withValues(alpha: 0.95),
-        side: BorderSide(color: accent.withValues(alpha: 0.55), width: 1.2),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-      ),
-      child: FittedBox(
-        fit: BoxFit.scaleDown,
-        child: Text(
-          label,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.labelLarge?.copyWith(
-            fontSize: 12 * scale,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 2.4,
+    return Semantics(
+      button: true,
+      label: label,
+      excludeSemantics: true,
+      child: FilledButton(
+        onPressed: onPressed,
+        style: FilledButton.styleFrom(
+          elevation: 0,
+          padding: EdgeInsets.symmetric(vertical: 16 * scale, horizontal: 20),
+          backgroundColor: const Color(0xFF0C0C10),
+          foregroundColor: accent.withValues(alpha: 0.95),
+          side: BorderSide(color: accent.withValues(alpha: 0.55), width: 1.2),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+        ),
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+              fontSize: 12 * scale,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 2.4,
+            ),
           ),
         ),
       ),
@@ -514,27 +524,34 @@ class _BuyLuxButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FilledButton(
-      onPressed: onPressed,
-      style: FilledButton.styleFrom(
-        elevation: 0,
-        padding: EdgeInsets.symmetric(vertical: 16 * scale, horizontal: 18),
-        backgroundColor: const Color(0xFF120818),
-        foregroundColor: _neon.withValues(alpha: 0.96),
-        side: BorderSide(color: _violet.withValues(alpha: 0.65), width: 1.35),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-      ),
-      child: FittedBox(
-        fit: BoxFit.scaleDown,
-        child: Text(
-          label,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.labelLarge?.copyWith(
-            fontSize: 11.5 * scale,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 2.2,
+    return Semantics(
+      button: true,
+      label: label,
+      excludeSemantics: true,
+      child: FilledButton(
+        onPressed: onPressed,
+        style: FilledButton.styleFrom(
+          elevation: 0,
+          padding: EdgeInsets.symmetric(vertical: 16 * scale, horizontal: 18),
+          backgroundColor: const Color(0xFF120818),
+          foregroundColor: _neon.withValues(alpha: 0.96),
+          side: BorderSide(color: _violet.withValues(alpha: 0.65), width: 1.35),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+        ),
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+              fontSize: 11.5 * scale,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 2.2,
+            ),
           ),
         ),
       ),
@@ -690,6 +707,7 @@ class _LuxuryModeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool rm = velourReduceMotion(context);
     final bool tappable = enabled && onSelect != null;
     final bool muted = hasSelection && !selected && enabled;
     final bool lit = selected && enabled;
@@ -775,10 +793,12 @@ class _LuxuryModeCard extends StatelessWidget {
                       Center(
                         child: AnimatedScale(
                           scale: lit ? 1.22 : 1.0,
-                          duration: Duration(milliseconds: lit ? 620 : 180),
+                          duration: Duration(
+                            milliseconds: rm ? 0 : (lit ? 620 : 180),
+                          ),
                           curve: lit ? Curves.elasticOut : Curves.easeOutCubic,
                           child: AnimatedOpacity(
-                            duration: const Duration(milliseconds: 150),
+                            duration: Duration(milliseconds: rm ? 0 : 150),
                             curve: Curves.linear,
                             opacity: lit ? 1.0 : (muted ? 0.75 : 0.82),
                             child: modeGlyph,
@@ -982,22 +1002,37 @@ class _LuxuryModeCard extends StatelessWidget {
             child: innerContent,
           );
 
-    return AnimatedOpacity(
-      opacity: outerOpacity,
-      duration: const Duration(milliseconds: 150),
-      curve: Curves.easeOut,
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(18),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: tappable ? () => onSelect!() : null,
+    final String modeA11yLabel = <String>[
+      title,
+      body,
+      ?errorText,
+      if (selected) selectedChipLabel,
+    ].join('. ');
+
+    return Semantics(
+      container: true,
+      button: tappable,
+      enabled: enabled,
+      selected: selected,
+      label: modeA11yLabel,
+      excludeSemantics: true,
+      child: AnimatedOpacity(
+        opacity: outerOpacity,
+        duration: Duration(milliseconds: rm ? 0 : 150),
+        curve: Curves.easeOut,
+        child: Material(
+          color: Colors.transparent,
           borderRadius: BorderRadius.circular(18),
-          splashColor: titleColor.withValues(alpha: lit ? 0.18 : 0.10),
-          highlightColor: titleColor.withValues(alpha: lit ? 0.10 : 0.05),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
-            child: cardBody,
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: tappable ? () => onSelect!() : null,
+            borderRadius: BorderRadius.circular(18),
+            splashColor: titleColor.withValues(alpha: lit ? 0.18 : 0.10),
+            highlightColor: titleColor.withValues(alpha: lit ? 0.10 : 0.05),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+              child: cardBody,
+            ),
           ),
         ),
       ),

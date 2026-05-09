@@ -2786,6 +2786,8 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     // Timers annulés ici ; pas de StreamSubscription dans GameState.
     _cancelMatchScheduling();
     _stopTimeLoop();
+    _perfectHeatSurgeTimer?.cancel();
+    _perfectHeatSurgeTimer = null;
     _matchParticleClearTimer?.cancel();
     _comboFloaterClearTimer?.cancel();
     _levelTransitionTimer?.cancel();

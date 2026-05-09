@@ -465,14 +465,40 @@ class LuxIapService {
 
   /// Validation + crédit serveur (`velourGrantIapLux`) — **strict**: must succeed for paid packs.
   Future<bool> _tryGrantVaultPurchaseToCloudStrict(PurchaseDetails p) async {
+    String? denyReason;
+    void logGrant(bool ok, {bool? already}) {
+      VelourAuditLog.event(
+        'iap.cloud_grant',
+        data: <String, Object?>{
+          'ok': ok,
+          'already': already,
+          'productId': p.productID,
+          if (!ok && denyReason != null) 'denyReason': denyReason,
+        },
+      );
+    }
+
     // Tests / debug : pas d’appel Functions. **Interdit en release** (pas de bypass cloud).
     if (debugSkipCloudPurchaseSync) {
-      return !kReleaseMode;
+      final bool allow = !kReleaseMode;
+      if (!allow) denyReason = 'debug_skip_cloud_release';
+      logGrant(allow, already: null);
+      return allow;
     }
-    if (kIsWeb) return false;
+    if (kIsWeb) {
+      denyReason = 'web';
+      logGrant(false, already: null);
+      return false;
+    }
     try {
-      if (Firebase.apps.isEmpty) return false;
+      if (Firebase.apps.isEmpty) {
+        denyReason = 'firebase_not_initialized';
+        logGrant(false, already: null);
+        return false;
+      }
     } catch (_) {
+      denyReason = 'firebase_init_error';
+      logGrant(false, already: null);
       return false;
     }
     final TargetPlatform tp = defaultTargetPlatform;
@@ -486,9 +512,13 @@ class LuxIapService {
     // StoreKit 1 : local/server = même reçu base64 — pas de JWS ; la callable iOS exige SK2.
     final String? iosJws = isApple ? _iosTransactionJwsForCloud(vd) : null;
     if (!isApple && (androidTok == null || androidTok.isEmpty)) {
+      denyReason = 'android_token_missing';
+      logGrant(false, already: null);
       return false;
     }
     if (isApple && (iosJws == null || iosJws.isEmpty)) {
+      denyReason = 'ios_jws_missing';
+      logGrant(false, already: null);
       return false;
     }
     final IapCloudGrantResult? r =
@@ -499,14 +529,14 @@ class LuxIapService {
           iosTransactionJws: iosJws,
         );
     final bool ok = r != null && (r.ok || r.alreadyGranted);
-    VelourAuditLog.event(
-      'iap.cloud_grant',
-      data: <String, Object?>{
-        'ok': ok,
-        'already': r?.alreadyGranted,
-        'productId': p.productID,
-      },
-    );
+    if (!ok) {
+      if (r == null) {
+        denyReason = 'callable_null_or_auth';
+      } else {
+        denyReason = 'server_rejected';
+      }
+    }
+    logGrant(ok, already: r?.alreadyGranted);
     return ok;
   }
 

@@ -44,6 +44,9 @@ class VelourSessionTrace {
     required int level,
     required bool paused,
     required bool gameOver,
+
+    /// Même valeur que [GameState.criticalFailure] : verrou UI fin de run
+    /// (chrono écoulé, rack bloqué, etc.) — pas une « panne système » à part.
     required bool criticalFailure,
   }) {
     if (!enabled) return;
@@ -56,7 +59,9 @@ class VelourSessionTrace {
         'level': level,
         'paused': paused,
         'gameOver': gameOver,
-        'criticalFailure': criticalFailure,
+        // Nom explicite pour les traces : l’état interne s’appelle encore
+        // `criticalFailure` dans GameState (couche game over / fin de run).
+        'runEndUiLock': criticalFailure,
       },
     );
   }

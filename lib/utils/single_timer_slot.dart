@@ -1,7 +1,7 @@
 import 'dart:async';
 
-/// Fente unique pour un [Timer] (one-shot ou périodique) dans [GameState].
-final class GameStateSingleTimerSlot {
+/// Une seule [Timer] active à la fois (one-shot ou périodique) : annulation et remplacement explicites.
+final class SingleTimerSlot {
   Timer? _timer;
 
   bool get isActive => _timer != null;

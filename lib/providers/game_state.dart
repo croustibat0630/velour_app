@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'game_state_cloud_sync_guard.dart';
 import 'game_state_local_store.dart';
-import 'game_state_single_timer_slot.dart';
+import '../utils/single_timer_slot.dart';
 import 'game_state_types.dart';
 export 'game_state_types.dart';
 
@@ -270,13 +270,11 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
   Rect _luxSafeRect = Rect.zero;
   double _boardSpawnMinY = 0;
 
-  final GameStateSingleTimerSlot _matchTimerSlot = GameStateSingleTimerSlot();
-  final GameStateSingleTimerSlot _timeLoopSlot = GameStateSingleTimerSlot();
+  final SingleTimerSlot _matchTimerSlot = SingleTimerSlot();
+  final SingleTimerSlot _timeLoopSlot = SingleTimerSlot();
   DateTime? _lastTimeTickAt;
-  final GameStateSingleTimerSlot _matchParticleClearSlot =
-      GameStateSingleTimerSlot();
-  final GameStateSingleTimerSlot _comboFloaterClearSlot =
-      GameStateSingleTimerSlot();
+  final SingleTimerSlot _matchParticleClearSlot = SingleTimerSlot();
+  final SingleTimerSlot _comboFloaterClearSlot = SingleTimerSlot();
 
   /// True tant qu’un check match est armé (délai avant résolution).
   bool _awaitingScheduledMatch = false;
@@ -467,8 +465,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
   bool _isLevelTransitionInProgress = false;
   bool get isLevelTransitionInProgress => _isLevelTransitionInProgress;
   int? _pendingLevelUpNeedLux;
-  final GameStateSingleTimerSlot _levelTransitionSlot =
-      GameStateSingleTimerSlot();
+  final SingleTimerSlot _levelTransitionSlot = SingleTimerSlot();
 
   int? _lastLuxBarLogLux;
 
@@ -575,8 +572,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
   int _perfectHeatUiTick = 0;
 
   /// Flash plein écran « palier FEU » (montée de série), distinct du level-up.
-  final GameStateSingleTimerSlot _perfectHeatSurgeSlot =
-      GameStateSingleTimerSlot();
+  final SingleTimerSlot _perfectHeatSurgeSlot = SingleTimerSlot();
   int _perfectHeatSurgeTierDisplay = 0;
   int _perfectHeatSurgeFlashTick = 0;
 

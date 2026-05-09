@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../providers/game_state_types.dart';
+import '../utils/single_timer_slot.dart';
 import '../utils/velour_audit_log.dart';
 
 /// État et effets UI du tutoriel narratif « première partie ».
@@ -55,8 +56,8 @@ class NarrativeTutorialService extends ChangeNotifier {
   int _postSpawnFadeTick = 0;
   int get postSpawnFadeTick => _postSpawnFadeTick;
 
-  Timer? _finalizeTimer;
-  Timer? _gemGainClearTimer;
+  final SingleTimerSlot _finalizeSlot = SingleTimerSlot();
+  final SingleTimerSlot _gemGainClearSlot = SingleTimerSlot();
 
   int _rippleTick = 0;
   int get rippleTick => _rippleTick;
@@ -178,8 +179,7 @@ class NarrativeTutorialService extends ChangeNotifier {
 
   /// Annule le timer de fin de tutoriel (ex. hard reset / réinit plateau).
   void cancelFinalizeTimer() {
-    _finalizeTimer?.cancel();
-    _finalizeTimer = null;
+    _finalizeSlot.cancel();
   }
 
   /// Première partie casual : entre en étape 1 avant [_seedNarrativeStep1Board].
@@ -266,8 +266,7 @@ class NarrativeTutorialService extends ChangeNotifier {
         );
         _perfectBannerTick++;
         _onCelebrationStarted();
-        cancelFinalizeTimer();
-        _finalizeTimer = Timer(const Duration(milliseconds: 2100), () {
+        _finalizeSlot.runOnce(const Duration(milliseconds: 2100), () {
           unawaited(completeTutorialFromTimer());
         });
         notifyListeners();
@@ -304,8 +303,7 @@ class NarrativeTutorialService extends ChangeNotifier {
       colorId: colorId,
     );
     _gemGainTick++;
-    _gemGainClearTimer?.cancel();
-    _gemGainClearTimer = Timer(const Duration(milliseconds: 900), () {
+    _gemGainClearSlot.runOnce(const Duration(milliseconds: 900), () {
       _gemGainFx = null;
       _gemGainTick++;
       notifyListeners();
@@ -321,8 +319,7 @@ class NarrativeTutorialService extends ChangeNotifier {
 
   void hardReset() {
     cancelFinalizeTimer();
-    _gemGainClearTimer?.cancel();
-    _gemGainClearTimer = null;
+    _gemGainClearSlot.cancel();
     _phase = NarrativeTutorialPhase.none;
     _uiReveal = 0;
     _luxIntroTick = 0;
@@ -340,8 +337,7 @@ class NarrativeTutorialService extends ChangeNotifier {
   @override
   void dispose() {
     cancelFinalizeTimer();
-    _gemGainClearTimer?.cancel();
-    _gemGainClearTimer = null;
+    _gemGainClearSlot.cancel();
     super.dispose();
   }
 }

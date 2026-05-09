@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 
 import '../providers/game_state_local_store.dart';
+import '../utils/single_timer_slot.dart';
 import 'firestore_service.dart';
 import 'lux_apply_motifs.dart';
 import 'lux_credit_limits.dart';
@@ -54,8 +55,8 @@ class EconomyService extends ChangeNotifier {
   static int get dailyLuxBonusAmount =>
       VelourRemoteConfig.instance.dailyLuxBonus;
 
-  Timer? _luxCloudSyncDebounce;
-  Timer? _pendingLuxPersistDebounce;
+  final SingleTimerSlot _luxCloudSyncSlot = SingleTimerSlot();
+  final SingleTimerSlot _pendingLuxPersistSlot = SingleTimerSlot();
 
   /// Un seul drain LUX cloud à la fois (debounce + lifecycle peuvent se chevaucher ;
   /// deux boucles sur la même file provoquaient [RangeError] sur [List.removeAt]).
@@ -93,8 +94,8 @@ class EconomyService extends ChangeNotifier {
 
   @override
   void dispose() {
-    _luxCloudSyncDebounce?.cancel();
-    _pendingLuxPersistDebounce?.cancel();
+    _luxCloudSyncSlot.cancel();
+    _pendingLuxPersistSlot.cancel();
     super.dispose();
   }
 
@@ -140,8 +141,7 @@ class EconomyService extends ChangeNotifier {
   }
 
   void _schedulePersistPendingLuxByMotif() {
-    _pendingLuxPersistDebounce?.cancel();
-    _pendingLuxPersistDebounce = Timer(const Duration(milliseconds: 500), () {
+    _pendingLuxPersistSlot.runOnce(const Duration(milliseconds: 500), () {
       unawaited(
         _local.persistPendingLuxByMotifForCloud(_pendingLuxByMotifForCloud),
       );
@@ -267,8 +267,7 @@ class EconomyService extends ChangeNotifier {
     _pendingLuxJuiceSilent = false;
     _pendingLuxByMotifForCloud.clear();
     _schedulePersistPendingLuxByMotif();
-    _luxCloudSyncDebounce?.cancel();
-    _luxCloudSyncDebounce = null;
+    _luxCloudSyncSlot.cancel();
     _economyLog('hard_reset', data: const {});
     notifyListeners();
   }
@@ -356,8 +355,7 @@ class EconomyService extends ChangeNotifier {
   }
 
   Future<void> flushCloudSyncOnLifecycleHide() async {
-    _luxCloudSyncDebounce?.cancel();
-    _luxCloudSyncDebounce = null;
+    _luxCloudSyncSlot.cancel();
 
     if (!_economyLoaded) return;
 
@@ -393,8 +391,7 @@ class EconomyService extends ChangeNotifier {
   }
 
   void _scheduleDebouncedLuxCloudSync() {
-    _luxCloudSyncDebounce?.cancel();
-    _luxCloudSyncDebounce = Timer(const Duration(milliseconds: 650), () {
+    _luxCloudSyncSlot.runOnce(const Duration(milliseconds: 650), () {
       unawaited(
         _drainPendingLuxCloudSync().then((_) {
           if (_hasPendingLuxCloudDeltas()) {

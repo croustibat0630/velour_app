@@ -1104,7 +1104,7 @@ abstract class AppLocalizations {
   /// No description provided for @oracleDockStep3Perfect.
   ///
   /// In en, this message translates to:
-  /// **'Perfect = +500 LUX\n3 identical gems → rack\nBack-to-back perfects build Heat: bonus LUX & time.'**
+  /// **'Perfect = +500 LUX\n3 identical gems → rack\nBack-to-back perfects build Heat: bonus LUX & time.\nIn real runs, the Heat bar under the score tracks your streak.'**
   String get oracleDockStep3Perfect;
 
   /// No description provided for @oracleDockCelebration.

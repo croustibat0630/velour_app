@@ -596,7 +596,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get oracleDockStep3Perfect =>
-      'Perfect = +500 LUX\n3 identical gems → rack\nBack-to-back perfects build Heat: bonus LUX & time.';
+      'Perfect = +500 LUX\n3 identical gems → rack\nBack-to-back perfects build Heat: bonus LUX & time.\nIn real runs, the Heat bar under the score tracks your streak.';
 
   @override
   String get oracleDockCelebration =>

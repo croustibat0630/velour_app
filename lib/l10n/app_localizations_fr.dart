@@ -594,7 +594,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get oracleDockStep3Perfect =>
-      'Parfait = +500 LUX\n3 gemmes identiques → rack\nEnchaîne les parfaits : le FEU monte (LUX & temps).';
+      'Parfait = +500 LUX\n3 gemmes identiques → rack\nEnchaîne les parfaits : le FEU monte (LUX & temps).\nEn partie réelle, la jauge FEU sous le score suit ta série.';
 
   @override
   String get oracleDockCelebration =>

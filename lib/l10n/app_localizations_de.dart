@@ -604,7 +604,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get oracleDockStep3Perfect =>
-      'Perfect = +500 LUX\n3 identische Edelsteine → Ablage\nMehrere Perfects hintereinander: HITZE steigt — Extra-LUX & Zeit.';
+      'Perfect = +500 LUX\n3 identische Edelsteine → Ablage\nMehrere Perfects hintereinander: HITZE steigt — Extra-LUX & Zeit.\nIn echten Partien zeigt die HITZE-Leiste unter dem Score deine Serie.';
 
   @override
   String get oracleDockCelebration =>

@@ -113,7 +113,7 @@ DE: dict[str, str] = {
     "gameOverFooterRoyalWin1250": "DU GEWINNST 1250 LUX",
     "oracleDockStep1Shape": "Form = mind. +100 LUX\nGleiche Silhouette • 3 Farben → Ablage",
     "oracleDockStep2Color": "Farbe = +150 LUX\nGleicher Farbton • 3 Formen → Ablage",
-    "oracleDockStep3Perfect": "Perfect = +500 LUX\n3 identische Edelsteine → Ablage\nMehrere Perfects hintereinander: HITZE steigt — Extra-LUX & Zeit.",
+    "oracleDockStep3Perfect": "Perfect = +500 LUX\n3 identische Edelsteine → Ablage\nMehrere Perfects hintereinander: HITZE steigt — Extra-LUX & Zeit.\nIn echten Partien zeigt die HITZE-Leiste unter dem Score deine Serie.",
     "oracleDockCelebration": "100 < 150 < 500 LUX\nPerfect-Strecken laden HITZE in echten Partien.",
     "oracleDockStep3StrategyLine": "Schwächere Form-/Farb-Drillings senken die HITZE — plane deine Serie.",
     "oracleDockCelebrationStrategyLine": "Später: HITZE und Timer bestimmen gemeinsam dein Risiko.",

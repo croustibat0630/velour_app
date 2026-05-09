@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'game_state_cloud_sync_guard.dart';
 import 'game_state_local_store.dart';
+import 'game_state_single_timer_slot.dart';
 import 'game_state_types.dart';
 export 'game_state_types.dart';
 
@@ -270,7 +271,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
   double _boardSpawnMinY = 0;
 
   Timer? _matchTimer;
-  Timer? _timeTimer;
+  final GameStateSingleTimerSlot _timeLoopSlot = GameStateSingleTimerSlot();
   DateTime? _lastTimeTickAt;
   Timer? _matchParticleClearTimer;
   Timer? _comboFloaterClearTimer;
@@ -1662,7 +1663,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
   /// Called by the game screen to guarantee the timer is running once rendered.
   void startGame() {
     if (_criticalFailure) return;
-    if (_timeTimer == null) {
+    if (!_timeLoopSlot.isActive) {
       _startTimeLoop();
     }
     _runStartedAt ??= DateTime.now();
@@ -1870,9 +1871,8 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   void _startTimeLoop() {
-    _timeTimer?.cancel();
     _lastTimeTickAt = DateTime.now();
-    _timeTimer = Timer.periodic(const Duration(milliseconds: 50), (_) {
+    _timeLoopSlot.setPeriodic(const Duration(milliseconds: 50), (_) {
       if (_criticalFailure) return;
       if (_paused) return;
       if (isTrinityTutorialChronoFrozen || isNarrativeTutorialChronoFrozen) {
@@ -1948,8 +1948,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   void _stopTimeLoop() {
-    _timeTimer?.cancel();
-    _timeTimer = null;
+    _timeLoopSlot.cancel();
     _lastTimeTickAt = null;
   }
 

@@ -4,11 +4,13 @@ import 'package:integration_test/integration_test.dart';
 import 'package:velour_app/l10n/app_localizations.dart';
 import 'package:velour_app/main.dart' as app;
 import 'package:velour_app/screens/game_screen.dart';
+import 'package:velour_app/screens/leaderboard_view.dart';
 import 'package:velour_app/screens/main_menu_view.dart';
 import 'package:velour_app/screens/preparation_view.dart';
 import 'package:velour_app/screens/settings_view.dart';
 import 'package:velour_app/screens/shop_view.dart';
 import 'package:velour_app/widgets/ui/pause_overlay.dart';
+import 'package:velour_app/widgets/ui/universal_back_button.dart';
 
 /// Smoke `integration_test` (app réelle : Firebase, audio, polices).
 ///
@@ -31,8 +33,10 @@ void main() {
 
   /// Un seul [testWidgets] + un seul [app.main] : évite les callbacks tardifs (ex.
   /// welcome LUX) qui survivent au teardown et touchent un [EconomyService] disposé.
-  testWidgets('smoke: binding → menu → réglages → shop → préparation → jeu → '
-      'pause → reprise → pause → menu', (WidgetTester tester) async {
+  testWidgets('smoke: binding → menu → réglages → shop → classement → '
+      'préparation → jeu → pause → reprise → pause → menu', (
+    WidgetTester tester,
+  ) async {
     expect(IntegrationTestWidgetsFlutterBinding.instance, isNotNull);
 
     addTearDown(() async {
@@ -115,6 +119,22 @@ Future<void> _reachClassicPlayZone(WidgetTester tester) async {
   await tester.tap(find.byTooltip(l10nShopFromMenu.shopBackTooltip));
   await _pumpUntil(tester, find.byType(MainMenuView), maxSteps: 120);
   await _pumpUntilAbsent(tester, find.byType(ShopView), maxSteps: 80);
+  expect(find.byType(MainMenuView), findsWidgets);
+
+  final AppLocalizations l10nMenuLb = AppLocalizations.of(
+    tester.element(find.byType(MainMenuView).first),
+  )!;
+  await tester.tap(find.text(l10nMenuLb.menuLeaderboard));
+  await _pumpUntil(tester, find.byType(LeaderboardView), maxSteps: 220);
+  expect(find.byType(LeaderboardView), findsOneWidget);
+  await tester.tap(
+    find.descendant(
+      of: find.byType(LeaderboardView),
+      matching: find.byType(UniversalBackButton),
+    ),
+  );
+  await _pumpUntil(tester, find.byType(MainMenuView), maxSteps: 120);
+  await _pumpUntilAbsent(tester, find.byType(LeaderboardView), maxSteps: 80);
   expect(find.byType(MainMenuView), findsWidgets);
 
   final AppLocalizations l10nMenu3 = AppLocalizations.of(

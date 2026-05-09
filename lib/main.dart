@@ -107,9 +107,22 @@ Future<void> main() async {
           defaultTargetPlatform == TargetPlatform.macOS)) {
     try {
       const MethodChannel ch = MethodChannel('velour/app_check');
-      await ch.invokeMethod<void>('setDebugToken', <String, Object?>{
-        'token': debugAppCheckToken,
-      });
+      Object? lastErr;
+      for (int i = 0; i < 8; i++) {
+        try {
+          await ch.invokeMethod<void>('setDebugToken', <String, Object?>{
+            'token': debugAppCheckToken,
+          });
+          lastErr = null;
+          break;
+        } catch (e) {
+          lastErr = e;
+          await Future<void>.delayed(const Duration(milliseconds: 80));
+        }
+      }
+      if (lastErr != null) {
+        debugPrint('App Check debug token bridge failed: $lastErr');
+      }
     } catch (e) {
       debugPrint('App Check debug token bridge failed: $e');
     }

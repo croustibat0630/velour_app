@@ -6,27 +6,9 @@ import FirebaseAppCheck
 
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
-  override func application(
-    _ application: UIApplication,
-    didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
-  ) -> Bool {
-    let session = AVAudioSession.sharedInstance()
-    try? session.setCategory(.playback, mode: .default, options: [.mixWithOthers])
-    try? session.setActive(true)
-    return super.application(application, didFinishLaunchingWithOptions: launchOptions)
-  }
-
-  func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
-    GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
-
+  private func setupAppCheckDebugChannel(_ messenger: FlutterBinaryMessenger) {
     #if DEBUG
-      // App Check debug token helper (iOS simulator/dev). We set the token and
-      // provider factory early so Firebase can use it for Functions/Firestore.
-      let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "VelourAppCheckBridge")
-      let channel = FlutterMethodChannel(
-        name: "velour/app_check",
-        binaryMessenger: registrar.messenger()
-      )
+      let channel = FlutterMethodChannel(name: "velour/app_check", binaryMessenger: messenger)
       channel.setMethodCallHandler { call, result in
         guard call.method == "setDebugToken" else {
           result(FlutterMethodNotImplemented)
@@ -44,6 +26,31 @@ import FirebaseAppCheck
         AppCheck.setAppCheckProviderFactory(AppCheckDebugProviderFactory())
         result(nil)
       }
+    #endif
+  }
+
+  override func application(
+    _ application: UIApplication,
+    didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
+  ) -> Bool {
+    let session = AVAudioSession.sharedInstance()
+    try? session.setCategory(.playback, mode: .default, options: [.mixWithOthers])
+    try? session.setActive(true)
+    let ok = super.application(application, didFinishLaunchingWithOptions: launchOptions)
+    if let controller = window?.rootViewController as? FlutterViewController {
+      setupAppCheckDebugChannel(controller.binaryMessenger)
+    }
+    return ok
+  }
+
+  func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
+    GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
+
+    #if DEBUG
+      // App Check debug token helper (iOS simulator/dev). We set the token and
+      // provider factory early so Firebase can use it for Functions/Firestore.
+      let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "VelourAppCheckBridge")
+      setupAppCheckDebugChannel(registrar.messenger())
     #endif
   }
 }

@@ -67,6 +67,26 @@ class FirestoreService {
   DocumentReference<Map<String, dynamic>>? get _playerRef =>
       _uid == null ? null : _db.collection('players').doc(_uid);
 
+  /// Hot restart / reset Dart : ce service repart à zéro alors que le SDK Auth peut
+  /// encore exposer [FirebaseAuth.instance.currentUser] (persistance native).
+  void _syncAuthFieldsFromFirebaseAuthIfPossible() {
+    if (_authReady && _uid != null) return;
+    try {
+      final User? u = FirebaseAuth.instance.currentUser;
+      if (u != null) {
+        final bool changed = !_authReady || _uid != u.uid;
+        _uid = u.uid;
+        _authReady = true;
+        if (changed) {
+          _firestoreAudit(
+            'auth.adopt_current_user',
+            data: <String, Object?>{'uid': u.uid},
+          );
+        }
+      }
+    } catch (_) {}
+  }
+
   /// Collection miroir : champs publics uniquement (sync trigger Cloud Function).
   static const String leaderboardPublicCollection = 'leaderboardPublic';
 
@@ -240,6 +260,7 @@ class FirestoreService {
   /// Retourne `null` si pas de session cloud ; sinon [inventory] / [activeSkinId]
   /// peuvent être null si la lecture a échoué (les entiers restent à 0).
   Future<PlayerCloudPull?> initializeAuthAndPullSkins() async {
+    _syncAuthFieldsFromFirebaseAuthIfPossible();
     if (_authReady) {
       return await _pullPlayerEconomySnapshot();
     }
@@ -305,10 +326,13 @@ class FirestoreService {
   Future<void> ensureAnonymousAuthReady({
     Duration timeout = const Duration(seconds: 12),
   }) async {
+    _syncAuthFieldsFromFirebaseAuthIfPossible();
+    if (isCloudReady) return;
     final DateTime deadline = DateTime.now().add(timeout);
     while (_authInitInProgress && DateTime.now().isBefore(deadline)) {
       await Future<void>.delayed(const Duration(milliseconds: 40));
     }
+    _syncAuthFieldsFromFirebaseAuthIfPossible();
     if (isCloudReady) return;
     await initializeAuthAndPullSkins();
   }

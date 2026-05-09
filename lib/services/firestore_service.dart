@@ -7,10 +7,15 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 
 import '../models/skin_config.dart';
+import '../utils/velour_audit_log.dart';
 import 'firestore_dense_world_rank_snapshot.dart';
 import 'lux_apply_motifs.dart';
 import 'lux_credit_limits.dart';
 import 'velour_observability.dart';
+
+void _firestoreAudit(String event, {Map<String, Object?> data = const {}}) {
+  VelourAuditLog.event('firestore.$event', data: data);
+}
 
 /// Rang dense mondial + égalité de score (footer « Votre rang »).
 typedef MyDenseWorldRank = ({int denseRank, bool tiedWithOthersSameScore});
@@ -556,14 +561,38 @@ class FirestoreService {
       );
     }
     if (!_authReady || _uid == null) {
+      _firestoreAudit(
+        'lux_apply.skipped',
+        data: <String, Object?>{
+          'reason': 'auth_not_ready',
+          'delta': delta,
+          'motif': motif,
+        },
+      );
       return null;
     }
     if (forceOffline) {
+      _firestoreAudit(
+        'lux_apply.skipped',
+        data: <String, Object?>{
+          'reason': 'force_offline',
+          'delta': delta,
+          'motif': motif,
+        },
+      );
       return null;
     }
     final String resolvedKey = _resolvedLuxApplyIdempotencyKey(
       motif,
       idempotencyKey,
+    );
+    _firestoreAudit(
+      'lux_apply.begin',
+      data: <String, Object?>{
+        'delta': delta,
+        'motif': motif,
+        'idempotencyKey': resolvedKey,
+      },
     );
     try {
       final FirebaseFunctions fns = FirebaseFunctions.instanceFor(
@@ -595,6 +624,17 @@ class FirestoreService {
       final int? prevLux = (raw['prevLux'] as num?)?.toInt();
       final int? appliedDelta = (raw['appliedDelta'] as num?)?.toInt();
       if (!ok) {
+        _firestoreAudit(
+          'lux_apply.end',
+          data: <String, Object?>{
+            'ok': false,
+            'delta': delta,
+            'motif': motif,
+            'newLux': newLux,
+            'prevLux': prevLux,
+            'appliedDelta': appliedDelta,
+          },
+        );
         return (
           ok: false,
           newLux: newLux,
@@ -603,6 +643,17 @@ class FirestoreService {
           functionErrorCode: null,
         );
       }
+      _firestoreAudit(
+        'lux_apply.end',
+        data: <String, Object?>{
+          'ok': true,
+          'delta': delta,
+          'motif': motif,
+          'newLux': newLux,
+          'prevLux': prevLux,
+          'appliedDelta': appliedDelta,
+        },
+      );
       return (
         ok: true,
         newLux: newLux,
@@ -611,6 +662,16 @@ class FirestoreService {
         functionErrorCode: null,
       );
     } on FirebaseFunctionsException catch (e, st) {
+      _firestoreAudit(
+        'lux_apply.exception',
+        data: <String, Object?>{
+          'kind': 'FirebaseFunctionsException',
+          'delta': delta,
+          'motif': motif,
+          'code': e.code,
+          'message': e.message,
+        },
+      );
       VelourObservability.logFirestoreFailure(
         'velourApplyLuxDelta',
         error: e,
@@ -629,6 +690,15 @@ class FirestoreService {
         functionErrorCode: e.code,
       );
     } catch (e, st) {
+      _firestoreAudit(
+        'lux_apply.exception',
+        data: <String, Object?>{
+          'kind': 'unknown',
+          'delta': delta,
+          'motif': motif,
+          'error': e.toString(),
+        },
+      );
       VelourObservability.logFirestoreFailure(
         'velourApplyLuxDelta',
         error: e,

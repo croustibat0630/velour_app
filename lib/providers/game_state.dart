@@ -749,6 +749,13 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
       return DailyLuxClaimOutcome.alreadyClaimedToday;
     }
     if (!FirestoreService.instance.isCloudReady) {
+      VelourAuditLog.event(
+        'daily_bonus.cloud_not_ready',
+        data: <String, Object?>{
+          'today': today,
+          'delta': EconomyService.dailyLuxBonusAmount,
+        },
+      );
       _economy.addLuxCoins(
         EconomyService.dailyLuxBonusAmount,
         luxCloudMotif: LuxApplyMotifs.dailyBonus,
@@ -765,9 +772,27 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
           idempotencyKey: 'daily_bonus|$today',
         );
     if (r == null) {
+      VelourAuditLog.event(
+        'daily_bonus.call.null',
+        data: <String, Object?>{
+          'today': today,
+          'delta': EconomyService.dailyLuxBonusAmount,
+        },
+      );
       return DailyLuxClaimOutcome.networkUnavailable;
     }
     if (!r.ok) {
+      VelourAuditLog.event(
+        'daily_bonus.call.not_ok',
+        data: <String, Object?>{
+          'today': today,
+          'delta': EconomyService.dailyLuxBonusAmount,
+          'code': r.functionErrorCode,
+          'appliedDelta': r.appliedDelta,
+          'newLux': r.newLux,
+          'prevLux': r.prevLux,
+        },
+      );
       return DailyLuxClaimOutcome.callableFailed;
     }
     final int applied = r.appliedDelta ?? 0;

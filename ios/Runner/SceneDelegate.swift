@@ -4,6 +4,30 @@ import UIKit
 
 class SceneDelegate: FlutterSceneDelegate {
 
+  #if DEBUG
+    private enum VelourAppCheckNativeLogOnce {
+      static var didPrintToken = false
+    }
+  #endif
+
+  /// UIScene : `window` / `FlutterViewController` peuvent ne pas être prêts au tout premier
+  /// tick ; on réessaie après `super` et à l’activation de la scène.
+  private func registerVelourAppCheckDebugChannel() {
+    #if DEBUG
+      guard let fvc = window?.rootViewController as? FlutterViewController else {
+        return
+      }
+      (UIApplication.shared.delegate as? AppDelegate)?
+        .setupAppCheckDebugChannel(fvc.binaryMessenger)
+      if !VelourAppCheckNativeLogOnce.didPrintToken {
+        VelourAppCheckNativeLogOnce.didPrintToken = true
+        let t = AppCheckDebugProvider.currentDebugToken()
+        NSLog("[Firebase/AppCheck] Debug token: %@", t)
+        Swift.print("[Firebase/AppCheck] Debug token: \(t)")
+      }
+    #endif
+  }
+
   override func scene(
     _ scene: UIScene,
     willConnectTo session: UISceneSession,
@@ -12,18 +36,17 @@ class SceneDelegate: FlutterSceneDelegate {
     super.scene(scene, willConnectTo: session, options: connectionOptions)
 
     #if DEBUG
-      // Après `super`, la fenêtre / le FlutterViewController sont prêts sur la prochaine rotation
-      // de la run loop — ce qui aligne aussi l’enregistrement avec `main()` Dart (`setDebugToken`).
+      registerVelourAppCheckDebugChannel()
       DispatchQueue.main.async { [weak self] in
-        guard let self = self else { return }
-        if let fvc = self.window?.rootViewController as? FlutterViewController {
-          (UIApplication.shared.delegate as? AppDelegate)?
-            .setupAppCheckDebugChannel(fvc.binaryMessenger)
-        }
-        let t = AppCheckDebugProvider.currentDebugToken()
-        NSLog("[Firebase/AppCheck] Debug token: %@", t)
-        Swift.print("[Firebase/AppCheck] Debug token: \(t)")
+        self?.registerVelourAppCheckDebugChannel()
       }
+    #endif
+  }
+
+  override func sceneDidBecomeActive(_ scene: UIScene) {
+    super.sceneDidBecomeActive(scene)
+    #if DEBUG
+      registerVelourAppCheckDebugChannel()
     #endif
   }
 }

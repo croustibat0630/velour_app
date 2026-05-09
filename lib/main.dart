@@ -91,6 +91,41 @@ Future<void> velourActivateAppCheck() async {
   }
 }
 
+/// Une fois la scène iOS branchée, le canal natif `velour/app_check` est disponible.
+/// Les logs `NSLog` / natifs ne remontent pas toujours dans `flutter run` — on affiche
+/// donc le jeton une fois via Dart (`flutter: ...`) pour la copie dans Firebase Console.
+void _scheduleIosAppCheckDebugTokenEchoOnce({
+  required bool injectedViaDartDefine,
+}) {
+  if (injectedViaDartDefine ||
+      kIsWeb ||
+      kReleaseMode ||
+      defaultTargetPlatform != TargetPlatform.iOS) {
+    return;
+  }
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    unawaited(() async {
+      await Future<void>.delayed(const Duration(milliseconds: 900));
+      try {
+        const MethodChannel ch = MethodChannel('velour/app_check');
+        final String? t = await ch.invokeMethod<String>('getDebugToken');
+        if (t != null && t.isNotEmpty) {
+          debugPrint(
+            'Firebase App Check debug token (add in Console → App Check → '
+            'Manage debug tokens): $t',
+          );
+        } else {
+          debugPrint(
+            'Firebase App Check debug token empty from native bridge.',
+          );
+        }
+      } catch (e) {
+        debugPrint('Firebase App Check debug token bridge: $e');
+      }
+    }());
+  });
+}
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized(); // Indispensable
   // iOS simulator App Check: `flutter run` doesn't reliably propagate process
@@ -169,12 +204,10 @@ Future<void> main() async {
     GoogleFonts.robotoMonoTextTheme(ThemeData.dark().textTheme),
   ]);
 
+  _scheduleIosAppCheckDebugTokenEchoOnce(
+    injectedViaDartDefine: debugAppCheckToken.isNotEmpty,
+  );
   runApp(const VelourApp());
-
-  // iOS: le jeton App Check debug est affiché côté natif (SceneDelegate /
-  // AppDelegate). Ne pas appeler MethodChannel getDebugToken depuis Dart :
-  // avec UIScene, le canal n’était pas enregistré sur le bon messenger
-  // → MissingPluginException et bruit inutile dans les logs.
 }
 
 class VelourApp extends StatelessWidget {

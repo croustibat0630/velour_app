@@ -325,6 +325,7 @@ class FirestoreService {
   /// (callables IAP / deltas avant que le splash ait fini).
   Future<void> ensureAnonymousAuthReady({
     Duration timeout = const Duration(seconds: 12),
+    Duration authRestoreWait = const Duration(seconds: 2),
   }) async {
     _syncAuthFieldsFromFirebaseAuthIfPossible();
     if (isCloudReady) return;
@@ -335,6 +336,26 @@ class FirestoreService {
     _syncAuthFieldsFromFirebaseAuthIfPossible();
     if (isCloudReady) return;
     await initializeAuthAndPullSkins();
+    _syncAuthFieldsFromFirebaseAuthIfPossible();
+    if (isCloudReady) return;
+
+    // Filet : le SDK peut publier la session un peu après sign-in / restore disque
+    // (surtout macOS / trousseau lent ou en erreur partielle).
+    try {
+      if (FirebaseAuth.instance.currentUser == null) {
+        await FirebaseAuth.instance
+            .authStateChanges()
+            .where((User? u) => u != null)
+            .first
+            .timeout(authRestoreWait);
+        _syncAuthFieldsFromFirebaseAuthIfPossible();
+      }
+    } on TimeoutException {
+      _firestoreAudit(
+        'auth.restore_wait_timeout',
+        data: <String, Object?>{'waitMs': authRestoreWait.inMilliseconds},
+      );
+    } catch (_) {}
   }
 
   Future<PlayerCloudPull?> _pullPlayerEconomySnapshot() async {

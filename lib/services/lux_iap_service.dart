@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io' show InternetAddress, Socket;
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart'
     show
@@ -531,7 +532,9 @@ class LuxIapService {
     final bool ok = r != null && (r.ok || r.alreadyGranted);
     if (!ok) {
       if (r == null) {
-        denyReason = 'callable_null_or_auth';
+        denyReason = FirebaseAuth.instance.currentUser == null
+            ? 'grant_null_no_firebase_user'
+            : 'grant_null_callable_or_payload';
       } else {
         denyReason = 'server_rejected';
       }

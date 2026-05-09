@@ -548,9 +548,11 @@ class LuxIapService {
         }
       }
 
-      // On iOS (StoreKit), consumables must be auto-consumed by the plugin.
-      // Using autoConsume: false triggers an assertion and crashes in debug.
-      final bool autoConsume = defaultTargetPlatform == TargetPlatform.iOS;
+      // StoreKit (iOS + macOS) exige autoConsume pour les consommables.
+      // `autoConsume: false` déclenche une assertion en debug (plugin storekit).
+      final bool autoConsume =
+          defaultTargetPlatform == TargetPlatform.iOS ||
+          defaultTargetPlatform == TargetPlatform.macOS;
       final bool launched = await _iap.buyConsumable(
         purchaseParam: PurchaseParam(productDetails: details),
         autoConsume: autoConsume,

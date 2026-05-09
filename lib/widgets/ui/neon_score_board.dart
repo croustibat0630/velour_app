@@ -954,7 +954,8 @@ class _MatchResolutionChronoCueState extends State<_MatchResolutionChronoCue>
   @override
   void initState() {
     super.initState();
-    _syncPulse();
+    // Ne pas appeler [_syncPulse] ici : [velourReduceMotion] lit [MediaQuery]
+    // avant la fin de [initState] ([didChangeDependencies] suffit).
   }
 
   @override

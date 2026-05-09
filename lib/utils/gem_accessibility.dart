@@ -1,11 +1,7 @@
 import 'package:velour_app/l10n/app_localizations.dart';
 
 /// Libellé VoiceOver / TalkBack pour une gemme (forme + couleur), localisé.
-String gemAccessibilityLabel(
-  AppLocalizations l10n,
-  int typeId,
-  int colorId,
-) {
+String gemAccessibilityLabel(AppLocalizations l10n, int typeId, int colorId) {
   final String shape = _shapeName(l10n, typeId);
   final String color = _colorName(l10n, colorId);
   return l10n.a11yGemButtonLabel(shape, color);

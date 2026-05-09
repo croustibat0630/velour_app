@@ -135,6 +135,9 @@ class AudioHandler {
   /// Prépare le pipeline audio au lancement (splash / cold start).
   /// Ne doit pas être **critique** pour la navigation : peut échouer ou
   /// rester partiel jusqu’à [unlockAudio] / [resumeAudioThenStartMenuBgm].
+  ///
+  /// **Mobile / desktop natif** : le préload pool SFX ne part plus ici (il suivait
+  /// le premier [resumeAudioThenStartMenuBgm] sur le verrou natif). Voir [preloadGameSfx].
   Future<void> init() async {
     if (_disabled) return;
     try {
@@ -146,7 +149,11 @@ class AudioHandler {
       if (kIsWeb) {
         await preloadGameSfx();
       } else {
-        unawaited(preloadGameSfx());
+        // Mobile / desktop natif : ne pas lancer le préload pool ici en parallèle du
+        // splash. Il prenait le verrou [_withNativeSourceLoadLock] pendant des dizaines
+        // de secondes (setSource séquentiels) et retardait ou bloquait le premier
+        // [resumeAudioThenStartMenuBgm] (BGM absente, SFX en retard sur device).
+        // Le menu enchaîne [preloadGameSfx] après déverrouillage ; [GameScreen] aussi.
       }
     } catch (_) {
       // Cold start : ne pas désactiver tout le pipeline pour une erreur partielle.
@@ -178,6 +185,9 @@ class AudioHandler {
       } catch (e) {
         velourAudioTrace('resumeAudioThenStartMenuBgm: muted unlock threw $e');
       }
+      if (!kIsWeb) {
+        unawaited(preloadGameSfx());
+      }
       return true;
     }
     velourAudioTrace('resumeAudioThenStartMenuBgm: begin');
@@ -195,6 +205,11 @@ class AudioHandler {
     velourAudioTrace(
       'resumeAudioThenStartMenuBgm: end bgmStarted=$_bgmStarted sfxMuted=${sfxMuted.value}',
     );
+    if (!kIsWeb) {
+      // Après BGM / unlock : charge le pool hors de la zone critique du premier geste
+      // (évite la course avec l’ancien preload au cold start).
+      unawaited(preloadGameSfx());
+    }
     return _bgmStarted;
   }
 

@@ -6,6 +6,7 @@ import 'package:velour_app/main.dart' as app;
 import 'package:velour_app/screens/game_screen.dart';
 import 'package:velour_app/screens/main_menu_view.dart';
 import 'package:velour_app/screens/preparation_view.dart';
+import 'package:velour_app/screens/settings_view.dart';
 import 'package:velour_app/widgets/ui/pause_overlay.dart';
 
 /// Smoke `integration_test` (app réelle : Firebase, audio, polices).
@@ -30,7 +31,7 @@ void main() {
   /// Un seul [app.main] : évite les callbacks tardifs (ex. welcome LUX) qui
   /// survivent au teardown et touchent un [EconomyService] déjà disposé.
   testWidgets(
-    'smoke: menu → préparation → jeu → pause → reprise → pause → menu',
+    'smoke: menu → réglages → menu → préparation → jeu → pause → reprise → pause → menu',
     (WidgetTester tester) async {
       addTearDown(() async {
         await tester.binding.setSurfaceSize(null);
@@ -74,7 +75,25 @@ Future<void> _reachClassicPlayZone(WidgetTester tester) async {
     tester.element(find.byType(MainMenuView).first),
   )!;
 
-  await tester.tap(find.text(l10nMenu.menuPlay));
+  await tester.tap(find.text(l10nMenu.menuSettings));
+  await _pumpUntil(tester, find.byType(SettingsView), maxSteps: 120);
+  expect(find.byType(SettingsView), findsOneWidget);
+
+  await tester.tap(
+    find.descendant(
+      of: find.byType(SettingsView),
+      matching: find.byIcon(Icons.arrow_back_rounded),
+    ),
+  );
+  await _pumpUntil(tester, find.byType(MainMenuView), maxSteps: 120);
+  expect(find.byType(SettingsView), findsNothing);
+  expect(find.byType(MainMenuView), findsWidgets);
+
+  final AppLocalizations l10nMenu2 = AppLocalizations.of(
+    tester.element(find.byType(MainMenuView).first),
+  )!;
+
+  await tester.tap(find.text(l10nMenu2.menuPlay));
   await _pumpUntil(tester, find.byType(PreparationView), maxSteps: 120);
   expect(find.byType(PreparationView), findsOneWidget);
 

@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
+import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 
@@ -592,6 +593,7 @@ class FirestoreService {
         'delta': delta,
         'motif': motif,
         'idempotencyKey': resolvedKey,
+        'uid': _uid,
       },
     );
 
@@ -670,12 +672,22 @@ class FirestoreService {
       // Common on iOS simulator/dev: auth token may not be ready/valid yet.
       // Attempt a single auth refresh + retry to avoid "server unreachable" UX.
       if (e.code == 'unauthenticated') {
+        String? appCheckTokenKind;
+        try {
+          final String? t = await FirebaseAppCheck.instance.getToken(true);
+          appCheckTokenKind = (t == null || t.isEmpty) ? 'missing' : 'present';
+        } catch (_) {
+          appCheckTokenKind = 'error';
+        }
         _firestoreAudit(
           'lux_apply.retry_auth',
           data: <String, Object?>{
             'delta': delta,
             'motif': motif,
             'code': e.code,
+            'uid': FirebaseAuth.instance.currentUser?.uid,
+            'isAnonymous': FirebaseAuth.instance.currentUser?.isAnonymous,
+            'appCheckToken': appCheckTokenKind,
           },
         );
         try {

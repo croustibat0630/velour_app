@@ -986,7 +986,10 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                                   lux: gameState.lux,
                                   comboFlashTick: gameState.luxComboFlashTick,
                                   luxIntroTick: gameState.narrativeLuxIntroTick,
-                                  levelUpFlashTick: gameState.levelUpFlashTick,
+                                  levelUpFlashTick:
+                                      gameState.isLevelTransitionInProgress
+                                      ? 0
+                                      : gameState.levelUpFlashTick,
                                   maxWidth: 500,
                                   levelOpacity: op.level,
                                   luxOpacity: op.lux,

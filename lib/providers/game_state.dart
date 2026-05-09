@@ -476,6 +476,18 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
       _isLevelTransitionInProgress = true;
       _pendingLevelUpNeedLux = need;
       _levelUpFlashTick++;
+      _perfectHeatSurgeTimer?.cancel();
+      _perfectHeatSurgeTimer = null;
+      if (_perfectHeatSurgeTierDisplay > 0) {
+        _perfectHeatSurgeTierDisplay = 0;
+        _perfectHeatSurgeFlashTick++;
+      }
+      _comboFloaterClearTimer?.cancel();
+      _comboFloaterClearTimer = null;
+      if (_comboFloater != null) {
+        _comboFloater = null;
+        _comboFloaterTick++;
+      }
       HapticsHandler.instance.heavyImpact();
       // Sécurité : auto-commit même si l'UI ne rappelle pas (web/back).
       _levelTransitionTimer?.cancel();
@@ -494,6 +506,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     _isLevelTransitionInProgress = false;
     _pendingLevelUpNeedLux = null;
     _queuedLuxFloaterDuringLevelUp = null;
+    _pendingPerfectHeatSurgeTierAfterLevelUp = null;
   }
 
   /// À appeler quand l'animation "Level Up" se termine (ou via timer de secours).
@@ -502,6 +515,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     final int? need = _pendingLevelUpNeedLux;
     if (need == null) {
       _isLevelTransitionInProgress = false;
+      _pendingPerfectHeatSurgeTierAfterLevelUp = null;
       notifyListeners();
       return;
     }
@@ -511,6 +525,8 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     _isLevelTransitionInProgress = false;
     final FloatingTextFx? deferredLuxFloater = _queuedLuxFloaterDuringLevelUp;
     _queuedLuxFloaterDuringLevelUp = null;
+    final int? deferredSurgeTier = _pendingPerfectHeatSurgeTierAfterLevelUp;
+    _pendingPerfectHeatSurgeTierAfterLevelUp = null;
     if (deferredLuxFloater != null) {
       _floatingTextFx = deferredLuxFloater;
       _floatingTick++;
@@ -518,6 +534,9 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     // Si le score dépasse encore le palier suivant (gros combo), on ne retrigger
     // pas instantanément : un prochain gain relancera _maybeAdvanceLevel.
     notifyListeners();
+    if (deferredSurgeTier != null && deferredSurgeTier >= 2) {
+      _applyPerfectHeatSurgeOverlay(deferredSurgeTier);
+    }
   }
 
   final Set<String> _removingIds = <String>{};
@@ -684,6 +703,17 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
 
   void _triggerPerfectHeatSurgeFx(int tierAfterAdvance) {
     final int t = tierAfterAdvance.clamp(2, 5);
+    if (PerfectHeatLogic.luxBonusPercent(t) <= 0) return;
+    if (_isLevelTransitionInProgress) {
+      final int prev = _pendingPerfectHeatSurgeTierAfterLevelUp ?? 0;
+      _pendingPerfectHeatSurgeTierAfterLevelUp = math.max(prev, t);
+      return;
+    }
+    _applyPerfectHeatSurgeOverlay(t);
+  }
+
+  void _applyPerfectHeatSurgeOverlay(int tierClamp2to5) {
+    final int t = tierClamp2to5.clamp(2, 5);
     if (PerfectHeatLogic.luxBonusPercent(t) <= 0) return;
     _perfectHeatSurgeTierDisplay = t;
     _perfectHeatSurgeFlashTick++;
@@ -1490,6 +1520,9 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
   /// Floater LUX reporté pendant [_isLevelTransitionInProgress] (priorité au flash niveau).
   FloatingTextFx? _queuedLuxFloaterDuringLevelUp;
 
+  /// Surge Perfect Heat à jouer après le flash niveau (même palier max si plusieurs).
+  int? _pendingPerfectHeatSurgeTierAfterLevelUp;
+
   int _matchParticleTick = 0;
   int get matchParticleTick => _matchParticleTick;
   MatchParticleFx? _matchParticleFx;
@@ -1566,6 +1599,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     _flightFx = null;
     _floatingTextFx = null;
     _queuedLuxFloaterDuringLevelUp = null;
+    _pendingPerfectHeatSurgeTierAfterLevelUp = null;
     // Force UI to drop any in-flight overlays instantly (trail / floating text).
     _flightTick++;
     _floatingTick++;
@@ -1676,6 +1710,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     _flightFx = null;
     _floatingTextFx = null;
     _queuedLuxFloaterDuringLevelUp = null;
+    _pendingPerfectHeatSurgeTierAfterLevelUp = null;
     _flightTick++;
     _floatingTick++;
     _matchParticleFx = null;
@@ -2515,7 +2550,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
         ? chainScoreMult.toStringAsFixed(1)
         : null;
 
-    if (isCascade) {
+    if (isCascade && !_isLevelTransitionInProgress) {
       _comboFloater = ComboFloaterFx(
         id: _nextId(),
         position: center + Offset(0, -itemSize * 0.85),

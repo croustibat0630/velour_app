@@ -65,6 +65,8 @@ void main() {
       1,
     });
     expect(firstGem, contains('Rack slot 1'));
+    expect(firstGem, contains('occupied'));
     expect(firstGem, contains('almost complete'));
+    expect(firstGem, isNot(contains('Crystal')));
   });
 }

@@ -1599,11 +1599,11 @@ abstract class AppLocalizations {
   /// **'Rack slot {slot} of {max}, empty.'**
   String a11yRackSlotEmpty(int slot, int max);
 
-  /// VoiceOver label for a rack slot that holds a gem.
+  /// VoiceOver label for a rack slot that holds a gem; gem shape/color is on the gem itself.
   ///
   /// In en, this message translates to:
-  /// **'Rack slot {slot} of {max}: {gem}.'**
-  String a11yRackSlotGem(int slot, int max, String gem);
+  /// **'Rack slot {slot} of {max}, occupied.'**
+  String a11yRackSlotOccupied(int slot, int max);
 
   /// Appended when this slot is part of an adjacent almost-match pair.
   ///

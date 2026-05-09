@@ -904,8 +904,8 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String a11yRackSlotGem(int slot, int max, String gem) {
-    return 'Rack-Fach $slot von $max: $gem.';
+  String a11yRackSlotOccupied(int slot, int max) {
+    return 'Rack-Fach $slot von $max, belegt.';
   }
 
   @override

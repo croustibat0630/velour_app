@@ -569,12 +569,11 @@
       "max": {"type": "int"}
     }
   },
-  "a11yRackSlotGem": "Rack-Fach {slot} von {max}: {gem}.",
-  "@a11yRackSlotGem": {
+  "a11yRackSlotOccupied": "Rack-Fach {slot} von {max}, belegt.",
+  "@a11yRackSlotOccupied": {
     "placeholders": {
       "slot": {"type": "int"},
-      "max": {"type": "int"},
-      "gem": {"type": "String"}
+      "max": {"type": "int"}
     }
   },
   "a11yRackSlotImminentHint": "Benachbartes Paar fast vollständig."

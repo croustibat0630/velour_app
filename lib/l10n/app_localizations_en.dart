@@ -895,8 +895,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String a11yRackSlotGem(int slot, int max, String gem) {
-    return 'Rack slot $slot of $max: $gem.';
+  String a11yRackSlotOccupied(int slot, int max) {
+    return 'Rack slot $slot of $max, occupied.';
   }
 
   @override

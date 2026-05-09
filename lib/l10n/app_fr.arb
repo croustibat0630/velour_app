@@ -420,12 +420,11 @@
       "max": {"type": "int"}
     }
   },
-  "a11yRackSlotGem": "Emplacement {slot} sur {max} du rack : {gem}.",
-  "@a11yRackSlotGem": {
+  "a11yRackSlotOccupied": "Emplacement {slot} sur {max} du rack, occupé.",
+  "@a11yRackSlotOccupied": {
     "placeholders": {
       "slot": {"type": "int"},
-      "max": {"type": "int"},
-      "gem": {"type": "String"}
+      "max": {"type": "int"}
     }
   },
   "a11yRackSlotImminentHint": "Paire adjacente presque complète."

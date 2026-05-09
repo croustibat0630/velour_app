@@ -529,13 +529,12 @@
       "max": {"type": "int"}
     }
   },
-  "a11yRackSlotGem": "Rack slot {slot} of {max}: {gem}.",
-  "@a11yRackSlotGem": {
-    "description": "VoiceOver label for a rack slot that holds a gem.",
+  "a11yRackSlotOccupied": "Rack slot {slot} of {max}, occupied.",
+  "@a11yRackSlotOccupied": {
+    "description": "VoiceOver label for a rack slot that holds a gem; gem shape/color is on the gem itself.",
     "placeholders": {
       "slot": {"type": "int"},
-      "max": {"type": "int"},
-      "gem": {"type": "String"}
+      "max": {"type": "int"}
     }
   },
   "a11yRackSlotImminentHint": "Adjacent pair almost complete.",

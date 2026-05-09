@@ -157,7 +157,9 @@ class AudioHandler {
       // `setSource` sur les lecteurs pool pendre jusqu'au timeout — le bundle unlock
       // + micro one-shots aligne la session comme quand la BGM démarre.
       try {
-        await _withNativeSourceLoadLock(() => _unlockAudioCore());
+        await _withNativeSourceLoadLock(
+          () => _unlockAudioCore(preloadPooledTapChannel: false),
+        );
       } catch (e) {
         velourAudioTrace('resumeAudioThenStartMenuBgm: muted unlock threw $e');
       }
@@ -352,7 +354,10 @@ class AudioHandler {
     }
   }
 
-  Future<void> _unlockAudioCore() async {
+  /// [preloadPooledTapChannel] : `false` sur le menu **musique muette** uniquement —
+  /// le `setSource` pooled du tap peut pendre 12s sur simulateur iOS alors que les
+  /// one-shots suffisent à réveiller la session ; le pool est chargé dans [preloadGameSfx].
+  Future<void> _unlockAudioCore({bool preloadPooledTapChannel = true}) async {
     try {
       await configureVelourAudioPipeline(activateSession: true, force: true);
     } catch (_) {}
@@ -364,9 +369,11 @@ class AudioHandler {
     await _playDisposableOneShotCore(_matchFile, volume: 0.001, holdMs: 70);
     await _playDisposableOneShotCore(_perfectFile, volume: 0.001, holdMs: 70);
 
-    try {
-      await _ensureTapReadyCore();
-    } catch (_) {}
+    if (preloadPooledTapChannel) {
+      try {
+        await _ensureTapReadyCore();
+      } catch (_) {}
+    }
   }
 
   Future<void> _playMusicCore(

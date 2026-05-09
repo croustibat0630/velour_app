@@ -57,5 +57,13 @@ import FirebaseAppCheck
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
+    #if DEBUG
+      // UIScene + storyboard : `SceneDelegate.window` / `FlutterViewController` peuvent être nil
+      // avant la fin du branchement — le messenger de l’engine implicite est le bon endroit
+      // (voir FlutterEngine `performImplicitEngineCallback` / `FlutterApplicationRegistrar`).
+      setupAppCheckDebugChannel(engineBridge.applicationRegistrar.messenger())
+      let t = AppCheckDebugProvider.currentDebugToken()
+      NSLog("[Firebase/AppCheck] Debug token: %@", t)
+    #endif
   }
 }

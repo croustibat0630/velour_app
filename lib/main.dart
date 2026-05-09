@@ -91,9 +91,9 @@ Future<void> velourActivateAppCheck() async {
   }
 }
 
-/// Une fois la scène iOS branchée, le canal natif `velour/app_check` est disponible.
-/// Les logs `NSLog` / natifs ne remontent pas toujours dans `flutter run` — on affiche
-/// donc le jeton une fois via Dart (`flutter: ...`) pour la copie dans Firebase Console.
+/// Le canal est enregistré sur `applicationRegistrar.messenger()` dès
+/// `didInitializeImplicitFlutterEngine`. On réaffiche le jeton via Dart pour
+/// `flutter run` (les logs natifs ne remontent pas toujours).
 void _scheduleIosAppCheckDebugTokenEchoOnce({
   required bool injectedViaDartDefine,
 }) {
@@ -105,23 +105,25 @@ void _scheduleIosAppCheckDebugTokenEchoOnce({
   }
   WidgetsBinding.instance.addPostFrameCallback((_) {
     unawaited(() async {
-      await Future<void>.delayed(const Duration(milliseconds: 900));
-      try {
-        const MethodChannel ch = MethodChannel('velour/app_check');
-        final String? t = await ch.invokeMethod<String>('getDebugToken');
-        if (t != null && t.isNotEmpty) {
-          debugPrint(
-            'Firebase App Check debug token (add in Console → App Check → '
-            'Manage debug tokens): $t',
-          );
-        } else {
-          debugPrint(
-            'Firebase App Check debug token empty from native bridge.',
-          );
+      const MethodChannel ch = MethodChannel('velour/app_check');
+      Object? lastErr;
+      for (int i = 0; i < 25; i++) {
+        try {
+          final String? t = await ch.invokeMethod<String>('getDebugToken');
+          if (t != null && t.isNotEmpty) {
+            debugPrint(
+              'Firebase App Check debug token (add in Console → App Check → '
+              'Manage debug tokens): $t',
+            );
+            return;
+          }
+          lastErr = 'empty_token';
+        } catch (e) {
+          lastErr = e;
         }
-      } catch (e) {
-        debugPrint('Firebase App Check debug token bridge: $e');
+        await Future<void>.delayed(const Duration(milliseconds: 200));
       }
+      debugPrint('Firebase App Check debug token bridge: $lastErr');
     }());
   });
 }

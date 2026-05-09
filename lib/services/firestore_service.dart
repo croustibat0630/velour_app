@@ -969,6 +969,11 @@ class FirestoreService {
   /// ou si la callable est absente (`not-found`) mais Firestore joueur répond en serveur
   /// (déploiement Functions partiel — le jeu peut quand même être en ligne).
   ///
+  /// Repli supplémentaire : si la callable renvoie encore `unauthenticated` /
+  /// `failed-precondition` alors que [tryApplyLuxDeltaViaCallable] fonctionne dans la
+  /// même session (pont iOS / ordre des jetons), on considère le backend joignable lorsque
+  /// la lecture Firestore `players/{uid}` en [Source.server] réussit.
+  ///
   /// Aligné sur [tryApplyLuxDeltaViaCallable] : rafraîchissement Auth / App Check + retente
   /// après `unauthenticated` ou `failed-precondition` (App Check côté Functions).
   Future<bool> pingVelourHealth() async {
@@ -998,6 +1003,34 @@ class FirestoreService {
         try {
           return await _pingVelourHealthInvokeOnce(phase: 'retry');
         } on FirebaseFunctionsException catch (e2, st2) {
+          if (e2.code == 'unauthenticated' ||
+              e2.code == 'failed-precondition') {
+            final bool fbOk = await _pingVelourHealthFirestoreFallback();
+            _firestoreAudit(
+              'velourHealth.end',
+              data: <String, Object?>{
+                'ok': fbOk,
+                'phase': 'retry',
+                'reason': fbOk
+                    ? 'callable_auth_surface_firestore_fallback'
+                    : 'callable_auth_and_firestore_failed',
+                'firstCode': e.code,
+                'secondCode': e2.code,
+              },
+            );
+            if (!fbOk) {
+              VelourObservability.logFirestoreFailure(
+                'velourHealth.retry',
+                error: e2,
+                stackTrace: st2,
+                context: <String, Object?>{
+                  'firstCode': e.code,
+                  'secondCode': e2.code,
+                },
+              );
+            }
+            return fbOk;
+          }
           VelourObservability.logFirestoreFailure(
             'velourHealth.retry',
             error: e2,

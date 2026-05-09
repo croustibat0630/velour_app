@@ -521,10 +521,19 @@ class EconomyService extends ChangeNotifier {
         }
         _schedulePersistPendingLuxByMotif();
         final int? serverLux = r.newLux;
-        if (serverLux != null && serverLux != _luxCoins) {
-          _luxCoins = math.max(_luxCoins, serverLux);
-          await _persistLuxCoins();
-          notifyListeners();
+        if (serverLux != null) {
+          final int clamped = math.max(0, serverLux);
+          // Crédits : ne pas perdre le solde serveur si le client traîne.
+          // Débits : le client peut déjà être plus bas (plusieurs achats optimistes) ;
+          // math.max seul remontait le wallet (ex. forge x2 → affichage 13230 au lieu de 13030).
+          final int merged = applied < 0
+              ? math.min(_luxCoins, clamped)
+              : math.max(_luxCoins, clamped);
+          if (merged != _luxCoins) {
+            _luxCoins = merged;
+            await _persistLuxCoins();
+            notifyListeners();
+          }
         }
         _economyLog(
           'lux_cloud_delta_ok',

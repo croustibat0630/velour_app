@@ -849,35 +849,65 @@ class FirestoreService {
     }
   }
 
+  /// Appel unique [velourHealth] — même région que [tryApplyLuxDeltaViaCallable].
+  Future<bool> _callVelourHealthCallableOnce() async {
+    final FirebaseFunctions fns = FirebaseFunctions.instanceFor(
+      app: Firebase.app(),
+      region: cloudFunctionsRegion,
+    );
+    final HttpsCallable callable = fns.httpsCallable(
+      'velourHealth',
+      options: HttpsCallableOptions(timeout: const Duration(seconds: 12)),
+    );
+    final HttpsCallableResult res = await callable.call(<String, dynamic>{});
+    final Object? data = res.data;
+    if (data is! Map) return false;
+    final Map<String, dynamic> raw = Map<String, dynamic>.from(data);
+    return raw['ok'] == true;
+  }
+
   /// Ping simple de santé côté serveur (callable `velourHealth`).
   ///
   /// Retourne `true` si la callable répond avec `{ ok: true }`.
+  ///
+  /// Aligné sur [tryApplyLuxDeltaViaCallable] : rafraîchissement jeton Auth + une
+  /// retente après `unauthenticated` (sinon le snackbar « réseau / App Check » alors
+  /// que les autres callables passent déjà).
   Future<bool> pingVelourHealth() async {
     const bool forceOffline = bool.fromEnvironment(
       'VELOUR_FORCE_OFFLINE',
       defaultValue: false,
     );
     if (forceOffline) return false;
-    if (!isCloudReady) {
-      await ensureAnonymousAuthReady();
-    }
+
+    _syncAuthFieldsFromFirebaseAuthIfPossible();
+    await ensureAnonymousAuthReady();
     if (!isCloudReady) return false;
 
     try {
-      final FirebaseFunctions fns = FirebaseFunctions.instanceFor(
-        app: Firebase.app(),
-        region: cloudFunctionsRegion,
-      );
-      final HttpsCallable callable = fns.httpsCallable(
-        'velourHealth',
-        options: HttpsCallableOptions(timeout: const Duration(seconds: 12)),
-      );
-      final HttpsCallableResult res = await callable.call(<String, dynamic>{});
-      final Object? data = res.data;
-      if (data is! Map) return false;
-      final Map<String, dynamic> raw = Map<String, dynamic>.from(data);
-      return raw['ok'] == true;
+      await FirebaseAuth.instance.currentUser?.getIdToken(true);
+    } catch (_) {}
+
+    try {
+      return await _callVelourHealthCallableOnce();
     } on FirebaseFunctionsException catch (e, st) {
+      if (e.code == 'unauthenticated') {
+        try {
+          await FirebaseAppCheck.instance.getToken(true);
+        } catch (_) {}
+        try {
+          await ensureAnonymousAuthReady();
+          await FirebaseAuth.instance.currentUser?.getIdToken(true);
+          return await _callVelourHealthCallableOnce();
+        } catch (e2, st2) {
+          VelourObservability.logFirestoreFailure(
+            'velourHealth.retry_auth',
+            error: e2,
+            stackTrace: st2,
+            context: <String, Object?>{'firstCode': e.code},
+          );
+        }
+      }
       VelourObservability.logFirestoreFailure(
         'velourHealth',
         error: e,

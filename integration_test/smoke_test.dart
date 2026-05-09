@@ -21,50 +21,61 @@ import 'package:velour_app/widgets/ui/pause_overlay.dart';
 /// **Réseau** : [app.main] précharge les polices via `google_fonts` (HTTPS). Le binaire
 /// macOS debug doit avoir l’entitlement sandbox `com.apple.security.network.client`
 /// (`macos/Runner/DebugProfile.entitlements`) pour que les requêtes sortantes passent.
+///
+/// **Harness** : `main()` dans `lib/main.dart` n’installe pas les handlers Crashlytics
+/// globaux sous un binding de test (`integration_test` / `flutter test`), pour ne pas
+/// écraser celui du framework.
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('integration binding initialisé', (WidgetTester tester) async {
+  /// Un seul [testWidgets] + un seul [app.main] : évite les callbacks tardifs (ex.
+  /// welcome LUX) qui survivent au teardown et touchent un [EconomyService] disposé.
+  testWidgets('smoke: binding → menu → réglages → menu → préparation → jeu → '
+      'pause → reprise → pause → menu', (WidgetTester tester) async {
     expect(IntegrationTestWidgetsFlutterBinding.instance, isNotNull);
+
+    addTearDown(() async {
+      await tester.binding.setSurfaceSize(null);
+    });
+
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    await app.main();
+    await tester.pump();
+
+    await _reachClassicPlayZone(tester);
+    expect(find.byType(GameScreen), findsOneWidget);
+    expect(find.byKey(const ValueKey<String>('PlayZone')), findsOneWidget);
+
+    final AppLocalizations l10nGame = AppLocalizations.of(
+      tester.element(find.byType(GameScreen).first),
+    )!;
+
+    await tester.tap(find.byTooltip(l10nGame.gameHudMenuTooltip));
+    await _pumpUntil(tester, find.byType(PauseOverlay), maxSteps: 120);
+
+    await tester.tap(find.text(l10nGame.pauseResume));
+    await _pumpUntilAbsent(tester, find.byType(PauseOverlay), maxSteps: 120);
+
+    await tester.tap(find.byTooltip(l10nGame.gameHudMenuTooltip));
+    await _pumpUntil(tester, find.byType(PauseOverlay), maxSteps: 120);
+
+    await tester.tap(find.text(l10nGame.pauseBackToMenu));
+    await _pumpUntil(tester, find.byType(MainMenuView), maxSteps: 220);
+
+    expect(find.byType(MainMenuView), findsWidgets);
+
+    await _drainDeferredPlatformWork(tester);
+    expect(tester.takeException(), isNull);
   });
+}
 
-  /// Un seul [app.main] : évite les callbacks tardifs (ex. welcome LUX) qui
-  /// survivent au teardown et touchent un [EconomyService] déjà disposé.
-  testWidgets(
-    'smoke: menu → réglages → menu → préparation → jeu → pause → reprise → pause → menu',
-    (WidgetTester tester) async {
-      addTearDown(() async {
-        await tester.binding.setSurfaceSize(null);
-      });
-
-      await tester.binding.setSurfaceSize(const Size(390, 844));
-      await app.main();
-      await tester.pump();
-
-      await _reachClassicPlayZone(tester);
-      expect(find.byType(GameScreen), findsOneWidget);
-      expect(find.byKey(const ValueKey<String>('PlayZone')), findsOneWidget);
-
-      final AppLocalizations l10nGame = AppLocalizations.of(
-        tester.element(find.byType(GameScreen).first),
-      )!;
-
-      await tester.tap(find.byTooltip(l10nGame.gameHudMenuTooltip));
-      await _pumpUntil(tester, find.byType(PauseOverlay), maxSteps: 120);
-
-      await tester.tap(find.text(l10nGame.pauseResume));
-      await _pumpUntilAbsent(tester, find.byType(PauseOverlay), maxSteps: 120);
-
-      await tester.tap(find.byTooltip(l10nGame.gameHudMenuTooltip));
-      await _pumpUntil(tester, find.byType(PauseOverlay), maxSteps: 120);
-
-      await tester.tap(find.text(l10nGame.pauseBackToMenu));
-      await _pumpUntil(tester, find.byType(MainMenuView), maxSteps: 220);
-
-      expect(find.byType(MainMenuView), findsWidgets);
-      expect(tester.takeException(), isNull);
-    },
-  );
+/// Laisse partir timers / micro-tâches (IAP, Firestore) avant [takeException].
+Future<void> _drainDeferredPlatformWork(WidgetTester tester) async {
+  const Duration step = Duration(milliseconds: 100);
+  const int steps = 40;
+  for (int i = 0; i < steps; i++) {
+    await tester.pump(step);
+  }
 }
 
 Future<void> _reachClassicPlayZone(WidgetTester tester) async {
@@ -86,7 +97,8 @@ Future<void> _reachClassicPlayZone(WidgetTester tester) async {
     ),
   );
   await _pumpUntil(tester, find.byType(MainMenuView), maxSteps: 120);
-  expect(find.byType(SettingsView), findsNothing);
+  // macOS / transitions : la route peut rester une frame dans l’arbre après pop.
+  await _pumpUntilAbsent(tester, find.byType(SettingsView), maxSteps: 120);
   expect(find.byType(MainMenuView), findsWidgets);
 
   final AppLocalizations l10nMenu2 = AppLocalizations.of(

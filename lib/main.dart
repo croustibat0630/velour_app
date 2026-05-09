@@ -131,6 +131,15 @@ void _scheduleIosAppCheckDebugTokenEchoOnce({
   });
 }
 
+/// `flutter test` / `integration_test` installent un [WidgetsBinding] dont le nom
+/// de runtime contient `Test` (ex. [IntegrationTestWidgetsFlutterBinding]). Ne pas
+/// remplacer [FlutterError.onError] ni [PlatformDispatcher.instance.onError] dans ce
+/// cas : cela casse l’état interne du binding (`_pendingExceptionDetails`, etc.).
+bool _velourAppRunningUnderFlutterTestBinding() {
+  final String n = WidgetsBinding.instance.runtimeType.toString();
+  return n.contains('Test') && n.endsWith('Binding');
+}
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized(); // Indispensable
   // iOS simulator App Check: `flutter run` doesn't reliably propagate process
@@ -182,17 +191,21 @@ Future<void> main() async {
     !kDebugMode,
   );
 
-  // Erreurs synchrones du framework Flutter (build/layout, etc.).
-  FlutterError.onError = (FlutterErrorDetails details) {
-    FlutterError.presentError(details);
-    FirebaseCrashlytics.instance.recordFlutterFatalError(details);
-  };
+  // Erreurs synchrones / asynchrones : handlers globaux réservés aux runs « app ».
+  // Voir [_velourAppRunningUnderFlutterTestBinding] (integration_test / widget tests).
+  if (!_velourAppRunningUnderFlutterTestBinding()) {
+    // Erreurs synchrones du framework Flutter (build/layout, etc.).
+    FlutterError.onError = (FlutterErrorDetails details) {
+      FlutterError.presentError(details);
+      FirebaseCrashlytics.instance.recordFlutterFatalError(details);
+    };
 
-  // Erreurs asynchrones non capturées par le framework (Dart 3+).
-  PlatformDispatcher.instance.onError = (Object error, StackTrace stack) {
-    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
-    return true;
-  };
+    // Erreurs asynchrones non capturées par le framework (Dart 3+).
+    PlatformDispatcher.instance.onError = (Object error, StackTrace stack) {
+      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+      return true;
+    };
+  }
 
   // Web stability: prefer long-polling over unstable websocket/QUIC paths.
   // These flags are no-ops on mobile/desktop, but help Chrome on flaky networks.

@@ -111,6 +111,8 @@ void main() {
   });
 
   group('RouteTransitionNotifier', () {
+    tearDown(RouteTransitionNotifier.resetForTests);
+
     test('nested begin/end', () {
       expect(RouteTransitionNotifier.isTransitioning, isFalse);
       RouteTransitionNotifier.begin();
@@ -120,6 +122,14 @@ void main() {
       RouteTransitionNotifier.end();
       expect(RouteTransitionNotifier.isTransitioning, isTrue);
       RouteTransitionNotifier.end();
+      expect(RouteTransitionNotifier.isTransitioning, isFalse);
+    });
+
+    test('resetForTests clears leaked begins', () {
+      RouteTransitionNotifier.begin();
+      RouteTransitionNotifier.begin();
+      expect(RouteTransitionNotifier.isTransitioning, isTrue);
+      RouteTransitionNotifier.resetForTests();
       expect(RouteTransitionNotifier.isTransitioning, isFalse);
     });
   });

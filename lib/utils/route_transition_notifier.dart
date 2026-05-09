@@ -20,4 +20,10 @@ class RouteTransitionNotifier {
   static void end() {
     _active.value = (_active.value - 1).clamp(0, 999999);
   }
+
+  /// Remet le compteur à zéro (tests / suites qui appellent [begin] sans route réelle).
+  @visibleForTesting
+  static void resetForTests() {
+    _active.value = 0;
+  }
 }

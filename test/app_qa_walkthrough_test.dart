@@ -1,6 +1,6 @@
 // Parcours QA automatisé : splash → menu → réglages → préparation → retour,
-// puis boutique / carrière (le classement exige Firebase → non couvert ici),
-// puis viewports (tablette / paysage).
+// puis boutique / carrière, puis viewports.
+// (Le classement reste hors de ce fichier : init Firebase ici bloque le bootstrap splash.)
 // Logs stdout préfixés [VelourQA] pour filtrage (`flutter test ... 2>&1 | rg VelourQA`).
 //
 // Note : le menu utilise une animation répétée ; on évite [pumpAndSettle] tant

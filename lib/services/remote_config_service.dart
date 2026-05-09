@@ -13,6 +13,15 @@ class VelourRemoteConfig {
 
   static final VelourRemoteConfig instance = VelourRemoteConfig._();
 
+  static bool _looksLikeInstallationsKeychainHarnessFailure(Object e) {
+    final String s = e.toString().toLowerCase();
+    return s.contains('secitemadd') ||
+        s.contains('-34018') ||
+        s.contains('installations token') ||
+        s.contains('com.gul.keychain') ||
+        s.contains('com.firebase.installations');
+  }
+
   static const String kWelcomeLuxGrant = 'welcome_lux_grant';
   static const String kDailyLuxBonus = 'daily_lux_bonus';
   static const String kHighStakesWinLux = 'high_stakes_win_lux';
@@ -111,7 +120,14 @@ class VelourRemoteConfig {
       debugPrint(
         '[VelourRemoteConfig] init failed, using embedded defaults: $e',
       );
-      debugPrint('$st');
+      if (!_looksLikeInstallationsKeychainHarnessFailure(e)) {
+        debugPrint('$st');
+      } else {
+        debugPrint(
+          '[VelourRemoteConfig] stack trace omitted (Installations / keychain '
+          'harness — embedded defaults apply).',
+        );
+      }
     }
   }
 

@@ -51,9 +51,9 @@ import UIKit
     try? session.setCategory(.playback, mode: .default, options: [.mixWithOthers])
     try? session.setActive(true)
     let ok = super.application(application, didFinishLaunchingWithOptions: launchOptions)
-    if let controller = window?.rootViewController as? FlutterViewController {
-      setupAppCheckDebugChannel(controller.binaryMessenger)
-    }
+    // Ne pas utiliser `window?.rootViewController` ici : avec UIScene ce n’est plus fiable et
+    // Flutter signale une dépréciation. Le canal `velour/app_check` est enregistré dans
+    // `didInitializeImplicitFlutterEngine` via `applicationRegistrar.messenger()`.
     return ok
   }
 

@@ -6,7 +6,9 @@ import FirebaseAppCheck
 
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
-  private func setupAppCheckDebugChannel(_ messenger: FlutterBinaryMessenger) {
+  /// Enregistré depuis la scène active (`SceneDelegate`) : avec `UIApplicationSceneManifest`,
+  /// `AppDelegate.window` est souvent nil, donc pas de `FlutterViewController` au lancement.
+  func setupAppCheckDebugChannel(_ messenger: FlutterBinaryMessenger) {
     #if DEBUG
       let channel = FlutterMethodChannel(name: "velour/app_check", binaryMessenger: messenger)
       channel.setMethodCallHandler { call, result in
@@ -50,25 +52,10 @@ import FirebaseAppCheck
     if let controller = window?.rootViewController as? FlutterViewController {
       setupAppCheckDebugChannel(controller.binaryMessenger)
     }
-
-    #if DEBUG
-      // Make it easy to register the simulator in Firebase Console:
-      // Build -> App Check -> iOS app -> Manage debug tokens -> Add token.
-      // This token is stable across launches (stored by the SDK).
-      let t = AppCheckDebugProvider.currentDebugToken()
-      NSLog("[Firebase/AppCheck] Debug token: %@", t)
-    #endif
     return ok
   }
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
-
-    #if DEBUG
-      // App Check debug token helper (iOS simulator/dev). We set the token and
-      // provider factory early so Firebase can use it for Functions/Firestore.
-      let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "VelourAppCheckBridge")
-      setupAppCheckDebugChannel(registrar.messenger())
-    #endif
   }
 }

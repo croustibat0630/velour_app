@@ -153,6 +153,14 @@ class AudioHandler {
       velourAudioTrace(
         'resumeAudioThenStartMenuBgm: music muted in settings → no BGM',
       );
+      // Sans ce passage, le simulateur iOS (surtout après hot restart) peut laisser
+      // `setSource` sur les lecteurs pool pendre jusqu'au timeout — le bundle unlock
+      // + micro one-shots aligne la session comme quand la BGM démarre.
+      try {
+        await _withNativeSourceLoadLock(() => _unlockAudioCore());
+      } catch (e) {
+        velourAudioTrace('resumeAudioThenStartMenuBgm: muted unlock threw $e');
+      }
       return true;
     }
     velourAudioTrace('resumeAudioThenStartMenuBgm: begin');

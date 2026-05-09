@@ -126,8 +126,11 @@ Future<void> main() async {
   );
 
   // Évite swap de police / micro-lag sur la première frame Material (thème Montserrat).
+  // Roboto Mono : GameOverOverlay / chiffres — sans preload la 1re frame fin de partie peut
+  // saturer le thread UI sur simulateur ou appareils modestes.
   await GoogleFonts.pendingFonts(<dynamic>[
     GoogleFonts.montserratTextTheme(ThemeData.dark().textTheme),
+    GoogleFonts.robotoMonoTextTheme(ThemeData.dark().textTheme),
   ]);
 
   runApp(const VelourApp());
@@ -143,60 +146,70 @@ class VelourApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => GameState()),
         ChangeNotifierProvider(create: (_) => ThemeEngine()),
       ],
-      child: Consumer2<GameState, ThemeEngine>(
-        builder: (context, gs, te, _) {
-          // Applique le skin post-frame (évite notify pendant build).
-          final Color p = gs.currentSkin.primaryColor;
-          final Color s = gs.currentSkin.secondaryColor;
-          if (te.skinPrimaryOverride != p || te.skinSecondaryOverride != s) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              te.applySkinColors(primary: p, secondary: s);
-            });
-          }
-          return ListenableBuilder(
-            listenable: AppSettings.instance.localePreference,
-            builder: (BuildContext context, Widget? _) {
-              return LuxIapBinding(
-                child: MaterialApp(
-                  locale: AppSettings.materialLocaleFor(
-                    AppSettings.instance.localePreference.value,
-                  ),
-                  onGenerateTitle: (BuildContext context) =>
-                      AppLocalizations.of(context)?.appTitle ?? 'Velour',
-                  localizationsDelegates:
-                      AppLocalizations.localizationsDelegates,
-                  supportedLocales: AppLocalizations.supportedLocales,
-                  debugShowCheckedModeBanner: false,
-                  builder: (context, child) {
-                    return Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        child ?? const SizedBox.shrink(),
-                        const WelcomeGiftGlobalLayer(),
-                        const LuxCloudNoticeGlobalLayer(),
+      // Perf : ne pas reconstruire MaterialApp sur chaque notify GameState (économie LUX,
+      // matchs, etc.). GameScreen et les autres vues s’abonnent elles-mêmes via watch/select.
+      child: Consumer<ThemeEngine>(
+        builder: (BuildContext context, ThemeEngine te, _) {
+          return Selector<GameState, ({Color primary, Color secondary})>(
+            selector: (_, GameState gs) => (
+              primary: gs.currentSkin.primaryColor,
+              secondary: gs.currentSkin.secondaryColor,
+            ),
+            builder: (BuildContext context, skin, _) {
+              final Color p = skin.primary;
+              final Color s = skin.secondary;
+              if (te.skinPrimaryOverride != p ||
+                  te.skinSecondaryOverride != s) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  te.applySkinColors(primary: p, secondary: s);
+                });
+              }
+              return ListenableBuilder(
+                listenable: AppSettings.instance.localePreference,
+                builder: (BuildContext context, Widget? _) {
+                  return LuxIapBinding(
+                    child: MaterialApp(
+                      locale: AppSettings.materialLocaleFor(
+                        AppSettings.instance.localePreference.value,
+                      ),
+                      onGenerateTitle: (BuildContext context) =>
+                          AppLocalizations.of(context)?.appTitle ?? 'Velour',
+                      localizationsDelegates:
+                          AppLocalizations.localizationsDelegates,
+                      supportedLocales: AppLocalizations.supportedLocales,
+                      debugShowCheckedModeBanner: false,
+                      builder: (context, child) {
+                        return Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            child ?? const SizedBox.shrink(),
+                            const WelcomeGiftGlobalLayer(),
+                            const LuxCloudNoticeGlobalLayer(),
+                          ],
+                        );
+                      },
+                      theme: ThemeData.dark().copyWith(
+                        scaffoldBackgroundColor: const Color(0xFF0A0A0F),
+                        textTheme: GoogleFonts.montserratTextTheme(
+                          ThemeData.dark().textTheme,
+                        ),
+                      ),
+                      home: const SplashScreen(),
+                      navigatorObservers: [
+                        RouteTransitionObserver(),
+                        velourRouteObserver,
                       ],
-                    );
-                  },
-                  theme: ThemeData.dark().copyWith(
-                    scaffoldBackgroundColor: const Color(0xFF0A0A0F),
-                    textTheme: GoogleFonts.montserratTextTheme(
-                      ThemeData.dark().textTheme,
+                      routes: {
+                        '/main': (_) => const MainMenuView(),
+                        '/game': (_) => const GameScreen(),
+                        '/leaderboard': (_) => const LeaderboardView(),
+                        '/shop': (_) => const ShopView(),
+                        '/settings': (_) => const SettingsView(),
+                        '/stats': (_) => const StatsView(),
+                      },
                     ),
-                  ),
-                  home: const SplashScreen(),
-                  navigatorObservers: [
-                    RouteTransitionObserver(),
-                    velourRouteObserver,
-                  ],
-                  routes: {
-                    '/main': (_) => const MainMenuView(),
-                    '/game': (_) => const GameScreen(),
-                    '/leaderboard': (_) => const LeaderboardView(),
-                    '/shop': (_) => const ShopView(),
-                    '/settings': (_) => const SettingsView(),
-                    '/stats': (_) => const StatsView(),
-                  },
-                ),
+                  );
+                },
               );
             },
           );

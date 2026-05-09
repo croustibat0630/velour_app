@@ -57,6 +57,10 @@ class EconomyService extends ChangeNotifier {
   Timer? _luxCloudSyncDebounce;
   Timer? _pendingLuxPersistDebounce;
 
+  /// Un seul drain LUX cloud à la fois (debounce + lifecycle peuvent se chevaucher ;
+  /// deux boucles sur la même file provoquaient [RangeError] sur [List.removeAt]).
+  Future<void> _luxCloudDrainSerial = Future<void>.value();
+
   /// Deltas LUX à pousser vers la callable, **par motif** (journal / plafonds serveur).
   final Map<String, List<int>> _pendingLuxByMotifForCloud =
       <String, List<int>>{};
@@ -427,7 +431,30 @@ class EconomyService extends ChangeNotifier {
   }
 
   /// Vide le tampon de deltas LUX via la callable (chunks côté serveur si plafond).
-  Future<void> _drainPendingLuxCloudSync() async {
+  Future<void> _drainPendingLuxCloudSync() {
+    final Future<void> work = _luxCloudDrainSerial.then(
+      (_) => _drainPendingLuxCloudSyncCore(),
+    );
+    _luxCloudDrainSerial = work.catchError((Object e, StackTrace st) {
+      _economyLog(
+        'lux_cloud_drain_exception',
+        data: <String, Object?>{
+          'error': e.toString(),
+          'type': e.runtimeType.toString(),
+        },
+      );
+      VelourObservability.logEconomySecurity(
+        'lux_cloud_drain_exception',
+        data: <String, Object?>{
+          'error': e.toString(),
+          'type': e.runtimeType.toString(),
+        },
+      );
+    });
+    return work;
+  }
+
+  Future<void> _drainPendingLuxCloudSyncCore() async {
     const bool forceOffline = bool.fromEnvironment(
       'VELOUR_FORCE_OFFLINE',
       defaultValue: false,
@@ -466,7 +493,9 @@ class EconomyService extends ChangeNotifier {
         final int applied = r.appliedDelta ?? step;
         if (applied == 0 && d0 != 0) {
           // Ex. plafond journalier motif (`daily_bonus`) : évite boucle infinie sur la file.
-          q.removeAt(0);
+          if (q.isNotEmpty) {
+            q.removeAt(0);
+          }
           VelourObservability.logEconomySecurity(
             'lux_cloud_delta_ok_zero_applied',
             data: <String, Object?>{'motif': motif, 'requested': d0},
@@ -478,8 +507,10 @@ class EconomyService extends ChangeNotifier {
         } else {
           final int remaining = d0 - applied;
           if (remaining == 0) {
-            q.removeAt(0);
-          } else {
+            if (q.isNotEmpty) {
+              q.removeAt(0);
+            }
+          } else if (q.isNotEmpty) {
             q[0] = remaining;
           }
         }

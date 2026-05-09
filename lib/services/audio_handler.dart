@@ -67,7 +67,11 @@ class AudioHandler {
 
   final List<AudioPlayer> _sfxMatchPool = <AudioPlayer>[];
   int _matchPoolCursor = 0;
-  final AudioPlayer _sfxTap = AudioPlayer(playerId: 'velour_sfx_tap');
+
+  /// Incrémenté après [dispose] + recréation (simulateur iOS : `setSource` bloqué).
+  int _darwinTapPlayerSeq = 0;
+  int _darwinMatchPoolGen = 0;
+  AudioPlayer _sfxTap = AudioPlayer(playerId: 'velour_sfx_tap_0');
   final AudioPlayer _sfxPerfect = AudioPlayer(playerId: 'velour_sfx_perfect');
   final AudioPlayer _sfxLevelUp = AudioPlayer(playerId: 'velour_sfx_level_up');
   final AudioPlayer _sfxCredit = AudioPlayer(playerId: 'velour_sfx_credit');
@@ -276,7 +280,7 @@ class AudioHandler {
       try {
         await configureVelourAudioPipeline(activateSession: true, force: true);
       } catch (_) {}
-      await Future<void>.delayed(const Duration(milliseconds: 200));
+      await Future<void>.delayed(const Duration(milliseconds: 350));
       try {
         await player.stop();
       } catch (_) {}
@@ -350,10 +354,7 @@ class AudioHandler {
           _matchPoolReady = false;
         }
 
-        _tapReady = await _setupPooledSfxCore(
-          player: _sfxTap,
-          fileName: _tapFile,
-        );
+        _tapReady = await _loadTapPooledWithDarwinRebuildIfNeeded();
 
         _perfectPoolReady = await _setupPooledSfxCore(
           player: _sfxPerfect,
@@ -427,12 +428,39 @@ class AudioHandler {
     );
   }
 
+  bool get _darwinPooledSfx =>
+      !kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.iOS ||
+          defaultTargetPlatform == TargetPlatform.macOS);
+
+  Future<void> _rebuildDarwinTapPlayer() async {
+    if (!_darwinPooledSfx) return;
+    try {
+      await _sfxTap.dispose();
+    } catch (_) {}
+    _darwinTapPlayerSeq++;
+    _sfxTap = AudioPlayer(playerId: 'velour_sfx_tap_$_darwinTapPlayerSeq');
+  }
+
+  /// Un `AudioPlayer` Darwin peut rester bloqué après timeout `setSource` : recréation.
+  Future<bool> _loadTapPooledWithDarwinRebuildIfNeeded() async {
+    bool ok = await _setupPooledSfxCore(player: _sfxTap, fileName: _tapFile);
+    if (!ok && _darwinPooledSfx) {
+      velourAudioTrace(
+        'AudioHandler: rebuild tap player after pooled load failure',
+      );
+      await _rebuildDarwinTapPlayer();
+      ok = await _setupPooledSfxCore(player: _sfxTap, fileName: _tapFile);
+    }
+    return ok;
+  }
+
   Future<void> _ensureTapReadyCore() async {
     if (_tapReady) return;
     if (_disabled) return;
     await configure();
     if (_disabled) return;
-    _tapReady = await _setupPooledSfxCore(player: _sfxTap, fileName: _tapFile);
+    _tapReady = await _loadTapPooledWithDarwinRebuildIfNeeded();
   }
 
   /// Remplit le pool match si vide / pas prêt — **sans** verrou (appel depuis
@@ -449,13 +477,39 @@ class AudioHandler {
           ? _matchPolyphonyWeb
           : (apple ? _matchPolyphonyApple : _matchPolyphony);
       for (int i = 0; i < n; i++) {
-        _sfxMatchPool.add(AudioPlayer(playerId: 'velour_sfx_match_$i'));
+        _sfxMatchPool.add(
+          AudioPlayer(playerId: 'velour_sfx_match_${_darwinMatchPoolGen}_$i'),
+        );
       }
     }
     int readyCount = 0;
     for (final AudioPlayer p in _sfxMatchPool) {
       if (await _setupPooledSfxCore(player: p, fileName: _matchFile)) {
         readyCount++;
+      }
+    }
+    if (readyCount == 0 && _darwinPooledSfx && _sfxMatchPool.isNotEmpty) {
+      velourAudioTrace(
+        'AudioHandler._populateMatchPoolIfNeeded: rebuild match pool after '
+        'all load failures',
+      );
+      for (final AudioPlayer p in _sfxMatchPool) {
+        try {
+          await p.dispose();
+        } catch (_) {}
+      }
+      _sfxMatchPool.clear();
+      _darwinMatchPoolGen++;
+      final int n = _matchPolyphonyApple;
+      for (int i = 0; i < n; i++) {
+        _sfxMatchPool.add(
+          AudioPlayer(playerId: 'velour_sfx_match_${_darwinMatchPoolGen}_$i'),
+        );
+      }
+      for (final AudioPlayer p in _sfxMatchPool) {
+        if (await _setupPooledSfxCore(player: p, fileName: _matchFile)) {
+          readyCount++;
+        }
       }
     }
     _matchPoolReady = readyCount > 0;

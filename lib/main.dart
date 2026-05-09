@@ -29,8 +29,10 @@ import 'widgets/lux_iap_binding.dart';
 import 'widgets/ui/welcome_gift_global_layer.dart';
 import 'widgets/ui/lux_cloud_notice_global_layer.dart';
 import 'utils/route_transition_observer.dart';
+import 'utils/session_trace_navigator_observer.dart';
 import 'utils/velour_release_links.dart';
 import 'utils/velour_route_observer.dart';
+import 'utils/velour_session_trace.dart';
 
 /// Active App Check après [Firebase.initializeApp].
 ///
@@ -211,6 +213,13 @@ Future<void> main() async {
     injectedViaDartDefine: debugAppCheckToken.isNotEmpty,
   );
   VelourReleaseLinks.debugWarnIfPrivacyPolicyMisconfiguredForRelease();
+  if (VelourSessionTrace.enabled) {
+    // ignore: avoid_print
+    print(
+      '[VelourTrace] VELOUR_SESSION_TRACE actif — navigation + gameState.notify '
+      '+ velourDebug() (sortie console uniquement).',
+    );
+  }
   runApp(const VelourApp());
 }
 
@@ -275,6 +284,7 @@ class VelourApp extends StatelessWidget {
                       home: const SplashScreen(),
                       navigatorObservers: [
                         RouteTransitionObserver(),
+                        SessionTraceNavigatorObserver(),
                         velourRouteObserver,
                       ],
                       routes: {

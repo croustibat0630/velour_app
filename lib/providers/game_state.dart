@@ -37,6 +37,7 @@ import '../services/stats_service.dart';
 import '../services/velour_observability.dart';
 import '../utils/velour_audit_log.dart';
 import '../utils/velour_debug_log.dart';
+import '../utils/velour_session_trace.dart';
 import '../widgets/ui/premium_alert_view.dart';
 
 class GameState extends ChangeNotifier with WidgetsBindingObserver {
@@ -2778,6 +2779,22 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
 
   void _playGameOverSound() {
     HapticsHandler.instance.errorVibrate();
+  }
+
+  @override
+  void notifyListeners() {
+    if (VelourSessionTrace.enabled) {
+      VelourSessionTrace.gameStateNotify(
+        runLux: lux,
+        walletLux: luxCoins,
+        highScore: highScore,
+        level: gameLevel,
+        paused: paused,
+        gameOver: isGameOver,
+        criticalFailure: criticalFailure,
+      );
+    }
+    super.notifyListeners();
   }
 
   @override

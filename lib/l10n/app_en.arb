@@ -332,6 +332,20 @@
   "gameOverOracleNamingBannerTitle": "LEADERBOARD ENTRY",
   "gameOverOracleNamingBannerBody": "Seal your name to appear on the global leaderboard.",
   "gameOverOracleNamingNameNowButton": "NAME IT",
+  "welcomeGiftBannerLux": "VELOUR WELCOME: +{lux} LUX",
+  "@welcomeGiftBannerLux": {
+    "placeholders": {
+      "lux": {"type": "int"}
+    }
+  },
+  "oracleNamingDialogTitle": "EXCELLENCE DEFINES YOU",
+  "oracleNamingDialogBody": "Choose the name by which the Oracle will know you. It will be stored in lowercase to avoid duplicates.",
+  "oracleNamingValidationRequired": "Name required",
+  "oracleNamingValidationTooLong": "15 characters max",
+  "oracleNamingValidationInvalidChars": "Letters, digits and _ only (15 max)",
+  "oracleNamingSaveError": "Could not save (network or server). Try again or close for later.",
+  "oracleNamingSealButton": "SEAL MY NAME",
+  "oracleNamingFieldHint": "ORACLE_NAME",
   "criticalFailureTitle": "SYSTEM OVERCHARGE",
   "criticalFailureSubtitle": "CONNECTION LOST",
   "criticalFailureResetButton": "RESET SYSTEM",

@@ -1107,6 +1107,60 @@ abstract class AppLocalizations {
   /// **'NAME IT'**
   String get gameOverOracleNamingNameNowButton;
 
+  /// No description provided for @welcomeGiftBannerLux.
+  ///
+  /// In en, this message translates to:
+  /// **'VELOUR WELCOME: +{lux} LUX'**
+  String welcomeGiftBannerLux(int lux);
+
+  /// No description provided for @oracleNamingDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'EXCELLENCE DEFINES YOU'**
+  String get oracleNamingDialogTitle;
+
+  /// No description provided for @oracleNamingDialogBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the name by which the Oracle will know you. It will be stored in lowercase to avoid duplicates.'**
+  String get oracleNamingDialogBody;
+
+  /// No description provided for @oracleNamingValidationRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Name required'**
+  String get oracleNamingValidationRequired;
+
+  /// No description provided for @oracleNamingValidationTooLong.
+  ///
+  /// In en, this message translates to:
+  /// **'15 characters max'**
+  String get oracleNamingValidationTooLong;
+
+  /// No description provided for @oracleNamingValidationInvalidChars.
+  ///
+  /// In en, this message translates to:
+  /// **'Letters, digits and _ only (15 max)'**
+  String get oracleNamingValidationInvalidChars;
+
+  /// No description provided for @oracleNamingSaveError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save (network or server). Try again or close for later.'**
+  String get oracleNamingSaveError;
+
+  /// No description provided for @oracleNamingSealButton.
+  ///
+  /// In en, this message translates to:
+  /// **'SEAL MY NAME'**
+  String get oracleNamingSealButton;
+
+  /// No description provided for @oracleNamingFieldHint.
+  ///
+  /// In en, this message translates to:
+  /// **'ORACLE_NAME'**
+  String get oracleNamingFieldHint;
+
   /// No description provided for @criticalFailureTitle.
   ///
   /// In en, this message translates to:

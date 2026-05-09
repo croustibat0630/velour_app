@@ -605,6 +605,38 @@ class AppLocalizationsDe extends AppLocalizations {
   String get gameOverOracleNamingNameNowButton => 'NAMEN WÄHLEN';
 
   @override
+  String welcomeGiftBannerLux(int lux) {
+    return 'VELOUR-STARTGUT: +$lux LUX';
+  }
+
+  @override
+  String get oracleNamingDialogTitle => 'EXZELLENZ DEFINIERT DICH';
+
+  @override
+  String get oracleNamingDialogBody =>
+      'Wähle den Namen, unter dem dich das Orakel kennt. Er wird in Kleinbuchstaben gespeichert, um Duplikate zu vermeiden.';
+
+  @override
+  String get oracleNamingValidationRequired => 'Name erforderlich';
+
+  @override
+  String get oracleNamingValidationTooLong => 'Maximal 15 Zeichen';
+
+  @override
+  String get oracleNamingValidationInvalidChars =>
+      'Nur Buchstaben, Ziffern und _ (max. 15)';
+
+  @override
+  String get oracleNamingSaveError =>
+      'Speichern nicht möglich (Netzwerk oder Server). Erneut versuchen oder später schließen.';
+
+  @override
+  String get oracleNamingSealButton => 'NAMEN FESTLEGEN';
+
+  @override
+  String get oracleNamingFieldHint => 'ORACLE_NAME';
+
+  @override
   String get criticalFailureTitle => 'SYSTEM-ÜBERLASTUNG';
 
   @override

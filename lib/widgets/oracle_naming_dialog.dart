@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../game/oracle_pseudo.dart';
+import '../l10n/app_localizations.dart';
 import '../providers/game_state.dart';
 import '../theme/theme_engine.dart';
 
@@ -25,20 +26,21 @@ class _OracleNamingDialogState extends State<OracleNamingDialog> {
     super.dispose();
   }
 
-  String? _validate(String raw) {
+  String? _validate(String raw, AppLocalizations l10n) {
     final String v = raw.trim();
-    if (v.isEmpty) return 'Nom requis';
-    if (v.length > 15) return '15 caractères max';
+    if (v.isEmpty) return l10n.oracleNamingValidationRequired;
+    if (v.length > 15) return l10n.oracleNamingValidationTooLong;
     if (!OraclePseudo.isValid(v)) {
-      return 'Lettres, chiffres et _ uniquement (15 max)';
+      return l10n.oracleNamingValidationInvalidChars;
     }
     return null;
   }
 
   Future<void> _submit() async {
     if (_busy) return;
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
     final String raw = _c.text;
-    final String? err = _validate(raw);
+    final String? err = _validate(raw, l10n);
     if (err != null) {
       setState(() => _error = err);
       return;
@@ -52,8 +54,7 @@ class _OracleNamingDialogState extends State<OracleNamingDialog> {
     setState(() => _busy = false);
     if (!sealed) {
       setState(() {
-        _error =
-            'Enregistrement impossible (réseau ou serveur). Réessaie ou ferme pour plus tard.';
+        _error = l10n.oracleNamingSaveError;
       });
       return;
     }
@@ -62,6 +63,7 @@ class _OracleNamingDialogState extends State<OracleNamingDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
     final ThemeEngine te = context.watch<ThemeEngine>();
     final Color neon = te.colorForId(5);
     return Material(
@@ -107,7 +109,7 @@ class _OracleNamingDialogState extends State<OracleNamingDialog> {
                         children: [
                           Expanded(
                             child: Text(
-                              'L\'EXCELLENCE VOUS DÉFINIT',
+                              l10n.oracleNamingDialogTitle,
                               textAlign: TextAlign.center,
                               style: Theme.of(context).textTheme.titleSmall
                                   ?.copyWith(
@@ -118,7 +120,7 @@ class _OracleNamingDialogState extends State<OracleNamingDialog> {
                             ),
                           ),
                           IconButton(
-                            tooltip: 'Fermer',
+                            tooltip: l10n.settingsClose,
                             onPressed: () {
                               context.read<GameState>().dismissNamingDialog();
                               Navigator.of(
@@ -136,8 +138,7 @@ class _OracleNamingDialogState extends State<OracleNamingDialog> {
                       ),
                       const SizedBox(height: 10),
                       Text(
-                        'Choisissez le nom sous lequel l\'Oracle doit vous connaître. '
-                        'Il sera enregistré en minuscules pour éviter les doublons.',
+                        l10n.oracleNamingDialogBody,
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           height: 1.35,
@@ -157,7 +158,7 @@ class _OracleNamingDialogState extends State<OracleNamingDialog> {
                         ),
                         decoration: InputDecoration(
                           counterText: '',
-                          hintText: 'ORACLE_NAME',
+                          hintText: l10n.oracleNamingFieldHint,
                           hintStyle: Theme.of(context).textTheme.titleSmall
                               ?.copyWith(
                                 letterSpacing: 2.0,
@@ -208,7 +209,7 @@ class _OracleNamingDialogState extends State<OracleNamingDialog> {
                           ),
                         ),
                         child: Text(
-                          'SCELLER MON NOM',
+                          l10n.oracleNamingSealButton,
                           textAlign: TextAlign.center,
                           style: Theme.of(context).textTheme.labelLarge
                               ?.copyWith(

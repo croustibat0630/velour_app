@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../providers/game_state.dart';
 import '../../utils/responsive.dart';
 import '../../utils/route_transition_notifier.dart';
@@ -210,7 +211,10 @@ class _WelcomeGiftGlobalLayerState extends State<WelcomeGiftGlobalLayer>
                           child: FadeTransition(
                             opacity: _welcomeBannerFade,
                             child: RepaintBoundary(
-                              child: _WelcomeLuxBanner(scale: scaleH),
+                              child: _WelcomeLuxBanner(
+                                scale: scaleH,
+                                luxAmount: GameState.welcomeLuxGrant,
+                              ),
                             ),
                           ),
                         );
@@ -227,9 +231,10 @@ class _WelcomeGiftGlobalLayerState extends State<WelcomeGiftGlobalLayer>
 }
 
 class _WelcomeLuxBanner extends StatelessWidget {
-  const _WelcomeLuxBanner({required this.scale});
+  const _WelcomeLuxBanner({required this.scale, required this.luxAmount});
 
   final double scale;
+  final int luxAmount;
   static const Color _gold = Color(0xFFFFD700);
 
   @override
@@ -253,7 +258,7 @@ class _WelcomeLuxBanner extends StatelessWidget {
             ],
           ),
           child: Text(
-            'DOTATION VELOUR : +250 LUX',
+            AppLocalizations.of(context)!.welcomeGiftBannerLux(luxAmount),
             textAlign: TextAlign.center,
             style:
                 Theme.of(context).textTheme.bodySmall?.copyWith(

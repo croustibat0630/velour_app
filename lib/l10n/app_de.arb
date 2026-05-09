@@ -342,6 +342,20 @@
   "gameOverOracleNamingBannerTitle": "BESTENLISTE-EINTRAG",
   "gameOverOracleNamingBannerBody": "Lege deinen Namen fest, um in der weltweiten Bestenliste zu erscheinen.",
   "gameOverOracleNamingNameNowButton": "NAMEN WÄHLEN",
+  "welcomeGiftBannerLux": "VELOUR-STARTGUT: +{lux} LUX",
+  "@welcomeGiftBannerLux": {
+    "placeholders": {
+      "lux": {"type": "int"}
+    }
+  },
+  "oracleNamingDialogTitle": "EXZELLENZ DEFINIERT DICH",
+  "oracleNamingDialogBody": "Wähle den Namen, unter dem dich das Orakel kennt. Er wird in Kleinbuchstaben gespeichert, um Duplikate zu vermeiden.",
+  "oracleNamingValidationRequired": "Name erforderlich",
+  "oracleNamingValidationTooLong": "Maximal 15 Zeichen",
+  "oracleNamingValidationInvalidChars": "Nur Buchstaben, Ziffern und _ (max. 15)",
+  "oracleNamingSaveError": "Speichern nicht möglich (Netzwerk oder Server). Erneut versuchen oder später schließen.",
+  "oracleNamingSealButton": "NAMEN FESTLEGEN",
+  "oracleNamingFieldHint": "ORACLE_NAME",
   "criticalFailureTitle": "SYSTEM-ÜBERLASTUNG",
   "criticalFailureSubtitle": "VERBINDUNG VERLOREN",
   "criticalFailureResetButton": "SYSTEM ZURÜCKSETZEN",

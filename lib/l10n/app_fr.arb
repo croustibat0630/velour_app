@@ -234,6 +234,20 @@
   "gameOverOracleNamingBannerTitle": "ENTRÉE AU CLASSEMENT",
   "gameOverOracleNamingBannerBody": "Scelle ton nom pour apparaître dans le classement mondial.",
   "gameOverOracleNamingNameNowButton": "NOMMER",
+  "welcomeGiftBannerLux": "DOTATION VELOUR : +{lux} LUX",
+  "@welcomeGiftBannerLux": {
+    "placeholders": {
+      "lux": {"type": "int"}
+    }
+  },
+  "oracleNamingDialogTitle": "L'EXCELLENCE VOUS DÉFINIT",
+  "oracleNamingDialogBody": "Choisissez le nom sous lequel l'Oracle doit vous connaître. Il sera enregistré en minuscules pour éviter les doublons.",
+  "oracleNamingValidationRequired": "Nom requis",
+  "oracleNamingValidationTooLong": "15 caractères max",
+  "oracleNamingValidationInvalidChars": "Lettres, chiffres et _ uniquement (15 max)",
+  "oracleNamingSaveError": "Enregistrement impossible (réseau ou serveur). Réessaie ou ferme pour plus tard.",
+  "oracleNamingSealButton": "SCELLER MON NOM",
+  "oracleNamingFieldHint": "ORACLE_NAME",
   "criticalFailureTitle": "SURCHARGE SYSTÈME",
   "criticalFailureSubtitle": "CONNEXION PERDUE",
   "criticalFailureResetButton": "RÉINITIALISER LE SYSTÈME",

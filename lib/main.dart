@@ -128,35 +128,6 @@ Future<void> main() async {
     }
   }
 
-  // If no debug token was provided, still expose the generated token in logs so
-  // it can be registered in Firebase Console (App Check -> Debug tokens).
-  if (!kIsWeb &&
-      !kReleaseMode &&
-      debugAppCheckToken.isEmpty &&
-      (defaultTargetPlatform == TargetPlatform.iOS ||
-          defaultTargetPlatform == TargetPlatform.macOS)) {
-    unawaited(() async {
-      // The channel may be registered slightly after Dart starts.
-      await Future<void>.delayed(const Duration(milliseconds: 200));
-      const MethodChannel ch = MethodChannel('velour/app_check');
-      Object? lastErr;
-      for (int i = 0; i < 25; i++) {
-        try {
-          final String? t = await ch.invokeMethod<String>('getDebugToken');
-          if (t != null && t.isNotEmpty) {
-            debugPrint('Firebase App Check debug token (iOS): $t');
-            return;
-          }
-          lastErr = 'empty_token';
-        } catch (e) {
-          lastErr = e;
-        }
-        await Future<void>.delayed(const Duration(milliseconds: 120));
-      }
-      debugPrint('App Check debug token read failed: $lastErr');
-    }());
-  }
-
   // Réduit le timeout interne « preparation » d’audioplayers (30s par défaut) pour
   // éviter des TimeoutException fantômes remontées à Crashlytics après nos awaits.
   AudioHandler.installAudioplayersTimeoutGuardsEarly();
@@ -199,6 +170,36 @@ Future<void> main() async {
   ]);
 
   runApp(const VelourApp());
+
+  // If no debug token was provided, print the generated iOS debug token after
+  // the engine+plugins have fully bootstrapped (avoids MissingPluginException).
+  if (!kIsWeb &&
+      !kReleaseMode &&
+      debugAppCheckToken.isEmpty &&
+      (defaultTargetPlatform == TargetPlatform.iOS ||
+          defaultTargetPlatform == TargetPlatform.macOS)) {
+    unawaited(() async {
+      WidgetsBinding.instance.addPostFrameCallback((_) {});
+      // Give iOS a bit of time to finish registering channels/plugins.
+      await Future<void>.delayed(const Duration(seconds: 2));
+      const MethodChannel ch = MethodChannel('velour/app_check');
+      Object? lastErr;
+      for (int i = 0; i < 60; i++) {
+        try {
+          final String? t = await ch.invokeMethod<String>('getDebugToken');
+          if (t != null && t.isNotEmpty) {
+            debugPrint('Firebase App Check debug token (iOS): $t');
+            return;
+          }
+          lastErr = 'empty_token';
+        } catch (e) {
+          lastErr = e;
+        }
+        await Future<void>.delayed(const Duration(milliseconds: 200));
+      }
+      debugPrint('App Check debug token read failed: $lastErr');
+    }());
+  }
 }
 
 class VelourApp extends StatelessWidget {

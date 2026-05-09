@@ -39,6 +39,17 @@ class AudioHandler {
   Future<void>? _preloadGameSfxFuture;
   static bool _installedAudioplayersTimeouts = false;
 
+  /// Sur iOS (surtout simulateur) + hot restart, plusieurs `setSource` / `play`
+  /// asset en parallèle (préload, [unlockAudio], [_ensureTapReady] en arrière-plan)
+  /// peuvent faire expirer toute la pile (12 s). Tout passe par ce chaînage.
+  Future<void> _nativeSourceLoadSerial = Future<void>.value();
+
+  Future<T> _withNativeSourceLoadLock<T>(Future<T> Function() op) {
+    final Future<T> work = _nativeSourceLoadSerial.then<T>((_) => op());
+    _nativeSourceLoadSerial = work.then<void>((_) {}).catchError((_) {});
+    return work;
+  }
+
   static void _installAudioplayersTimeoutGuards() {
     if (_installedAudioplayersTimeouts) return;
     _installedAudioplayersTimeouts = true;
@@ -208,47 +219,49 @@ class AudioHandler {
   Future<bool> _setupPooledSfx({
     required AudioPlayer player,
     required String fileName,
-  }) async {
-    Future<void> loadCore() async {
-      if (!kIsWeb) {
-        await player.setAudioContext(velourGameAudioContext());
+  }) {
+    return _withNativeSourceLoadLock(() async {
+      Future<void> loadCore() async {
+        if (!kIsWeb) {
+          await player.setAudioContext(velourGameAudioContext());
+        }
+        await player.setPlayerMode(PlayerMode.lowLatency);
+        await player.setReleaseMode(ReleaseMode.stop);
+        await player.setSource(_sourceFor(fileName));
       }
-      await player.setPlayerMode(PlayerMode.lowLatency);
-      await player.setReleaseMode(ReleaseMode.stop);
-      await player.setSource(_sourceFor(fileName));
-    }
 
-    try {
-      await loadCore().timeout(_pooledSfxLoadTimeout);
-    } on TimeoutException {
-      velourAudioTrace(
-        'AudioHandler._setupPooledSfx setSource TIMEOUT file=$fileName '
-        'after ${_pooledSfxLoadTimeout.inSeconds}s',
-      );
-      return false;
-    } catch (e, st) {
-      velourAudioTrace(
-        'AudioHandler._setupPooledSfx loadCore failed file=$fileName err=$e',
-      );
-      velourAudioTrace('$st');
-      return false;
-    }
+      try {
+        await loadCore().timeout(_pooledSfxLoadTimeout);
+      } on TimeoutException {
+        velourAudioTrace(
+          'AudioHandler._setupPooledSfx setSource TIMEOUT file=$fileName '
+          'after ${_pooledSfxLoadTimeout.inSeconds}s',
+        );
+        return false;
+      } catch (e, st) {
+        velourAudioTrace(
+          'AudioHandler._setupPooledSfx loadCore failed file=$fileName err=$e',
+        );
+        velourAudioTrace('$st');
+        return false;
+      }
 
-    try {
-      await _warmUpSfxDecoder(player).timeout(_pooledSfxWarmTimeout);
-    } on TimeoutException {
-      velourAudioTrace(
-        'AudioHandler._warmUpSfxDecoder timeout file=$fileName '
-        'after ${_pooledSfxWarmTimeout.inSeconds}s',
-      );
-    } catch (_) {
-      // Best-effort warm-up (session / simulateur).
-    }
+      try {
+        await _warmUpSfxDecoder(player).timeout(_pooledSfxWarmTimeout);
+      } on TimeoutException {
+        velourAudioTrace(
+          'AudioHandler._warmUpSfxDecoder timeout file=$fileName '
+          'after ${_pooledSfxWarmTimeout.inSeconds}s',
+        );
+      } catch (_) {
+        // Best-effort warm-up (session / simulateur).
+      }
 
-    try {
-      await player.setVolume(1.0);
-    } catch (_) {}
-    return true;
+      try {
+        await player.setVolume(1.0);
+      } catch (_) {}
+      return true;
+    });
   }
 
   /// Précharge match (pool) + perfect (mono pool).
@@ -475,15 +488,17 @@ class AudioHandler {
     if (_disabled) return;
     if (muted.value) return;
     try {
-      await configureVelourAudioPipeline(activateSession: true);
-      await configure();
-      velourAudioTrace('playMusic: starting $fileName');
-      await _bgm.play(
-        _sourceFor(fileName),
-        mode: PlayerMode.mediaPlayer,
-        volume: 0.42,
-        ctx: velourGameAudioContext(),
-      );
+      await _withNativeSourceLoadLock(() async {
+        await configureVelourAudioPipeline(activateSession: true);
+        await configure();
+        velourAudioTrace('playMusic: starting $fileName');
+        await _bgm.play(
+          _sourceFor(fileName),
+          mode: PlayerMode.mediaPlayer,
+          volume: 0.42,
+          ctx: velourGameAudioContext(),
+        );
+      });
       _bgmStarted = true;
       velourAudioTrace('playMusic: _bgm.play completed');
     } on AudioPlayerException catch (e, st) {
@@ -771,42 +786,44 @@ class AudioHandler {
     double? playbackRate,
   }) async {
     try {
-      await configure();
-      if (_disabled) return;
+      await _withNativeSourceLoadLock(() async {
+        await configure();
+        if (_disabled) return;
 
-      final AudioPlayer p = AudioPlayer();
-      try {
-        if (!kIsWeb) {
-          await p.setAudioContext(velourGameAudioContext());
-        }
-        // Darwin (surtout simulateur) : lecteur jetable + lowLatency peut échouer sur
-        // `setSource` (AVPlayerItem.Status.failed) après reconfig session — mediaPlayer
-        // reste acceptable pour ces one-shots courts (clic menu, etc.).
-        final bool appleOneShot =
-            !kIsWeb &&
-            (defaultTargetPlatform == TargetPlatform.iOS ||
-                defaultTargetPlatform == TargetPlatform.macOS);
-        await p.setPlayerMode(
-          appleOneShot ? PlayerMode.mediaPlayer : PlayerMode.lowLatency,
-        );
-        await p.setReleaseMode(ReleaseMode.stop);
-        await p.setSource(_sourceFor(fileName));
-        if (!kIsWeb &&
-            playbackRate != null &&
-            playbackRate > 0 &&
-            (playbackRate - 1.0).abs() > 0.001) {
-          await p.setPlaybackRate(playbackRate);
-        }
-        await p.setVolume(volume.clamp(0.0, 1.0));
-        await p.resume();
-        await Future<void>.delayed(Duration(milliseconds: holdMs));
-      } catch (_) {
-        // Intentionally silent.
-      } finally {
+        final AudioPlayer p = AudioPlayer();
         try {
-          await p.dispose();
-        } catch (_) {}
-      }
+          if (!kIsWeb) {
+            await p.setAudioContext(velourGameAudioContext());
+          }
+          // Darwin (surtout simulateur) : lecteur jetable + lowLatency peut échouer sur
+          // `setSource` (AVPlayerItem.Status.failed) après reconfig session — mediaPlayer
+          // reste acceptable pour ces one-shots courts (clic menu, etc.).
+          final bool appleOneShot =
+              !kIsWeb &&
+              (defaultTargetPlatform == TargetPlatform.iOS ||
+                  defaultTargetPlatform == TargetPlatform.macOS);
+          await p.setPlayerMode(
+            appleOneShot ? PlayerMode.mediaPlayer : PlayerMode.lowLatency,
+          );
+          await p.setReleaseMode(ReleaseMode.stop);
+          await p.setSource(_sourceFor(fileName));
+          if (!kIsWeb &&
+              playbackRate != null &&
+              playbackRate > 0 &&
+              (playbackRate - 1.0).abs() > 0.001) {
+            await p.setPlaybackRate(playbackRate);
+          }
+          await p.setVolume(volume.clamp(0.0, 1.0));
+          await p.resume();
+          await Future<void>.delayed(Duration(milliseconds: holdMs));
+        } catch (_) {
+          // Intentionally silent.
+        } finally {
+          try {
+            await p.dispose();
+          } catch (_) {}
+        }
+      });
     } catch (_) {
       // Intentionally silent.
     }

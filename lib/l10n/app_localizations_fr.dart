@@ -213,6 +213,18 @@ class AppLocalizationsFr extends AppLocalizations {
       'Jeu réinitialisé. Relancez pour voir le tutoriel.';
 
   @override
+  String get settingsDebugResetWelcomeTitle =>
+      'Réinitialiser le cadeau de bienvenue';
+
+  @override
+  String get settingsDebugResetWelcomeSubtitle =>
+      'firstLaunch + LUX 0 (test des 250 LUX au prochain tap menu)';
+
+  @override
+  String get settingsDebugResetWelcomeSnack =>
+      'Cadeau réinitialisé. Retourne au menu principal et tape un bouton.';
+
+  @override
   String get settingsFooterTagline => 'Dark Matte • Velour Accent';
 
   @override

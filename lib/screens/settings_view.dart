@@ -361,6 +361,28 @@ class SettingsView extends StatelessWidget {
                                     }());
                                   },
                                 ),
+                                const _TileDivider(),
+                                _ActionTile(
+                                  icon: Icons.card_giftcard_rounded,
+                                  title: l10n.settingsDebugResetWelcomeTitle,
+                                  subtitle:
+                                      l10n.settingsDebugResetWelcomeSubtitle,
+                                  accent: const Color(0xFFFFD700),
+                                  onTap: () {
+                                    unawaited(() async {
+                                      await context
+                                          .read<GameState>()
+                                          .debugResetFirstLaunchWelcome();
+                                      if (!context.mounted) return;
+                                      showVelourSnackBar(
+                                        context,
+                                        l10n.settingsDebugResetWelcomeSnack,
+                                        accent: const Color(0xFFFFD700),
+                                        icon: Icons.card_giftcard_rounded,
+                                      );
+                                    }());
+                                  },
+                                ),
                               ],
                             ),
                           ],

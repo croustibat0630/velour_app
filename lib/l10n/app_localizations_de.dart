@@ -215,6 +215,18 @@ class AppLocalizationsDe extends AppLocalizations {
       'Spiel zurückgesetzt. Bitte App neu starten, um das Tutorial zu sehen.';
 
   @override
+  String get settingsDebugResetWelcomeTitle =>
+      'Willkommensgeschenk zurücksetzen';
+
+  @override
+  String get settingsDebugResetWelcomeSubtitle =>
+      'firstLaunch + 0 LUX (250 LUX beim nächsten Menü-Tap testen)';
+
+  @override
+  String get settingsDebugResetWelcomeSnack =>
+      'Willkommensgeschenk zurückgesetzt. Zum Hauptmenü und eine Schaltfläche tippen.';
+
+  @override
   String get settingsFooterTagline => 'Dark Matte • Velour-Akzent';
 
   @override

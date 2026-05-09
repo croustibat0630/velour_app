@@ -460,6 +460,24 @@ abstract class AppLocalizations {
   /// **'Game reset. Relaunch the app to see the tutorial.'**
   String get settingsResetSnack;
 
+  /// No description provided for @settingsDebugResetWelcomeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset welcome gift'**
+  String get settingsDebugResetWelcomeTitle;
+
+  /// No description provided for @settingsDebugResetWelcomeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'firstLaunch + LUX 0 (test 250 LUX on next menu tap)'**
+  String get settingsDebugResetWelcomeSubtitle;
+
+  /// No description provided for @settingsDebugResetWelcomeSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome gift reset. Return to the main menu and tap a button.'**
+  String get settingsDebugResetWelcomeSnack;
+
   /// No description provided for @settingsFooterTagline.
   ///
   /// In en, this message translates to:

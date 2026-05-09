@@ -212,6 +212,17 @@ class AppLocalizationsEn extends AppLocalizations {
       'Game reset. Relaunch the app to see the tutorial.';
 
   @override
+  String get settingsDebugResetWelcomeTitle => 'Reset welcome gift';
+
+  @override
+  String get settingsDebugResetWelcomeSubtitle =>
+      'firstLaunch + LUX 0 (test 250 LUX on next menu tap)';
+
+  @override
+  String get settingsDebugResetWelcomeSnack =>
+      'Welcome gift reset. Return to the main menu and tap a button.';
+
+  @override
   String get settingsFooterTagline => 'Dark Matte • Velour Accent';
 
   @override

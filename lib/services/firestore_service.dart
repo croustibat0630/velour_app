@@ -849,6 +849,26 @@ class FirestoreService {
     }
   }
 
+  /// Corps renvoyé par [velourHealth] (souplesse pont natif / JSON).
+  static bool _velourHealthPayloadOk(Object? data) {
+    if (data == true) {
+      return true;
+    }
+    if (data is! Map) {
+      return false;
+    }
+    final Map<Object?, Object?> m = Map<Object?, Object?>.from(data);
+    Object? ok = m['ok'];
+    if (ok == true || ok == 'true' || ok == 1) {
+      return true;
+    }
+    final Object? nested = m['result'] ?? m['data'];
+    if (nested is Map) {
+      return _velourHealthPayloadOk(nested);
+    }
+    return false;
+  }
+
   /// Appel unique [velourHealth] — même région que [tryApplyLuxDeltaViaCallable].
   Future<bool> _callVelourHealthCallableOnce() async {
     final FirebaseFunctions fns = FirebaseFunctions.instanceFor(
@@ -860,19 +880,97 @@ class FirestoreService {
       options: HttpsCallableOptions(timeout: const Duration(seconds: 12)),
     );
     final HttpsCallableResult res = await callable.call(<String, dynamic>{});
-    final Object? data = res.data;
-    if (data is! Map) return false;
-    final Map<String, dynamic> raw = Map<String, dynamic>.from(data);
-    return raw['ok'] == true;
+    return _velourHealthPayloadOk(res.data);
+  }
+
+  /// Si la callable [velourHealth] n’est pas déployée (`not-found`), vérifie au moins
+  /// que Firestore projet + auth + règles répondent (même profil que le jeu en ligne).
+  Future<bool> _pingVelourHealthFirestoreFallback() async {
+    final DocumentReference<Map<String, dynamic>>? ref = _playerRef;
+    if (ref == null) return false;
+    try {
+      await _firestoreRetry(() async {
+        await ref.get(const GetOptions(source: Source.server));
+      });
+      return true;
+    } catch (e, st) {
+      VelourObservability.logFirestoreFailure(
+        'velourHealth.firestore_fallback',
+        error: e,
+        stackTrace: st,
+      );
+      return false;
+    }
+  }
+
+  Future<void> _refreshAuthAndAppCheckForCallable() async {
+    try {
+      await FirebaseAppCheck.instance.getToken(true);
+    } catch (_) {}
+    try {
+      await ensureAnonymousAuthReady();
+    } catch (_) {}
+    try {
+      await FirebaseAuth.instance.currentUser?.getIdToken(true);
+    } catch (_) {}
+  }
+
+  /// Une tentative [velourHealth] + audit. Propage `unauthenticated` /
+  /// `failed-precondition` pour retente ; gère `not-found` par repli Firestore.
+  Future<bool> _pingVelourHealthInvokeOnce({required String phase}) async {
+    try {
+      final bool ok = await _callVelourHealthCallableOnce();
+      _firestoreAudit(
+        'velourHealth.end',
+        data: <String, Object?>{'ok': ok, 'phase': phase},
+      );
+      return ok;
+    } on FirebaseFunctionsException catch (e, st) {
+      _firestoreAudit(
+        'velourHealth.callable_error',
+        data: <String, Object?>{
+          'phase': phase,
+          'code': e.code,
+          'message': e.message,
+        },
+      );
+      if (e.code == 'not-found') {
+        final bool fbOk = await _pingVelourHealthFirestoreFallback();
+        _firestoreAudit(
+          'velourHealth.end',
+          data: <String, Object?>{
+            'ok': fbOk,
+            'phase': phase,
+            'reason': 'callable_not_found_firestore_fallback',
+          },
+        );
+        return fbOk;
+      }
+      if (e.code == 'unauthenticated' || e.code == 'failed-precondition') {
+        rethrow;
+      }
+      VelourObservability.logFirestoreFailure(
+        'velourHealth',
+        error: e,
+        stackTrace: st,
+        context: <String, Object?>{'phase': phase, 'code': e.code},
+      );
+      _firestoreAudit(
+        'velourHealth.end',
+        data: <String, Object?>{'ok': false, 'phase': phase, 'code': e.code},
+      );
+      return false;
+    }
   }
 
   /// Ping simple de santé côté serveur (callable `velourHealth`).
   ///
-  /// Retourne `true` si la callable répond avec `{ ok: true }`.
+  /// Retourne `true` si la callable répond avec un corps `{ ok: true }` (ou équivalent),
+  /// ou si la callable est absente (`not-found`) mais Firestore joueur répond en serveur
+  /// (déploiement Functions partiel — le jeu peut quand même être en ligne).
   ///
-  /// Aligné sur [tryApplyLuxDeltaViaCallable] : rafraîchissement jeton Auth + une
-  /// retente après `unauthenticated` (sinon le snackbar « réseau / App Check » alors
-  /// que les autres callables passent déjà).
+  /// Aligné sur [tryApplyLuxDeltaViaCallable] : rafraîchissement Auth / App Check + retente
+  /// après `unauthenticated` ou `failed-precondition` (App Check côté Functions).
   Future<bool> pingVelourHealth() async {
     const bool forceOffline = bool.fromEnvironment(
       'VELOUR_FORCE_OFFLINE',
@@ -882,44 +980,57 @@ class FirestoreService {
 
     _syncAuthFieldsFromFirebaseAuthIfPossible();
     await ensureAnonymousAuthReady();
-    if (!isCloudReady) return false;
-
-    try {
-      await FirebaseAuth.instance.currentUser?.getIdToken(true);
-    } catch (_) {}
-
-    try {
-      return await _callVelourHealthCallableOnce();
-    } on FirebaseFunctionsException catch (e, st) {
-      if (e.code == 'unauthenticated') {
-        try {
-          await FirebaseAppCheck.instance.getToken(true);
-        } catch (_) {}
-        try {
-          await ensureAnonymousAuthReady();
-          await FirebaseAuth.instance.currentUser?.getIdToken(true);
-          return await _callVelourHealthCallableOnce();
-        } catch (e2, st2) {
-          VelourObservability.logFirestoreFailure(
-            'velourHealth.retry_auth',
-            error: e2,
-            stackTrace: st2,
-            context: <String, Object?>{'firstCode': e.code},
-          );
-        }
-      }
-      VelourObservability.logFirestoreFailure(
-        'velourHealth',
-        error: e,
-        stackTrace: st,
-        context: <String, Object?>{'code': e.code},
+    if (!isCloudReady) {
+      _firestoreAudit(
+        'velourHealth.end',
+        data: <String, Object?>{'ok': false, 'reason': 'cloud_not_ready'},
       );
       return false;
+    }
+
+    await _refreshAuthAndAppCheckForCallable();
+
+    try {
+      return await _pingVelourHealthInvokeOnce(phase: 'primary');
+    } on FirebaseFunctionsException catch (e, _) {
+      if (e.code == 'unauthenticated' || e.code == 'failed-precondition') {
+        await _refreshAuthAndAppCheckForCallable();
+        try {
+          return await _pingVelourHealthInvokeOnce(phase: 'retry');
+        } on FirebaseFunctionsException catch (e2, st2) {
+          VelourObservability.logFirestoreFailure(
+            'velourHealth.retry',
+            error: e2,
+            stackTrace: st2,
+            context: <String, Object?>{
+              'firstCode': e.code,
+              'secondCode': e2.code,
+            },
+          );
+          _firestoreAudit(
+            'velourHealth.end',
+            data: <String, Object?>{
+              'ok': false,
+              'phase': 'retry',
+              'code': e2.code,
+            },
+          );
+          return false;
+        }
+      }
+      rethrow;
     } catch (e, st) {
       VelourObservability.logFirestoreFailure(
         'velourHealth',
         error: e,
         stackTrace: st,
+      );
+      _firestoreAudit(
+        'velourHealth.end',
+        data: <String, Object?>{
+          'ok': false,
+          'reason': 'non_functions_exception',
+        },
       );
       return false;
     }

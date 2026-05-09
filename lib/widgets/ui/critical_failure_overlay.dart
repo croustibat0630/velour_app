@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 
+import 'package:velour_app/l10n/app_localizations.dart';
+
 import '../../utils/responsive.dart';
 import '../../utils/velour_accessibility.dart';
 
@@ -52,6 +54,7 @@ class _CriticalFailureOverlayState extends State<CriticalFailureOverlay>
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
     final double s = Responsive.compactHeightScale(context);
     final bool reduceMotion = velourReduceMotion(context);
     return Stack(
@@ -82,7 +85,7 @@ class _CriticalFailureOverlayState extends State<CriticalFailureOverlay>
                           child: Opacity(
                             opacity: a,
                             child: Text(
-                              'SYSTEM OVERCHARGE',
+                              l10n.criticalFailureTitle,
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontFamily: 'monospace',
@@ -111,7 +114,7 @@ class _CriticalFailureOverlayState extends State<CriticalFailureOverlay>
                     Opacity(
                       opacity: a,
                       child: Text(
-                        'CONNECTION LOST',
+                        l10n.criticalFailureSubtitle,
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontFamily: 'monospace',
@@ -143,7 +146,7 @@ class _CriticalFailureOverlayState extends State<CriticalFailureOverlay>
                         ),
                       ),
                       child: Text(
-                        'REINITIALISER LE SYSTEME',
+                        l10n.criticalFailureResetButton,
                         style: TextStyle(
                           fontFamily: 'monospace',
                           fontWeight: FontWeight.w800,

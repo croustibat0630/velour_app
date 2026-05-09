@@ -1107,6 +1107,30 @@ abstract class AppLocalizations {
   /// **'NAME IT'**
   String get gameOverOracleNamingNameNowButton;
 
+  /// No description provided for @criticalFailureTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'SYSTEM OVERCHARGE'**
+  String get criticalFailureTitle;
+
+  /// No description provided for @criticalFailureSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'CONNECTION LOST'**
+  String get criticalFailureSubtitle;
+
+  /// No description provided for @criticalFailureResetButton.
+  ///
+  /// In en, this message translates to:
+  /// **'RESET SYSTEM'**
+  String get criticalFailureResetButton;
+
+  /// No description provided for @gameSequenceCompletedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'SEQUENCE COMPLETE'**
+  String get gameSequenceCompletedTitle;
+
   /// No description provided for @oracleDockStep1Shape.
   ///
   /// In en, this message translates to:

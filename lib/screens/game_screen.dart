@@ -2916,7 +2916,7 @@ class _SequenceCompletedFlashState extends State<_SequenceCompletedFlash>
               child: Opacity(
                 opacity: a,
                 child: Text(
-                  'SEQUENCE COMPLETED',
+                  AppLocalizations.of(context)!.gameSequenceCompletedTitle,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontFamily: 'monospace',

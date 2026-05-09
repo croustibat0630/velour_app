@@ -597,6 +597,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gameOverOracleNamingNameNowButton => 'NAME IT';
 
   @override
+  String get criticalFailureTitle => 'SYSTEM OVERCHARGE';
+
+  @override
+  String get criticalFailureSubtitle => 'CONNECTION LOST';
+
+  @override
+  String get criticalFailureResetButton => 'RESET SYSTEM';
+
+  @override
+  String get gameSequenceCompletedTitle => 'SEQUENCE COMPLETE';
+
+  @override
   String get oracleDockStep1Shape =>
       'Shape = +100 LUX (min.)\nSame silhouette • 3 colors → rack';
 

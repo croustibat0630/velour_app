@@ -587,6 +587,24 @@ class FirestoreService {
       motif,
       idempotencyKey,
     );
+
+    // Ensure auth is ready and token refreshed before calling Functions.
+    // This reduces "unauthenticated" flakiness after hot restart / iOS simulator.
+    try {
+      await ensureAnonymousAuthReady();
+      await FirebaseAuth.instance.currentUser?.getIdToken(true);
+    } catch (e) {
+      _firestoreAudit(
+        'lux_apply.auth_refresh_failed',
+        data: <String, Object?>{
+          'delta': delta,
+          'motif': motif,
+          'uid': FirebaseAuth.instance.currentUser?.uid,
+          'isAnonymous': FirebaseAuth.instance.currentUser?.isAnonymous,
+          'error': e.toString(),
+        },
+      );
+    }
     _firestoreAudit(
       'lux_apply.begin',
       data: <String, Object?>{
@@ -676,8 +694,17 @@ class FirestoreService {
         try {
           final String? t = await FirebaseAppCheck.instance.getToken(true);
           appCheckTokenKind = (t == null || t.isEmpty) ? 'missing' : 'present';
-        } catch (_) {
-          appCheckTokenKind = 'error';
+        } catch (appCheckErr) {
+          appCheckTokenKind = 'error:${appCheckErr.runtimeType}';
+        }
+
+        String? idTokenState;
+        try {
+          final IdTokenResult? r = await FirebaseAuth.instance.currentUser
+              ?.getIdTokenResult(true);
+          idTokenState = r == null ? 'missing' : 'ok';
+        } catch (tokenErr) {
+          idTokenState = 'error:${tokenErr.runtimeType}';
         }
         _firestoreAudit(
           'lux_apply.retry_auth',
@@ -688,6 +715,7 @@ class FirestoreService {
             'uid': FirebaseAuth.instance.currentUser?.uid,
             'isAnonymous': FirebaseAuth.instance.currentUser?.isAnonymous,
             'appCheckToken': appCheckTokenKind,
+            'idToken': idTokenState,
           },
         );
         try {

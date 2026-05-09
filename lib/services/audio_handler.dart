@@ -779,7 +779,16 @@ class AudioHandler {
         if (!kIsWeb) {
           await p.setAudioContext(velourGameAudioContext());
         }
-        await p.setPlayerMode(PlayerMode.lowLatency);
+        // Darwin (surtout simulateur) : lecteur jetable + lowLatency peut échouer sur
+        // `setSource` (AVPlayerItem.Status.failed) après reconfig session — mediaPlayer
+        // reste acceptable pour ces one-shots courts (clic menu, etc.).
+        final bool appleOneShot =
+            !kIsWeb &&
+            (defaultTargetPlatform == TargetPlatform.iOS ||
+                defaultTargetPlatform == TargetPlatform.macOS);
+        await p.setPlayerMode(
+          appleOneShot ? PlayerMode.mediaPlayer : PlayerMode.lowLatency,
+        );
         await p.setReleaseMode(ReleaseMode.stop);
         await p.setSource(_sourceFor(fileName));
         if (!kIsWeb &&

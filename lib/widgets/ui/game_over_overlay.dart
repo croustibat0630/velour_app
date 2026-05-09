@@ -283,15 +283,21 @@ class _GameOverOverlayState extends State<GameOverOverlay>
 
               return LayoutBuilder(
                 builder: (context, constraints) {
-                  final double maxW = (constraints.maxWidth - 36)
-                      .clamp(0.0, 460.0)
-                      .toDouble();
+                  final Size screen = MediaQuery.sizeOf(context);
+                  final double safeW = constraints.hasBoundedWidth
+                      ? constraints.maxWidth
+                      : screen.width;
+                  final double safeH = constraints.hasBoundedHeight
+                      ? constraints.maxHeight
+                      : screen.height;
+
+                  final double maxW = (safeW - 36).clamp(0.0, 460.0).toDouble();
                   // Important: inside a Stack/Positioned.fill, Align can pass
                   // unbounded height to its child. A ScrollView viewport must
                   // have a bounded height, otherwise Flutter asserts `hasSize`.
                   return SizedBox(
-                    width: constraints.maxWidth,
-                    height: constraints.maxHeight,
+                    width: safeW,
+                    height: safeH,
                     child: Align(
                       alignment: Alignment.topCenter,
                       child: SizedBox(

@@ -1023,6 +1023,7 @@ class _PerfectHeatHudRow extends StatelessWidget {
       tierC.clamp(1, 5),
     );
     final bool showHudBonus = !rebound && tier >= 2 && luxPctHud > 0;
+    final bool showHudTier1Neutral = !rebound && tier == 1;
 
     return Padding(
       padding: EdgeInsets.only(top: 5 * scaleH),
@@ -1096,6 +1097,28 @@ class _PerfectHeatHudRow extends StatelessWidget {
                           ),
                           Shadow(
                             color: Colors.black.withValues(alpha: 0.55),
+                            blurRadius: 3,
+                            offset: const Offset(0, 1),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                else if (showHudTier1Neutral)
+                  Flexible(
+                    child: Text(
+                      multHud,
+                      textAlign: TextAlign.end,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.montserrat(
+                        fontSize: (8 * scaleT).clamp(7.0, 10.0),
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.3,
+                        color: Colors.white.withValues(alpha: 0.52),
+                        shadows: [
+                          Shadow(
+                            color: Colors.black.withValues(alpha: 0.5),
                             blurRadius: 3,
                             offset: const Offset(0, 1),
                           ),

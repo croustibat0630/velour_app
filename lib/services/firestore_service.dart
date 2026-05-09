@@ -561,17 +561,6 @@ class FirestoreService {
         functionErrorCode: null,
       );
     }
-    if (!_authReady || _uid == null) {
-      _firestoreAudit(
-        'lux_apply.skipped',
-        data: <String, Object?>{
-          'reason': 'auth_not_ready',
-          'delta': delta,
-          'motif': motif,
-        },
-      );
-      return null;
-    }
     if (forceOffline) {
       _firestoreAudit(
         'lux_apply.skipped',
@@ -583,15 +572,43 @@ class FirestoreService {
       );
       return null;
     }
+
+    // Toujours tenter l’auth anonyme avant le garde-fou `_authReady` : sinon les
+    // deltas (ex. forge boutique, flush lifecycle) échouent au retour menu si le
+    // splash n’a pas encore fini ou si l’init était différée.
+    try {
+      await ensureAnonymousAuthReady();
+    } catch (e) {
+      _firestoreAudit(
+        'lux_apply.ensure_auth_failed',
+        data: <String, Object?>{
+          'delta': delta,
+          'motif': motif,
+          'error': e.toString(),
+        },
+      );
+    }
+
+    if (!_authReady || _uid == null) {
+      _firestoreAudit(
+        'lux_apply.skipped',
+        data: <String, Object?>{
+          'reason': 'auth_not_ready',
+          'delta': delta,
+          'motif': motif,
+        },
+      );
+      return null;
+    }
+
     final String resolvedKey = _resolvedLuxApplyIdempotencyKey(
       motif,
       idempotencyKey,
     );
 
-    // Ensure auth is ready and token refreshed before calling Functions.
-    // This reduces "unauthenticated" flakiness after hot restart / iOS simulator.
+    // Rafraîchit le jeton avant la callable (réduit les « unauthenticated » après
+    // hot restart / simulateur).
     try {
-      await ensureAnonymousAuthReady();
       await FirebaseAuth.instance.currentUser?.getIdToken(true);
     } catch (e) {
       _firestoreAudit(

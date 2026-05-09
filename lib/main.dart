@@ -171,6 +171,36 @@ Future<void> main() async {
 
   runApp(const VelourApp());
 
+  // iOS simulator App Check debug: expose the generated token so it can be
+  // registered in Firebase Console (App Check -> Debug tokens).
+  //
+  // We fetch it via MethodChannel after the app is running to avoid
+  // timing-sensitive startup failures.
+  if (!kIsWeb &&
+      !kReleaseMode &&
+      debugAppCheckToken.isEmpty &&
+      defaultTargetPlatform == TargetPlatform.iOS) {
+    unawaited(() async {
+      await Future<void>.delayed(const Duration(seconds: 3));
+      const MethodChannel ch = MethodChannel('velour/app_check');
+      Object? lastErr;
+      for (int i = 0; i < 80; i++) {
+        try {
+          final String? t = await ch.invokeMethod<String>('getDebugToken');
+          if (t != null && t.isNotEmpty) {
+            debugPrint('Firebase App Check debug token (iOS): $t');
+            return;
+          }
+          lastErr = 'empty_token';
+        } catch (e) {
+          lastErr = e;
+        }
+        await Future<void>.delayed(const Duration(milliseconds: 250));
+      }
+      debugPrint('App Check debug token read failed: $lastErr');
+    }());
+  }
+
   // iOS App Check debug token is printed natively (see AppDelegate) because
   // early MethodChannel calls are timing-sensitive during engine bootstrap.
 }

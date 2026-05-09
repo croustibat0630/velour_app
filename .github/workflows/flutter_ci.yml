@@ -59,3 +59,23 @@ jobs:
 
       - name: Build web (release)
         run: flutter build web --release --no-wasm-dry-run
+
+  integration_smoke_macos:
+    name: Integration smoke (macOS)
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Dependencies
+        run: flutter pub get
+
+      - name: Integration smoke (-d macos)
+        run: flutter test integration_test/smoke_test.dart -d macos

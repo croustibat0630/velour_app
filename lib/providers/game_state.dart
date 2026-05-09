@@ -270,11 +270,13 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
   Rect _luxSafeRect = Rect.zero;
   double _boardSpawnMinY = 0;
 
-  Timer? _matchTimer;
+  final GameStateSingleTimerSlot _matchTimerSlot = GameStateSingleTimerSlot();
   final GameStateSingleTimerSlot _timeLoopSlot = GameStateSingleTimerSlot();
   DateTime? _lastTimeTickAt;
-  Timer? _matchParticleClearTimer;
-  Timer? _comboFloaterClearTimer;
+  final GameStateSingleTimerSlot _matchParticleClearSlot =
+      GameStateSingleTimerSlot();
+  final GameStateSingleTimerSlot _comboFloaterClearSlot =
+      GameStateSingleTimerSlot();
 
   /// True tant qu’un check match est armé (délai avant résolution).
   bool _awaitingScheduledMatch = false;
@@ -465,7 +467,8 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
   bool _isLevelTransitionInProgress = false;
   bool get isLevelTransitionInProgress => _isLevelTransitionInProgress;
   int? _pendingLevelUpNeedLux;
-  Timer? _levelTransitionTimer;
+  final GameStateSingleTimerSlot _levelTransitionSlot =
+      GameStateSingleTimerSlot();
 
   int? _lastLuxBarLogLux;
 
@@ -477,22 +480,19 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
       _isLevelTransitionInProgress = true;
       _pendingLevelUpNeedLux = need;
       _levelUpFlashTick++;
-      _perfectHeatSurgeTimer?.cancel();
-      _perfectHeatSurgeTimer = null;
+      _perfectHeatSurgeSlot.cancel();
       if (_perfectHeatSurgeTierDisplay > 0) {
         _perfectHeatSurgeTierDisplay = 0;
         _perfectHeatSurgeFlashTick++;
       }
-      _comboFloaterClearTimer?.cancel();
-      _comboFloaterClearTimer = null;
+      _comboFloaterClearSlot.cancel();
       if (_comboFloater != null) {
         _comboFloater = null;
         _comboFloaterTick++;
       }
       HapticsHandler.instance.heavyImpact();
       // Sécurité : auto-commit même si l'UI ne rappelle pas (web/back).
-      _levelTransitionTimer?.cancel();
-      _levelTransitionTimer = Timer(
+      _levelTransitionSlot.runOnce(
         const Duration(milliseconds: 1500),
         commitLevelTransitionIfAny,
       );
@@ -502,8 +502,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
 
   /// Interrompt l’animation / timer « level up » (chrono mort, deadlock, reset).
   void _resetLevelTransitionState() {
-    _levelTransitionTimer?.cancel();
-    _levelTransitionTimer = null;
+    _levelTransitionSlot.cancel();
     _isLevelTransitionInProgress = false;
     _pendingLevelUpNeedLux = null;
     _queuedLuxFloaterDuringLevelUp = null;
@@ -576,7 +575,8 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
   int _perfectHeatUiTick = 0;
 
   /// Flash plein écran « palier FEU » (montée de série), distinct du level-up.
-  Timer? _perfectHeatSurgeTimer;
+  final GameStateSingleTimerSlot _perfectHeatSurgeSlot =
+      GameStateSingleTimerSlot();
   int _perfectHeatSurgeTierDisplay = 0;
   int _perfectHeatSurgeFlashTick = 0;
 
@@ -718,9 +718,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     if (PerfectHeatLogic.luxBonusPercent(t) <= 0) return;
     _perfectHeatSurgeTierDisplay = t;
     _perfectHeatSurgeFlashTick++;
-    _perfectHeatSurgeTimer?.cancel();
-    _perfectHeatSurgeTimer = Timer(const Duration(milliseconds: 1320), () {
-      _perfectHeatSurgeTimer = null;
+    _perfectHeatSurgeSlot.runOnce(const Duration(milliseconds: 1320), () {
       if (_perfectHeatSurgeTierDisplay == t) {
         _perfectHeatSurgeTierDisplay = 0;
       }
@@ -1574,12 +1572,9 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     _sessionStakeFooterLine = SessionStakeFooterLine.none;
     _cancelMatchScheduling();
     _stopTimeLoop();
-    _matchParticleClearTimer?.cancel();
-    _matchParticleClearTimer = null;
-    _comboFloaterClearTimer?.cancel();
-    _comboFloaterClearTimer = null;
-    _perfectHeatSurgeTimer?.cancel();
-    _perfectHeatSurgeTimer = null;
+    _matchParticleClearSlot.cancel();
+    _comboFloaterClearSlot.cancel();
+    _perfectHeatSurgeSlot.cancel();
     _perfectHeatSurgeTierDisplay = 0;
     timeBar.value = 1.0;
     _criticalFailure = false;
@@ -1687,10 +1682,8 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
 
     // Clean init: reset all collections before seeding test items.
     _cancelMatchScheduling();
-    _matchParticleClearTimer?.cancel();
-    _matchParticleClearTimer = null;
-    _comboFloaterClearTimer?.cancel();
-    _comboFloaterClearTimer = null;
+    _matchParticleClearSlot.cancel();
+    _comboFloaterClearSlot.cancel();
     _boardItems.clear();
     _slotItems.clear();
     _slotSeqById.clear();
@@ -2280,8 +2273,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   void _cancelMatchScheduling() {
-    _matchTimer?.cancel();
-    _matchTimer = null;
+    _matchTimerSlot.cancel();
     _matchPipelineGeneration++;
     _awaitingScheduledMatch = false;
     _tryFlushDeferredTimerGameOver();
@@ -2312,81 +2304,84 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     gameOver();
   }
 
+  Future<void> _runScheduledMatchPipelineForToken(int pipelineToken) async {
+    bool pipelineStale() => pipelineToken != _matchPipelineGeneration;
+
+    try {
+      if (pipelineStale()) return;
+      final RackRun? initial = RackLogic.findBestRun(_slotItems);
+      if (initial == null) {
+        _recomputeAlerts();
+        _reevaluateDeadlock();
+        notifyListeners();
+        return;
+      }
+
+      int chainStep = 0;
+      RackRun? run = initial;
+      while (run != null && chainStep < 40) {
+        if (pipelineStale()) return;
+        chainStep++;
+        final bool isCascade = chainStep > 1;
+        final double chainMult = RackLogic.chainScoreMultiplier(chainStep);
+        if (isCascade) {
+          _luxComboFlashTick++;
+          velourDebug(
+            '[Velour][Cascade] étape $chainStep — mult score ×$chainMult',
+          );
+        }
+        _triggerShake(run.count);
+        velourDebug(
+          '[Velour][Match] résolution démarrée step=$chainStep '
+          'kind=${run.kind} count=${run.count} cascade=$isCascade',
+        );
+        _isProcessingMatch = true;
+        final bool closedTrinityTutorial;
+        try {
+          closedTrinityTutorial = await _removeMatchedGroupOnce(
+            run.start,
+            run.endExclusive,
+            run.kind,
+            run.basis,
+            run.count,
+            chainScoreMult: chainMult,
+            isCascade: isCascade,
+          );
+        } finally {
+          // Relâche le verrou dès la mutation d'état terminée (input "snappy").
+          _isProcessingMatch = false;
+        }
+        if (pipelineStale()) return;
+        velourDebug('[Velour][Match] résolution terminée step=$chainStep');
+        // Petit espacement (réduit ~30%) : laisse lire le feedback sans bloquer l'input.
+        await Future<void>.delayed(cascadeStepDelay);
+        if (pipelineStale()) return;
+        run = (isTrinityTutorialActive || closedTrinityTutorial)
+            ? null
+            : RackLogic.findBestRun(_slotItems);
+      }
+      if (run != null) {
+        velourDebug(
+          '[Velour][Cascade] garde-fou 40 résolutions — match encore détecté, arrêt',
+        );
+      }
+    } finally {
+      if (pipelineToken == _matchPipelineGeneration) {
+        _awaitingScheduledMatch = false;
+        _tryFlushDeferredTimerGameOver();
+      }
+    }
+  }
+
   void _scheduleMatchCheck() {
     if (_criticalFailure) return;
-    _matchTimer?.cancel();
-    _matchTimer = null;
+    _matchTimerSlot.cancel();
     _matchPipelineGeneration++;
     final int pipelineToken = _matchPipelineGeneration;
     _awaitingScheduledMatch = true;
 
-    _matchTimer = Timer(_effectiveMatchDelay, () async {
-      bool pipelineStale() => pipelineToken != _matchPipelineGeneration;
-
-      try {
-        if (pipelineStale()) return;
-        final RackRun? initial = RackLogic.findBestRun(_slotItems);
-        if (initial == null) {
-          _recomputeAlerts();
-          _reevaluateDeadlock();
-          notifyListeners();
-          return;
-        }
-
-        int chainStep = 0;
-        RackRun? run = initial;
-        while (run != null && chainStep < 40) {
-          if (pipelineStale()) return;
-          chainStep++;
-          final bool isCascade = chainStep > 1;
-          final double chainMult = RackLogic.chainScoreMultiplier(chainStep);
-          if (isCascade) {
-            _luxComboFlashTick++;
-            velourDebug(
-              '[Velour][Cascade] étape $chainStep — mult score ×$chainMult',
-            );
-          }
-          _triggerShake(run.count);
-          velourDebug(
-            '[Velour][Match] résolution démarrée step=$chainStep '
-            'kind=${run.kind} count=${run.count} cascade=$isCascade',
-          );
-          _isProcessingMatch = true;
-          final bool closedTrinityTutorial;
-          try {
-            closedTrinityTutorial = await _removeMatchedGroupOnce(
-              run.start,
-              run.endExclusive,
-              run.kind,
-              run.basis,
-              run.count,
-              chainScoreMult: chainMult,
-              isCascade: isCascade,
-            );
-          } finally {
-            // Relâche le verrou dès la mutation d'état terminée (input "snappy").
-            _isProcessingMatch = false;
-          }
-          if (pipelineStale()) return;
-          velourDebug('[Velour][Match] résolution terminée step=$chainStep');
-          // Petit espacement (réduit ~30%) : laisse lire le feedback sans bloquer l'input.
-          await Future<void>.delayed(cascadeStepDelay);
-          if (pipelineStale()) return;
-          run = (isTrinityTutorialActive || closedTrinityTutorial)
-              ? null
-              : RackLogic.findBestRun(_slotItems);
-        }
-        if (run != null) {
-          velourDebug(
-            '[Velour][Cascade] garde-fou 40 résolutions — match encore détecté, arrêt',
-          );
-        }
-      } finally {
-        if (pipelineToken == _matchPipelineGeneration) {
-          _awaitingScheduledMatch = false;
-          _tryFlushDeferredTimerGameOver();
-        }
-      }
+    _matchTimerSlot.runOnce(_effectiveMatchDelay, () {
+      unawaited(_runScheduledMatchPipelineForToken(pipelineToken));
     });
   }
 
@@ -2556,8 +2551,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
         chainMult: chainScoreMult,
       );
       _comboFloaterTick++;
-      _comboFloaterClearTimer?.cancel();
-      _comboFloaterClearTimer = Timer(const Duration(milliseconds: 420), () {
+      _comboFloaterClearSlot.runOnce(const Duration(milliseconds: 420), () {
         _comboFloater = null;
         _comboFloaterTick++;
         notifyListeners();
@@ -2614,8 +2608,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
       perfectLuxBurst: perfectBurst,
     );
     _matchParticleTick++;
-    _matchParticleClearTimer?.cancel();
-    _matchParticleClearTimer = Timer(
+    _matchParticleClearSlot.runOnce(
       perfectBurst
           ? const Duration(milliseconds: 360)
           : const Duration(milliseconds: 260),
@@ -2800,14 +2793,13 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     WidgetsBinding.instance.removeObserver(this);
     // Timers async : annuler en premier (évite toute fuite rare si dispose interrompt
     // un surge Perfect Heat entre deux notifies).
-    _perfectHeatSurgeTimer?.cancel();
-    _perfectHeatSurgeTimer = null;
+    _perfectHeatSurgeSlot.cancel();
     // Timers annulés ici ; pas de StreamSubscription dans GameState.
     _cancelMatchScheduling();
     _stopTimeLoop();
-    _matchParticleClearTimer?.cancel();
-    _comboFloaterClearTimer?.cancel();
-    _levelTransitionTimer?.cancel();
+    _matchParticleClearSlot.cancel();
+    _comboFloaterClearSlot.cancel();
+    _levelTransitionSlot.cancel();
     _narrativeTutorial.removeListener(notifyListeners);
     _narrativeTutorial.dispose();
     _trinityTutorial.removeListener(notifyListeners);

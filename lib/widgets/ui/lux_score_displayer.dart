@@ -7,9 +7,9 @@ class LuxScoreDisplayer extends StatelessWidget {
   const LuxScoreDisplayer({
     super.key,
     required this.lux,
+    required this.prefix,
     this.initialValue,
     this.color = const Color(0xFF00E5FF),
-    this.prefix = 'LUX COINS',
   });
 
   final int lux;

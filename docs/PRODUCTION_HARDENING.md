@@ -135,7 +135,7 @@ flutter build appbundle --release
 
 ## 7. Android — App Check, Play Integrity, Crashlytics
 
-**Client Flutter** (`lib/main.dart`, `velourActivateAppCheck`) : en **release**, **`AndroidPlayIntegrityProvider`** ; en **debug / profile** (`!kReleaseMode`), **`AndroidDebugProvider`** — aligné sur iOS. Les jetons **debug** Android s’affichent dans **Logcat** au premier lancement ; les enregistrer dans Firebase comme pour iOS.
+**Client Flutter** (`lib/velour_bootstrap.dart`, `velourActivateAppCheck`) : en **release**, **`AndroidPlayIntegrityProvider`** ; en **debug / profile** (`!kReleaseMode`), **`AndroidDebugProvider`** — aligné sur iOS. Les jetons **debug** Android s’affichent dans **Logcat** au premier lancement ; les enregistrer dans Firebase comme pour iOS.
 
 ### 7.1 Firebase — App Check (obligatoire si `VELOUR_ENFORCE_APP_CHECK` côté Functions)
 

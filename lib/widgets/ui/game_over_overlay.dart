@@ -286,104 +286,45 @@ class _GameOverOverlayState extends State<GameOverOverlay>
                   final double maxW = (constraints.maxWidth - 36)
                       .clamp(0.0, 460.0)
                       .toDouble();
-                  return Align(
-                    alignment: Alignment.topCenter,
-                    child: SingleChildScrollView(
-                      physics: const BouncingScrollPhysics(),
-                      padding: EdgeInsets.fromLTRB(
-                        18,
-                        (12 * sH).clamp(10.0, 20.0),
-                        18,
-                        bottomPad,
-                      ),
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(maxWidth: maxW),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            enter(
-                              step++,
-                              Text(
-                                _title(l10n),
-                                textAlign: TextAlign.center,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: titleStyle,
-                              ),
-                            ),
-                            SizedBox(height: (28 * sH).clamp(22.0, 36.0)),
-                            enter(
-                              step++,
-                              Column(
-                                children: [
-                                  Text(
-                                    l10n.gameOverSessionScore,
-                                    textAlign: TextAlign.center,
-                                    style: labelSmall,
-                                  ),
-                                  SizedBox(height: (10 * sH).clamp(8.0, 14.0)),
-                                  Text(
-                                    '${widget.rawMatchLuxTotal}',
-                                    textAlign: TextAlign.center,
-                                    style: monoNum,
-                                  ),
-                                  if (_zeroMatchLuxHint(l10n) != null) ...[
-                                    SizedBox(height: 12 * sH),
-                                    Text(
-                                      _zeroMatchLuxHint(l10n)!,
-                                      textAlign: TextAlign.center,
-                                      maxLines: 5,
-                                      overflow: TextOverflow.ellipsis,
-                                      style:
-                                          Theme.of(
-                                            context,
-                                          ).textTheme.bodySmall?.copyWith(
-                                            fontSize: (12 * sT).clamp(
-                                              11.0,
-                                              14.0,
-                                            ),
-                                            height: 1.35,
-                                            fontWeight: FontWeight.w500,
-                                            color: Colors.white.withValues(
-                                              alpha: 0.64,
-                                            ),
-                                          ) ??
-                                          TextStyle(
-                                            fontSize: (12 * sT).clamp(
-                                              11.0,
-                                              14.0,
-                                            ),
-                                            height: 1.35,
-                                            color: Colors.white.withValues(
-                                              alpha: 0.64,
-                                            ),
-                                          ),
-                                    ),
-                                  ],
-                                ],
-                              ),
-                            ),
-                            if (_showPrestige) ...[
-                              SizedBox(height: (24 * sH).clamp(18.0, 32.0)),
+                  // Important: inside a Stack/Positioned.fill, Align can pass
+                  // unbounded height to its child. A ScrollView viewport must
+                  // have a bounded height, otherwise Flutter asserts `hasSize`.
+                  return SizedBox(
+                    width: constraints.maxWidth,
+                    height: constraints.maxHeight,
+                    child: Align(
+                      alignment: Alignment.topCenter,
+                      child: SizedBox(
+                        width: maxW,
+                        child: SingleChildScrollView(
+                          physics: const BouncingScrollPhysics(),
+                          padding: EdgeInsets.fromLTRB(
+                            18,
+                            (12 * sH).clamp(10.0, 20.0),
+                            18,
+                            bottomPad,
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
                               enter(
                                 step++,
-                                _PrestigeBonusBadge(
-                                  label: l10n.gameOverPrestigeBonus,
-                                  multiplierLabel: _multLabel(),
-                                  pulse: _badgePulse.value,
-                                  scaleT: sT,
+                                Text(
+                                  _title(l10n),
+                                  textAlign: TextAlign.center,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: titleStyle,
                                 ),
                               ),
-                            ],
-                            if (_showScoreFinal) ...[
-                              SizedBox(height: (24 * sH).clamp(18.0, 32.0)),
+                              SizedBox(height: (28 * sH).clamp(22.0, 36.0)),
                               enter(
                                 step++,
                                 Column(
                                   children: [
                                     Text(
-                                      l10n.gameOverFinalScore,
+                                      l10n.gameOverSessionScore,
                                       textAlign: TextAlign.center,
                                       style: labelSmall,
                                     ),
@@ -391,274 +332,350 @@ class _GameOverOverlayState extends State<GameOverOverlay>
                                       height: (10 * sH).clamp(8.0, 14.0),
                                     ),
                                     Text(
-                                      '${widget.finalLux}',
+                                      '${widget.rawMatchLuxTotal}',
                                       textAlign: TextAlign.center,
-                                      style: monoNum.copyWith(
-                                        color: _gold.withValues(alpha: 0.95),
-                                        shadows: [
-                                          Shadow(
-                                            color: _gold.withValues(
-                                              alpha: 0.45,
-                                            ),
-                                            blurRadius: 18,
-                                          ),
-                                        ],
-                                      ),
+                                      style: monoNum,
                                     ),
+                                    if (_zeroMatchLuxHint(l10n) != null) ...[
+                                      SizedBox(height: 12 * sH),
+                                      Text(
+                                        _zeroMatchLuxHint(l10n)!,
+                                        textAlign: TextAlign.center,
+                                        maxLines: 5,
+                                        overflow: TextOverflow.ellipsis,
+                                        style:
+                                            Theme.of(
+                                              context,
+                                            ).textTheme.bodySmall?.copyWith(
+                                              fontSize: (12 * sT).clamp(
+                                                11.0,
+                                                14.0,
+                                              ),
+                                              height: 1.35,
+                                              fontWeight: FontWeight.w500,
+                                              color: Colors.white.withValues(
+                                                alpha: 0.64,
+                                              ),
+                                            ) ??
+                                            TextStyle(
+                                              fontSize: (12 * sT).clamp(
+                                                11.0,
+                                                14.0,
+                                              ),
+                                              height: 1.35,
+                                              color: Colors.white.withValues(
+                                                alpha: 0.64,
+                                              ),
+                                            ),
+                                      ),
+                                    ],
                                   ],
                                 ),
                               ),
-                            ],
-                            if (widget.isPremiumWin &&
-                                widget.stakeRewardLuxCoins > 0) ...[
-                              SizedBox(height: (28 * sH).clamp(22.0, 38.0)),
-                              enter(
-                                step++,
-                                Column(
-                                  children: [
-                                    Text(
-                                      l10n.gameOverLuxWon,
-                                      textAlign: TextAlign.center,
-                                      style: labelSmall,
-                                    ),
-                                    SizedBox(height: 10 * sH),
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Icon(
-                                          Icons.brightness_1,
-                                          size: (26 * sT).clamp(22.0, 32.0),
+                              if (_showPrestige) ...[
+                                SizedBox(height: (24 * sH).clamp(18.0, 32.0)),
+                                enter(
+                                  step++,
+                                  _PrestigeBonusBadge(
+                                    label: l10n.gameOverPrestigeBonus,
+                                    multiplierLabel: _multLabel(),
+                                    pulse: _badgePulse.value,
+                                    scaleT: sT,
+                                  ),
+                                ),
+                              ],
+                              if (_showScoreFinal) ...[
+                                SizedBox(height: (24 * sH).clamp(18.0, 32.0)),
+                                enter(
+                                  step++,
+                                  Column(
+                                    children: [
+                                      Text(
+                                        l10n.gameOverFinalScore,
+                                        textAlign: TextAlign.center,
+                                        style: labelSmall,
+                                      ),
+                                      SizedBox(
+                                        height: (10 * sH).clamp(8.0, 14.0),
+                                      ),
+                                      Text(
+                                        '${widget.finalLux}',
+                                        textAlign: TextAlign.center,
+                                        style: monoNum.copyWith(
                                           color: _gold.withValues(alpha: 0.95),
-                                        ),
-                                        SizedBox(width: 12 * sH),
-                                        Text(
-                                          '+${widget.stakeRewardLuxCoins}',
-                                          style: GoogleFonts.robotoMono(
-                                            fontSize: (34 * sT).clamp(
-                                              26.0,
-                                              44.0,
-                                            ),
-                                            fontWeight: FontWeight.w800,
-                                            letterSpacing: 1.0,
-                                            color: _gold.withValues(
-                                              alpha: 0.98,
-                                            ),
-                                            shadows: const [
-                                              Shadow(
-                                                color: _gold,
-                                                blurRadius: 26,
+                                          shadows: [
+                                            Shadow(
+                                              color: _gold.withValues(
+                                                alpha: 0.45,
                                               ),
-                                              Shadow(
-                                                color: Color(0x88FFD700),
-                                                blurRadius: 42,
-                                              ),
-                                            ],
-                                          ),
+                                              blurRadius: 18,
+                                            ),
+                                          ],
                                         ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                            if (footerText != null) ...[
-                              SizedBox(height: 14 * sH),
-                              enter(
-                                step++,
-                                Text(
-                                  footerText,
-                                  textAlign: TextAlign.center,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: labelSmall.copyWith(
-                                    fontSize: (10.5 * sT).clamp(10.0, 12.5),
-                                    letterSpacing: 2.0,
-                                    color: _sessionStakeFooterIsFailure
-                                        ? const Color(
-                                            0xFFFF6B6B,
-                                          ).withValues(alpha: 0.92)
-                                        : _gold.withValues(alpha: 0.88),
-                                  ),
-                                ),
-                              ),
-                            ],
-                            if (widget.oracleInsuranceRefundLux > 0) ...[
-                              SizedBox(height: 18 * sH),
-                              enter(
-                                step++,
-                                AnimatedBuilder(
-                                  animation: _badgePulse,
-                                  builder: (context, _) {
-                                    final double pulse = Curves.easeInOutSine
-                                        .transform(_badgePulse.value);
-                                    return _OracleInsuranceRefundCallout(
-                                      lux: widget.oracleInsuranceRefundLux,
-                                      pulse: pulse,
-                                      scaleT: sT,
-                                      scaleH: sH,
-                                    );
-                                  },
-                                ),
-                              ),
-                            ],
-                            if (!widget.isPersonalBest &&
-                                widget.careerHighScore > 0) ...[
-                              SizedBox(height: (14 * sH).clamp(12.0, 20.0)),
-                              enter(
-                                step++,
-                                Text(
-                                  l10n.gameOverCareerRecordHint(
-                                    widget.careerHighScore,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style:
-                                      Theme.of(
-                                        context,
-                                      ).textTheme.bodySmall?.copyWith(
-                                        fontSize: (12 * sT).clamp(11.0, 14.0),
-                                        height: 1.35,
-                                        fontWeight: FontWeight.w500,
-                                        color: Colors.white.withValues(
-                                          alpha: 0.58,
-                                        ),
-                                      ) ??
-                                      TextStyle(
-                                        fontSize: (12 * sT).clamp(11.0, 14.0),
-                                        height: 1.35,
-                                        color: Colors.white.withValues(
-                                          alpha: 0.58,
-                                        ),
-                                      ),
-                                ),
-                              ),
-                            ],
-                            if (widget.isPersonalBest) ...[
-                              SizedBox(height: 16 * sH),
-                              enter(
-                                step++,
-                                Text(
-                                  l10n.gameOverPersonalBest,
-                                  textAlign: TextAlign.center,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style:
-                                      Theme.of(
-                                        context,
-                                      ).textTheme.titleSmall?.copyWith(
-                                        fontSize: (13 * sT).clamp(12.0, 16.0),
-                                        fontWeight: FontWeight.w700,
-                                        letterSpacing: 3.2,
-                                        color: widget.recordAccentColor
-                                            .withValues(alpha: 0.95),
-                                        shadows: [
-                                          Shadow(
-                                            color: widget.recordAccentColor
-                                                .withValues(alpha: 0.35),
-                                            blurRadius: 18,
-                                          ),
-                                        ],
-                                      ) ??
-                                      TextStyle(
-                                        fontSize: (13 * sT).clamp(12.0, 16.0),
-                                        fontWeight: FontWeight.w700,
-                                        letterSpacing: 3.2,
-                                        color: widget.recordAccentColor,
-                                      ),
-                                ),
-                              ),
-                            ],
-                            if (gs.shouldShowNamingDialog) ...[
-                              SizedBox(height: (14 * sH).clamp(10.0, 18.0)),
-                              enter(
-                                step++,
-                                _OracleNamingBanner(
-                                  scaleH: sH,
-                                  scaleT: sT,
-                                  accent: widget.recordAccentColor,
-                                  onNameNow: () async {
-                                    final bool? sealed = await showDialog<bool>(
-                                      context: context,
-                                      barrierDismissible: true,
-                                      builder: (_) =>
-                                          const OracleNamingDialog(),
-                                    );
-                                    if (!context.mounted) return;
-                                    if (sealed == true) {
-                                      // On laisse la navigation à l'utilisateur (menu/classement).
-                                    }
-                                  },
-                                  onLater: () => gs.dismissNamingDialog(),
-                                ),
-                              ),
-                            ],
-                            SizedBox(height: (32 * sH).clamp(24.0, 40.0)),
-                            _enterCta(
-                              Material(
-                                color: Colors.transparent,
-                                child: Container(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: (14 * sH).clamp(12.0, 20.0),
-                                    vertical: (9 * sH).clamp(7.0, 12.0),
-                                  ),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(22),
-                                    color: Colors.white.withValues(alpha: 0.10),
-                                    border: Border.all(
-                                      color: replayNeon.withValues(alpha: 0.58),
-                                      width: 1.1,
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: replayNeon.withValues(
-                                          alpha: 0.38,
-                                        ),
-                                        blurRadius: 18,
-                                        spreadRadius: 0,
-                                        offset: const Offset(0, 0),
-                                      ),
-                                      BoxShadow(
-                                        color: replayNeon.withValues(
-                                          alpha: 0.14,
-                                        ),
-                                        blurRadius: 28,
-                                        spreadRadius: 2,
-                                        offset: const Offset(0, 2),
-                                      ),
-                                      BoxShadow(
-                                        color: Colors.black.withValues(
-                                          alpha: 0.38,
-                                        ),
-                                        blurRadius: 12,
-                                        offset: const Offset(0, 5),
                                       ),
                                     ],
                                   ),
-                                  child: MenuTextButton(
-                                    label: l10n.gameOverReplay,
-                                    neon: replayNeon,
-                                    scale: sH,
-                                    baseAlpha: 1.0,
-                                    neonShadowBlur: 0,
-                                    letterSpacing: 2.2,
-                                    transformFilterQuality: FilterQuality.none,
-                                    onPressed: () async => widget.onReplay(),
+                                ),
+                              ],
+                              if (widget.isPremiumWin &&
+                                  widget.stakeRewardLuxCoins > 0) ...[
+                                SizedBox(height: (28 * sH).clamp(22.0, 38.0)),
+                                enter(
+                                  step++,
+                                  Column(
+                                    children: [
+                                      Text(
+                                        l10n.gameOverLuxWon,
+                                        textAlign: TextAlign.center,
+                                        style: labelSmall,
+                                      ),
+                                      SizedBox(height: 10 * sH),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            Icons.brightness_1,
+                                            size: (26 * sT).clamp(22.0, 32.0),
+                                            color: _gold.withValues(
+                                              alpha: 0.95,
+                                            ),
+                                          ),
+                                          SizedBox(width: 12 * sH),
+                                          Text(
+                                            '+${widget.stakeRewardLuxCoins}',
+                                            style: GoogleFonts.robotoMono(
+                                              fontSize: (34 * sT).clamp(
+                                                26.0,
+                                                44.0,
+                                              ),
+                                              fontWeight: FontWeight.w800,
+                                              letterSpacing: 1.0,
+                                              color: _gold.withValues(
+                                                alpha: 0.98,
+                                              ),
+                                              shadows: const [
+                                                Shadow(
+                                                  color: _gold,
+                                                  blurRadius: 26,
+                                                ),
+                                                Shadow(
+                                                  color: Color(0x88FFD700),
+                                                  blurRadius: 42,
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                              if (footerText != null) ...[
+                                SizedBox(height: 14 * sH),
+                                enter(
+                                  step++,
+                                  Text(
+                                    footerText,
+                                    textAlign: TextAlign.center,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: labelSmall.copyWith(
+                                      fontSize: (10.5 * sT).clamp(10.0, 12.5),
+                                      letterSpacing: 2.0,
+                                      color: _sessionStakeFooterIsFailure
+                                          ? const Color(
+                                              0xFFFF6B6B,
+                                            ).withValues(alpha: 0.92)
+                                          : _gold.withValues(alpha: 0.88),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                              if (widget.oracleInsuranceRefundLux > 0) ...[
+                                SizedBox(height: 18 * sH),
+                                enter(
+                                  step++,
+                                  AnimatedBuilder(
+                                    animation: _badgePulse,
+                                    builder: (context, _) {
+                                      final double pulse = Curves.easeInOutSine
+                                          .transform(_badgePulse.value);
+                                      return _OracleInsuranceRefundCallout(
+                                        lux: widget.oracleInsuranceRefundLux,
+                                        pulse: pulse,
+                                        scaleT: sT,
+                                        scaleH: sH,
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ],
+                              if (!widget.isPersonalBest &&
+                                  widget.careerHighScore > 0) ...[
+                                SizedBox(height: (14 * sH).clamp(12.0, 20.0)),
+                                enter(
+                                  step++,
+                                  Text(
+                                    l10n.gameOverCareerRecordHint(
+                                      widget.careerHighScore,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style:
+                                        Theme.of(
+                                          context,
+                                        ).textTheme.bodySmall?.copyWith(
+                                          fontSize: (12 * sT).clamp(11.0, 14.0),
+                                          height: 1.35,
+                                          fontWeight: FontWeight.w500,
+                                          color: Colors.white.withValues(
+                                            alpha: 0.58,
+                                          ),
+                                        ) ??
+                                        TextStyle(
+                                          fontSize: (12 * sT).clamp(11.0, 14.0),
+                                          height: 1.35,
+                                          color: Colors.white.withValues(
+                                            alpha: 0.58,
+                                          ),
+                                        ),
+                                  ),
+                                ),
+                              ],
+                              if (widget.isPersonalBest) ...[
+                                SizedBox(height: 16 * sH),
+                                enter(
+                                  step++,
+                                  Text(
+                                    l10n.gameOverPersonalBest,
+                                    textAlign: TextAlign.center,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style:
+                                        Theme.of(
+                                          context,
+                                        ).textTheme.titleSmall?.copyWith(
+                                          fontSize: (13 * sT).clamp(12.0, 16.0),
+                                          fontWeight: FontWeight.w700,
+                                          letterSpacing: 3.2,
+                                          color: widget.recordAccentColor
+                                              .withValues(alpha: 0.95),
+                                          shadows: [
+                                            Shadow(
+                                              color: widget.recordAccentColor
+                                                  .withValues(alpha: 0.35),
+                                              blurRadius: 18,
+                                            ),
+                                          ],
+                                        ) ??
+                                        TextStyle(
+                                          fontSize: (13 * sT).clamp(12.0, 16.0),
+                                          fontWeight: FontWeight.w700,
+                                          letterSpacing: 3.2,
+                                          color: widget.recordAccentColor,
+                                        ),
+                                  ),
+                                ),
+                              ],
+                              if (gs.shouldShowNamingDialog) ...[
+                                SizedBox(height: (14 * sH).clamp(10.0, 18.0)),
+                                enter(
+                                  step++,
+                                  _OracleNamingBanner(
+                                    scaleH: sH,
+                                    scaleT: sT,
+                                    accent: widget.recordAccentColor,
+                                    onNameNow: () async {
+                                      final bool? sealed =
+                                          await showDialog<bool>(
+                                            context: context,
+                                            barrierDismissible: true,
+                                            builder: (_) =>
+                                                const OracleNamingDialog(),
+                                          );
+                                      if (!context.mounted) return;
+                                      if (sealed == true) {
+                                        // On laisse la navigation à l'utilisateur (menu/classement).
+                                      }
+                                    },
+                                    onLater: () => gs.dismissNamingDialog(),
+                                  ),
+                                ),
+                              ],
+                              SizedBox(height: (32 * sH).clamp(24.0, 40.0)),
+                              _enterCta(
+                                Material(
+                                  color: Colors.transparent,
+                                  child: Container(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: (14 * sH).clamp(12.0, 20.0),
+                                      vertical: (9 * sH).clamp(7.0, 12.0),
+                                    ),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(22),
+                                      color: Colors.white.withValues(
+                                        alpha: 0.10,
+                                      ),
+                                      border: Border.all(
+                                        color: replayNeon.withValues(
+                                          alpha: 0.58,
+                                        ),
+                                        width: 1.1,
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: replayNeon.withValues(
+                                            alpha: 0.38,
+                                          ),
+                                          blurRadius: 18,
+                                          spreadRadius: 0,
+                                          offset: const Offset(0, 0),
+                                        ),
+                                        BoxShadow(
+                                          color: replayNeon.withValues(
+                                            alpha: 0.14,
+                                          ),
+                                          blurRadius: 28,
+                                          spreadRadius: 2,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                        BoxShadow(
+                                          color: Colors.black.withValues(
+                                            alpha: 0.38,
+                                          ),
+                                          blurRadius: 12,
+                                          offset: const Offset(0, 5),
+                                        ),
+                                      ],
+                                    ),
+                                    child: MenuTextButton(
+                                      label: l10n.gameOverReplay,
+                                      neon: replayNeon,
+                                      scale: sH,
+                                      baseAlpha: 1.0,
+                                      neonShadowBlur: 0,
+                                      letterSpacing: 2.2,
+                                      transformFilterQuality:
+                                          FilterQuality.none,
+                                      onPressed: () async => widget.onReplay(),
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                            SizedBox(height: (12 * sH).clamp(10.0, 16.0)),
-                            _enterCta(
-                              _SecondaryMenuTextButton(
-                                label: l10n.gameOverMainMenu,
-                                onPressed: widget.onMenu,
-                                scale: sH,
+                              SizedBox(height: (12 * sH).clamp(10.0, 16.0)),
+                              _enterCta(
+                                _SecondaryMenuTextButton(
+                                  label: l10n.gameOverMainMenu,
+                                  onPressed: widget.onMenu,
+                                  scale: sH,
+                                ),
                               ),
-                            ),
-                            SizedBox(height: (14 * sH).clamp(10.0, 20.0)),
-                          ],
+                              SizedBox(height: (14 * sH).clamp(10.0, 20.0)),
+                            ],
+                          ),
                         ),
                       ),
                     ),

@@ -2,6 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import 'package:velour_app/utils/velour_accessibility.dart';
+
 class NeonTimerBar extends StatefulWidget {
   const NeonTimerBar({
     super.key,
@@ -48,11 +50,27 @@ class _NeonTimerBarState extends State<NeonTimerBar>
 
     // Pulse when time goes UP (match refund).
     if (v > prev + 0.0001) {
-      _pulse.forward(from: 0);
+      if (mounted && velourReduceMotion(context)) {
+        _pulse.value = 1.0;
+      } else {
+        _pulse.forward(from: 0);
+      }
     }
 
     // Blink sous 25 % (urgence critique).
-    if (v < 0.25) {
+    _syncLowTimeBlink(v);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _syncLowTimeBlink(widget.value);
+  }
+
+  void _syncLowTimeBlink(double v) {
+    if (!mounted) return;
+    final bool reduce = velourReduceMotion(context);
+    if (v < 0.25 && !reduce) {
       if (!_blink.isAnimating) {
         _blink.repeat(reverse: true);
       }

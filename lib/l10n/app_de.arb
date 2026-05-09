@@ -561,5 +561,12 @@
   "a11yGemColor4": "Grün",
   "a11yGemColor5": "Violett",
   "a11yGemColor6": "Orange",
-  "a11yGemColor7": "Blass"
+  "a11yGemColor7": "Blass",
+  "a11yRackBarSummary": "{filled} von {max} Rack-Fächern sind belegt.",
+  "@a11yRackBarSummary": {
+    "placeholders": {
+      "filled": {"type": "int"},
+      "max": {"type": "int"}
+    }
+  }
 }

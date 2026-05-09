@@ -520,5 +520,13 @@
   "a11yGemColor4": "Green",
   "a11yGemColor5": "Purple",
   "a11yGemColor6": "Orange",
-  "a11yGemColor7": "Pale"
+  "a11yGemColor7": "Pale",
+  "a11yRackBarSummary": "{filled} of {max} rack slots are occupied.",
+  "@a11yRackBarSummary": {
+    "description": "VoiceOver summary for the bottom rack bar.",
+    "placeholders": {
+      "filled": {"type": "int"},
+      "max": {"type": "int"}
+    }
+  }
 }

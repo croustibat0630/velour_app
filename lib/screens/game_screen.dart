@@ -643,6 +643,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                             ),
                             _SlotBar(
                               imminentSlotIdxs: gameState.imminentSlotIdxs,
+                              filledCount: gameState.slotItems.length,
                               accent: gameState.isRoyalSession
                                   ? const Color(0xFF9D50BB)
                                   : gameState.isHighStakesSession
@@ -1946,11 +1947,13 @@ class _PlayZone extends StatelessWidget {
 class _SlotBar extends StatefulWidget {
   const _SlotBar({
     required this.imminentSlotIdxs,
+    required this.filledCount,
     required this.accent,
     required this.premium,
   });
 
   final Set<int> imminentSlotIdxs;
+  final int filledCount;
   final Color accent;
   final bool premium;
 
@@ -1972,7 +1975,23 @@ class _SlotBarState extends State<_SlotBar>
     _pulse = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1200),
-    )..repeat();
+    );
+  }
+
+  void _syncRackPulse() {
+    if (!mounted) return;
+    if (velourReduceMotion(context)) {
+      _pulse.stop();
+      _pulse.value = 0.0;
+    } else if (!_pulse.isAnimating) {
+      _pulse.repeat();
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _syncRackPulse();
   }
 
   @override
@@ -1987,55 +2006,60 @@ class _SlotBarState extends State<_SlotBar>
     final double a = 0.12 + 0.10 * s;
     final double scale = 1.0 + 0.03 * s;
     final Color accent = widget.accent;
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
     final Widget bar = RepaintBoundary(
-      child: Container(
-        height: 100,
-        decoration: BoxDecoration(
-          color: const Color(0xCC1E2228), // semi-transparent, matte
-          border: Border(
-            top: BorderSide(
-              color: accent.withValues(alpha: widget.premium ? 0.42 : 0.3),
-              width: 2,
+      child: Semantics(
+        container: true,
+        label: l10n.a11yRackBarSummary(widget.filledCount, GameState.slotCount),
+        child: Container(
+          height: 100,
+          decoration: BoxDecoration(
+            color: const Color(0xCC1E2228), // semi-transparent, matte
+            border: Border(
+              top: BorderSide(
+                color: accent.withValues(alpha: widget.premium ? 0.42 : 0.3),
+                width: 2,
+              ),
             ),
           ),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: List<Widget>.generate(GameState.slotCount, (index) {
-            final bool imminent = widget.imminentSlotIdxs.contains(index);
-            return AnimatedBuilder(
-              animation: _pulse,
-              builder: (context, _) {
-                return Transform.scale(
-                  scale: imminent ? scale : 1.0,
-                  child: Container(
-                    width: 45,
-                    height: 45,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF0A0A0F),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: imminent
-                            ? Colors.white.withValues(alpha: 0.28 + a)
-                            : Colors.white.withValues(alpha: 0.22),
-                        width: imminent ? 1.2 : 1,
-                      ),
-                      boxShadow: <BoxShadow>[
-                        BoxShadow(
-                          color: accent.withValues(
-                            alpha: imminent ? a * 0.95 : 0.07,
-                          ),
-                          blurRadius: imminent ? 12 : 8,
-                          spreadRadius: imminent ? 0.5 : 0,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: List<Widget>.generate(GameState.slotCount, (index) {
+              final bool imminent = widget.imminentSlotIdxs.contains(index);
+              return AnimatedBuilder(
+                animation: _pulse,
+                builder: (context, _) {
+                  return Transform.scale(
+                    scale: imminent ? scale : 1.0,
+                    child: Container(
+                      width: 45,
+                      height: 45,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF0A0A0F),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: imminent
+                              ? Colors.white.withValues(alpha: 0.28 + a)
+                              : Colors.white.withValues(alpha: 0.22),
+                          width: imminent ? 1.2 : 1,
                         ),
-                      ],
+                        boxShadow: <BoxShadow>[
+                          BoxShadow(
+                            color: accent.withValues(
+                              alpha: imminent ? a * 0.95 : 0.07,
+                            ),
+                            blurRadius: imminent ? 12 : 8,
+                            spreadRadius: imminent ? 0.5 : 0,
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                );
-              },
-            );
-          }),
+                  );
+                },
+              );
+            }),
+          ),
         ),
       ),
     );

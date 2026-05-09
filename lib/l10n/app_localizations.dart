@@ -1592,6 +1592,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pale'**
   String get a11yGemColor7;
+
+  /// VoiceOver summary for the bottom rack bar.
+  ///
+  /// In en, this message translates to:
+  /// **'{filled} of {max} rack slots are occupied.'**
+  String a11yRackBarSummary(int filled, int max);
 }
 
 class _AppLocalizationsDelegate

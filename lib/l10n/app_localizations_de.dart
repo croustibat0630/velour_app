@@ -897,4 +897,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get a11yGemColor7 => 'Blass';
+
+  @override
+  String a11yRackBarSummary(int filled, int max) {
+    return '$filled von $max Rack-Fächern sind belegt.';
+  }
 }

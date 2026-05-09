@@ -887,4 +887,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get a11yGemColor7 => 'Pâle';
+
+  @override
+  String a11yRackBarSummary(int filled, int max) {
+    return '$filled sur $max emplacements du rack sont occupés.';
+  }
 }

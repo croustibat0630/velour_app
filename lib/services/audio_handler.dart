@@ -219,11 +219,19 @@ class AudioHandler {
     required AudioPlayer player,
     required String fileName,
   }) async {
+    final bool applePooled =
+        !kIsWeb &&
+        (defaultTargetPlatform == TargetPlatform.iOS ||
+            defaultTargetPlatform == TargetPlatform.macOS);
     Future<void> loadCore() async {
       if (!kIsWeb) {
         await player.setAudioContext(velourGameAudioContext());
       }
-      await player.setPlayerMode(PlayerMode.lowLatency);
+      // Darwin (surtout simulateur) : lowLatency + setSource peut pendre indéfiniment
+      // après hot restart / reconfig session — aligné sur [_playDisposableOneShotCore].
+      await player.setPlayerMode(
+        applePooled ? PlayerMode.mediaPlayer : PlayerMode.lowLatency,
+      );
       await player.setReleaseMode(ReleaseMode.stop);
       await player.setSource(_sourceFor(fileName));
     }

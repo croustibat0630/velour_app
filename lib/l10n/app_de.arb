@@ -389,6 +389,7 @@
   "narrativeFloatPerfectBonus": "+500 LUX : TOTALE BRILLANZ",
   "gameNarrativePerfectMatchBanner": "PERFEKTES MATCH",
   "prepTitle": "SITZUNGS-SETUP",
+  "prepLuxScoreCaption": "LUX-MÜNZEN",
   "prepGuidedTutorialCasualOnly": "Für dieses Tutorial steht nur der klassische Modus zur Verfügung.",
   "@prepGuidedTutorialCasualOnly": {
     "description": "Preparation subtitle: menu tutorial is casual-only."

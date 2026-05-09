@@ -408,6 +408,7 @@ class _PreparationViewState extends State<PreparationView> with RouteAware {
                         lux: gs.luxCoins,
                         initialValue: _overrideInitialValue,
                         color: gold,
+                        prefix: l10n.prepLuxScoreCaption,
                       ),
                     ),
                   ),

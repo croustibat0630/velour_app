@@ -1293,6 +1293,12 @@ abstract class AppLocalizations {
   /// **'SESSION SETUP'**
   String get prepTitle;
 
+  /// Caption above the animated LUX balance on the preparation screen (session setup).
+  ///
+  /// In en, this message translates to:
+  /// **'LUX COINS'**
+  String get prepLuxScoreCaption;
+
   /// Preparation screen subtitle when opened from menu tutorial (casual only).
   ///
   /// In en, this message translates to:

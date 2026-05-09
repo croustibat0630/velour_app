@@ -707,6 +707,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get prepTitle => 'SESSION SETUP';
 
   @override
+  String get prepLuxScoreCaption => 'LUX COINS';
+
+  @override
   String get prepGuidedTutorialCasualOnly =>
       'Only Classic mode is available for this tutorial.';
 

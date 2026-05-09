@@ -706,6 +706,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get prepTitle => 'PRÉPARATION DE SESSION';
 
   @override
+  String get prepLuxScoreCaption => 'LUX';
+
+  @override
   String get prepGuidedTutorialCasualOnly =>
       'Seul le mode classique est proposé pour ce tutoriel.';
 

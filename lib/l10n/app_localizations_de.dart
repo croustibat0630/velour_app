@@ -715,6 +715,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get prepTitle => 'SITZUNGS-SETUP';
 
   @override
+  String get prepLuxScoreCaption => 'LUX-MÜNZEN';
+
+  @override
   String get prepGuidedTutorialCasualOnly =>
       'Für dieses Tutorial steht nur der klassische Modus zur Verfügung.';
 

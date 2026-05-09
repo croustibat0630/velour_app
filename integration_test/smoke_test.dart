@@ -6,6 +6,7 @@ import 'package:velour_app/main.dart' as app;
 import 'package:velour_app/screens/game_screen.dart';
 import 'package:velour_app/screens/main_menu_view.dart';
 import 'package:velour_app/screens/preparation_view.dart';
+import 'package:velour_app/widgets/ui/pause_overlay.dart';
 
 /// Smoke `integration_test` (app réelle : Firebase, audio, polices).
 ///
@@ -26,46 +27,70 @@ void main() {
     expect(IntegrationTestWidgetsFlutterBinding.instance, isNotNull);
   });
 
-  testWidgets('smoke: menu → préparation → partie (GameScreen + PlayZone)', (
-    WidgetTester tester,
-  ) async {
-    addTearDown(() async {
-      await tester.binding.setSurfaceSize(null);
-    });
+  /// Un seul [app.main] : évite les callbacks tardifs (ex. welcome LUX) qui
+  /// survivent au teardown et touchent un [EconomyService] déjà disposé.
+  testWidgets(
+    'smoke: menu → préparation → jeu → pause → reprise → pause → menu',
+    (WidgetTester tester) async {
+      addTearDown(() async {
+        await tester.binding.setSurfaceSize(null);
+      });
 
-    await tester.binding.setSurfaceSize(const Size(390, 844));
-    await app.main();
-    await tester.pump();
+      await tester.binding.setSurfaceSize(const Size(390, 844));
+      await app.main();
+      await tester.pump();
 
-    await _pumpUntil(tester, find.byType(MainMenuView));
-    expect(find.byType(MainMenuView), findsWidgets);
+      await _reachClassicPlayZone(tester);
+      expect(find.byType(GameScreen), findsOneWidget);
+      expect(find.byKey(const ValueKey<String>('PlayZone')), findsOneWidget);
 
-    final AppLocalizations l10nMenu = AppLocalizations.of(
-      tester.element(find.byType(MainMenuView).first),
-    )!;
+      final AppLocalizations l10nGame = AppLocalizations.of(
+        tester.element(find.byType(GameScreen).first),
+      )!;
 
-    await tester.tap(find.text(l10nMenu.menuPlay));
-    await _pumpUntil(tester, find.byType(PreparationView), maxSteps: 120);
-    expect(find.byType(PreparationView), findsOneWidget);
+      await tester.tap(find.byTooltip(l10nGame.gameHudMenuTooltip));
+      await _pumpUntil(tester, find.byType(PauseOverlay), maxSteps: 120);
 
-    final AppLocalizations l10nPrep = AppLocalizations.of(
-      tester.element(find.byType(PreparationView).first),
-    )!;
+      await tester.tap(find.text(l10nGame.pauseResume));
+      await _pumpUntilAbsent(tester, find.byType(PauseOverlay), maxSteps: 120);
 
-    await tester.tap(find.text(l10nPrep.prepModeCasualTitle));
-    await _pumpFrames(tester, 8);
+      await tester.tap(find.byTooltip(l10nGame.gameHudMenuTooltip));
+      await _pumpUntil(tester, find.byType(PauseOverlay), maxSteps: 120);
 
-    await tester.tap(find.text(l10nPrep.prepConfirm));
-    await _pumpUntil(
-      tester,
-      find.byKey(const ValueKey<String>('PlayZone')),
-      maxSteps: 200,
-    );
+      await tester.tap(find.text(l10nGame.pauseBackToMenu));
+      await _pumpUntil(tester, find.byType(MainMenuView), maxSteps: 220);
 
-    expect(find.byType(GameScreen), findsOneWidget);
-    expect(find.byKey(const ValueKey<String>('PlayZone')), findsOneWidget);
-    expect(tester.takeException(), isNull);
-  });
+      expect(find.byType(MainMenuView), findsWidgets);
+      expect(tester.takeException(), isNull);
+    },
+  );
+}
+
+Future<void> _reachClassicPlayZone(WidgetTester tester) async {
+  await _pumpUntil(tester, find.byType(MainMenuView));
+  expect(find.byType(MainMenuView), findsWidgets);
+
+  final AppLocalizations l10nMenu = AppLocalizations.of(
+    tester.element(find.byType(MainMenuView).first),
+  )!;
+
+  await tester.tap(find.text(l10nMenu.menuPlay));
+  await _pumpUntil(tester, find.byType(PreparationView), maxSteps: 120);
+  expect(find.byType(PreparationView), findsOneWidget);
+
+  final AppLocalizations l10nPrep = AppLocalizations.of(
+    tester.element(find.byType(PreparationView).first),
+  )!;
+
+  await tester.tap(find.text(l10nPrep.prepModeCasualTitle));
+  await _pumpFrames(tester, 8);
+
+  await tester.tap(find.text(l10nPrep.prepConfirm));
+  await _pumpUntil(
+    tester,
+    find.byKey(const ValueKey<String>('PlayZone')),
+    maxSteps: 200,
+  );
 }
 
 Future<void> _pumpUntil(
@@ -81,6 +106,23 @@ Future<void> _pumpUntil(
     }
   }
   fail('finder still empty after ${maxSteps * step.inMilliseconds}ms: $finder');
+}
+
+Future<void> _pumpUntilAbsent(
+  WidgetTester tester,
+  Finder finder, {
+  int maxSteps = 120,
+  Duration step = const Duration(milliseconds: 50),
+}) async {
+  for (int i = 0; i < maxSteps; i++) {
+    await tester.pump(step);
+    if (finder.evaluate().isEmpty) {
+      return;
+    }
+  }
+  fail(
+    'finder still present after ${maxSteps * step.inMilliseconds}ms: $finder',
+  );
 }
 
 Future<void> _pumpFrames(WidgetTester tester, int frames, [int ms = 50]) async {

@@ -275,6 +275,7 @@
   "narrativeFloatPerfectBonus": "+500 LUX : ÉCLAT TOTAL",
   "gameNarrativePerfectMatchBanner": "MATCH PARFAIT",
   "prepTitle": "PRÉPARATION DE SESSION",
+  "prepLuxScoreCaption": "LUX",
   "prepGuidedTutorialCasualOnly": "Seul le mode classique est proposé pour ce tutoriel.",
   "prepGuidedTutorialGoalTitle": "L’objectif",
   "prepGuidedTutorialGoalBody": "Chaque match ajoute des LUX en partie et fait monter le niveau. Les matchs « plus riches » — surtout le parfait — valent beaucoup plus qu’une petite combinaison : le jeu, c’est surtout le timing et le bon choix de match.\n\nEnchaîner les parfaits fait monter le FEU (la jauge en partie réelle) : plus de LUX sur chaque parfait et du temps récupérable ; un triple faible le fait redescendre.",

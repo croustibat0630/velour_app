@@ -379,6 +379,10 @@
   "narrativeFloatPerfectBonus": "+500 LUX : TOTAL BRILLIANCE",
   "gameNarrativePerfectMatchBanner": "PERFECT MATCH",
   "prepTitle": "SESSION SETUP",
+  "prepLuxScoreCaption": "LUX COINS",
+  "@prepLuxScoreCaption": {
+    "description": "Caption above the animated LUX balance on the preparation screen (session setup)."
+  },
   "prepGuidedTutorialCasualOnly": "Only Classic mode is available for this tutorial.",
   "@prepGuidedTutorialCasualOnly": {
     "description": "Preparation screen subtitle when opened from menu tutorial (casual only)."

@@ -26,13 +26,13 @@ class _OracleStrokedLabel extends StatelessWidget {
         Text(
           message,
           textAlign: TextAlign.center,
-          maxLines: 6,
+          maxLines: 7,
           style: fillStyle.copyWith(foreground: stroke),
         ),
         Text(
           message,
           textAlign: TextAlign.center,
-          maxLines: 6,
+          maxLines: 7,
           style: fillStyle,
         ),
       ],

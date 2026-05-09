@@ -1104,13 +1104,13 @@ abstract class AppLocalizations {
   /// No description provided for @oracleDockStep3Perfect.
   ///
   /// In en, this message translates to:
-  /// **'Perfect = +500 LUX\n3 identical gems → rack'**
+  /// **'Perfect = +500 LUX\n3 identical gems → rack\nBack-to-back perfects build Heat: bonus LUX & time.'**
   String get oracleDockStep3Perfect;
 
   /// No description provided for @oracleDockCelebration.
   ///
   /// In en, this message translates to:
-  /// **'100 < 150 < 500 LUX\nAim for perfect first.'**
+  /// **'100 < 150 < 500 LUX\nPerfect streaks power Heat in real games.'**
   String get oracleDockCelebration;
 
   /// No description provided for @oracleDockStep1StrategyLine.
@@ -1128,13 +1128,13 @@ abstract class AppLocalizations {
   /// No description provided for @oracleDockStep3StrategyLine.
   ///
   /// In en, this message translates to:
-  /// **'Three identical gems = the biggest payout here.'**
+  /// **'Weak shape/color clears drop Heat — plan your perfect chain.'**
   String get oracleDockStep3StrategyLine;
 
   /// No description provided for @oracleDockCelebrationStrategyLine.
   ///
   /// In en, this message translates to:
-  /// **'Later: the timer turns every second into a choice.'**
+  /// **'Later: Heat and the timer both shape what you risk.'**
   String get oracleDockCelebrationStrategyLine;
 
   /// No description provided for @tutorialTrinityShapeIntro.
@@ -1152,7 +1152,7 @@ abstract class AppLocalizations {
   /// No description provided for @tutorialTrinityPerfectIntro.
   ///
   /// In en, this message translates to:
-  /// **'The Perfect Match: absolute union. Triggers the LUX burst.'**
+  /// **'The Perfect Match: absolute union. Triggers the LUX burst. Chaining perfects builds Heat for bigger payouts.'**
   String get tutorialTrinityPerfectIntro;
 
   /// No description provided for @narrativeFloatShapeBonus.
@@ -1200,7 +1200,7 @@ abstract class AppLocalizations {
   /// No description provided for @prepGuidedTutorialGoalBody.
   ///
   /// In en, this message translates to:
-  /// **'Each match adds in-run LUX and pushes your level. Richer match types—especially a perfect—pay far more than weaker triples. The real skill is choosing which clear you take and when.'**
+  /// **'Each match adds in-run LUX and pushes your level. Richer match types—especially a perfect—pay far more than weaker triples. The real skill is choosing which clear you take and when.\n\nChaining perfect matches raises Heat (the meter in real runs): higher tiers add LUX on each perfect and can refill time; weak triples cool it down.'**
   String get prepGuidedTutorialGoalBody;
 
   /// No description provided for @prepGuidedTutorialStrategyTitle.

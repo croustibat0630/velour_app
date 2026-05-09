@@ -604,11 +604,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get oracleDockStep3Perfect =>
-      'Perfect = +500 LUX\n3 identische Edelsteine → Ablage';
+      'Perfect = +500 LUX\n3 identische Edelsteine → Ablage\nMehrere Perfects hintereinander: HITZE steigt — Extra-LUX & Zeit.';
 
   @override
   String get oracleDockCelebration =>
-      '100 < 150 < 500 LUX\nZiele zuerst auf Perfect.';
+      '100 < 150 < 500 LUX\nPerfect-Strecken laden HITZE in echten Partien.';
 
   @override
   String get oracleDockStep1StrategyLine =>
@@ -620,11 +620,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get oracleDockStep3StrategyLine =>
-      'Drei identische Steine = höchster Gewinn hier.';
+      'Schwächere Form-/Farb-Drillings senken die HITZE — plane deine Serie.';
 
   @override
   String get oracleDockCelebrationStrategyLine =>
-      'Später: der Timer macht jede Sekunde zur Wahl.';
+      'Später: HITZE und Timer bestimmen gemeinsam dein Risiko.';
 
   @override
   String get tutorialTrinityShapeIntro => 'Form ist Struktur. Gruppiere sie.';
@@ -635,7 +635,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get tutorialTrinityPerfectIntro =>
-      'Das perfekte Match: absolute Vereinigung. Löst den LUX-Burst aus.';
+      'Das perfekte Match: absolute Vereinigung, LUX-Burst. Perfect-Ketten bauen HITZE für stärkere Auszahlungen.';
 
   @override
   String get narrativeFloatShapeBonus => '+100 LUX : STRUKTUR (FORM)';
@@ -661,7 +661,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get prepGuidedTutorialGoalBody =>
-      'Jeder Match bringt LUX in der Runde und treibt dein Level. Reichere Match-Typen — vor allem ein Perfect — zahlen viel mehr als schwächere Drillinge. Die Kunst ist, welchen Clear du nimmst und wann.';
+      'Jeder Match bringt LUX in der Runde und treibt dein Level. Reichere Match-Typen — vor allem ein Perfect — zahlen viel mehr als schwächere Drillinge. Die Kunst ist, welchen Clear du nimmst und wann.\n\nMehrere Perfects in Folge erhöhen die HITZE (Leiste in echten Runden): höhere Stufen boosten Perfect-LUX und können Zeit zurückgeben; schwache Drillinge kühlen sie ab.';
 
   @override
   String get prepGuidedTutorialStrategyTitle =>

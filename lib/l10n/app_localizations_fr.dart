@@ -594,11 +594,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get oracleDockStep3Perfect =>
-      'Parfait = +500 LUX\n3 gemmes identiques → rack';
+      'Parfait = +500 LUX\n3 gemmes identiques → rack\nEnchaîne les parfaits : le FEU monte (LUX & temps).';
 
   @override
   String get oracleDockCelebration =>
-      '100 < 150 < 500 LUX\nVise le parfait en priorité.';
+      '100 < 150 < 500 LUX\nLes parfaits d’affilée boostent le FEU en partie.';
 
   @override
   String get oracleDockStep1StrategyLine =>
@@ -610,11 +610,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get oracleDockStep3StrategyLine =>
-      'Trois gemmes identiques : le gros score de ce coup.';
+      'Un triple forme/couleur fait baisser le FEU — pense à ta série.';
 
   @override
   String get oracleDockCelebrationStrategyLine =>
-      'Ensuite : le chrono pèse sur chaque choix.';
+      'Ensuite : le FEU et le chrono pèsent sur tes risques.';
 
   @override
   String get tutorialTrinityShapeIntro =>
@@ -626,7 +626,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get tutorialTrinityPerfectIntro =>
-      'Le Perfect Match : L\'union absolue. Déclenche l\'éclat LUX.';
+      'Le Perfect Match : l’union absolue, éclat LUX. Enchaîner les parfaits monte le FEU pour des gains plus gros.';
 
   @override
   String get narrativeFloatShapeBonus => '+100 LUX : STRUCTURE (FORME)';
@@ -652,7 +652,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get prepGuidedTutorialGoalBody =>
-      'Chaque match ajoute des LUX en partie et fait monter le niveau. Les matchs « plus riches » — surtout le parfait — valent beaucoup plus qu’une petite combinaison : le jeu, c’est surtout le timing et le bon choix de match.';
+      'Chaque match ajoute des LUX en partie et fait monter le niveau. Les matchs « plus riches » — surtout le parfait — valent beaucoup plus qu’une petite combinaison : le jeu, c’est surtout le timing et le bon choix de match.\n\nEnchaîner les parfaits fait monter le FEU (la jauge en partie réelle) : plus de LUX sur chaque parfait et du temps récupérable ; un triple faible le fait redescendre.';
 
   @override
   String get prepGuidedTutorialStrategyTitle => 'Lire le rack avant d’agir';

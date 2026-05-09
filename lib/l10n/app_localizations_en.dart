@@ -596,11 +596,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get oracleDockStep3Perfect =>
-      'Perfect = +500 LUX\n3 identical gems → rack';
+      'Perfect = +500 LUX\n3 identical gems → rack\nBack-to-back perfects build Heat: bonus LUX & time.';
 
   @override
   String get oracleDockCelebration =>
-      '100 < 150 < 500 LUX\nAim for perfect first.';
+      '100 < 150 < 500 LUX\nPerfect streaks power Heat in real games.';
 
   @override
   String get oracleDockStep1StrategyLine =>
@@ -612,11 +612,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get oracleDockStep3StrategyLine =>
-      'Three identical gems = the biggest payout here.';
+      'Weak shape/color clears drop Heat — plan your perfect chain.';
 
   @override
   String get oracleDockCelebrationStrategyLine =>
-      'Later: the timer turns every second into a choice.';
+      'Later: Heat and the timer both shape what you risk.';
 
   @override
   String get tutorialTrinityShapeIntro => 'Shape is structure. Group them.';
@@ -627,7 +627,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tutorialTrinityPerfectIntro =>
-      'The Perfect Match: absolute union. Triggers the LUX burst.';
+      'The Perfect Match: absolute union. Triggers the LUX burst. Chaining perfects builds Heat for bigger payouts.';
 
   @override
   String get narrativeFloatShapeBonus => '+100 LUX : STRUCTURE (SHAPE)';
@@ -653,7 +653,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get prepGuidedTutorialGoalBody =>
-      'Each match adds in-run LUX and pushes your level. Richer match types—especially a perfect—pay far more than weaker triples. The real skill is choosing which clear you take and when.';
+      'Each match adds in-run LUX and pushes your level. Richer match types—especially a perfect—pay far more than weaker triples. The real skill is choosing which clear you take and when.\n\nChaining perfect matches raises Heat (the meter in real runs): higher tiers add LUX on each perfect and can refill time; weak triples cool it down.';
 
   @override
   String get prepGuidedTutorialStrategyTitle => 'Think before the third gem';

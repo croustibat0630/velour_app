@@ -8,7 +8,7 @@ import '../../providers/game_state.dart';
 import '../../utils/responsive.dart';
 import '../../utils/route_transition_notifier.dart';
 
-/// Affiche la bannière + compteur LUX (0 → 250) au-dessus de toute la navigation,
+/// Affiche la bannière + compteur LUX (0 → welcome grant) au-dessus de toute la navigation,
 /// pour respecter l’AudioContext dès le premier geste menu (même si l’utilisateur
 /// ouvre Boutique / Paramètres immédiatement).
 class WelcomeGiftGlobalLayer extends StatefulWidget {

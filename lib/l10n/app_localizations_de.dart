@@ -899,7 +899,15 @@ class AppLocalizationsDe extends AppLocalizations {
   String get a11yGemColor7 => 'Blass';
 
   @override
-  String a11yRackBarSummary(int filled, int max) {
-    return '$filled von $max Rack-Fächern sind belegt.';
+  String a11yRackSlotEmpty(int slot, int max) {
+    return 'Rack-Fach $slot von $max, leer.';
   }
+
+  @override
+  String a11yRackSlotGem(int slot, int max, String gem) {
+    return 'Rack-Fach $slot von $max: $gem.';
+  }
+
+  @override
+  String get a11yRackSlotImminentHint => 'Benachbartes Paar fast vollständig.';
 }

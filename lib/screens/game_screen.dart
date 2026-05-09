@@ -29,6 +29,7 @@ import 'package:velour_app/services/haptics_handler.dart';
 import 'package:velour_app/widgets/items/gem_shape_paths.dart';
 import 'package:velour_app/game/particle_system.dart';
 import 'package:velour_app/utils/gem_accessibility.dart';
+import 'package:velour_app/utils/rack_accessibility.dart';
 import 'package:velour_app/utils/velour_accessibility.dart';
 import 'dart:math' as math;
 
@@ -643,7 +644,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                             ),
                             _SlotBar(
                               imminentSlotIdxs: gameState.imminentSlotIdxs,
-                              filledCount: gameState.slotItems.length,
+                              slotItems: gameState.slotItems,
                               accent: gameState.isRoyalSession
                                   ? const Color(0xFF9D50BB)
                                   : gameState.isHighStakesSession
@@ -1947,13 +1948,13 @@ class _PlayZone extends StatelessWidget {
 class _SlotBar extends StatefulWidget {
   const _SlotBar({
     required this.imminentSlotIdxs,
-    required this.filledCount,
+    required this.slotItems,
     required this.accent,
     required this.premium,
   });
 
   final Set<int> imminentSlotIdxs;
-  final int filledCount;
+  final List<GameItem> slotItems;
   final Color accent;
   final bool premium;
 
@@ -2008,26 +2009,30 @@ class _SlotBarState extends State<_SlotBar>
     final Color accent = widget.accent;
     final AppLocalizations l10n = AppLocalizations.of(context)!;
     final Widget bar = RepaintBoundary(
-      child: Semantics(
-        container: true,
-        label: l10n.a11yRackBarSummary(widget.filledCount, GameState.slotCount),
-        child: Container(
-          height: 100,
-          decoration: BoxDecoration(
-            color: const Color(0xCC1E2228), // semi-transparent, matte
-            border: Border(
-              top: BorderSide(
-                color: accent.withValues(alpha: widget.premium ? 0.42 : 0.3),
-                width: 2,
-              ),
+      child: Container(
+        height: 100,
+        decoration: BoxDecoration(
+          color: const Color(0xCC1E2228), // semi-transparent, matte
+          border: Border(
+            top: BorderSide(
+              color: accent.withValues(alpha: widget.premium ? 0.42 : 0.3),
+              width: 2,
             ),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: List<Widget>.generate(GameState.slotCount, (index) {
-              final bool imminent = widget.imminentSlotIdxs.contains(index);
-              return AnimatedBuilder(
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: List<Widget>.generate(GameState.slotCount, (index) {
+            final bool imminent = widget.imminentSlotIdxs.contains(index);
+            return Semantics(
+              label: rackSlotSemanticsLabel(
+                l10n,
+                index,
+                widget.slotItems,
+                widget.imminentSlotIdxs,
+              ),
+              child: AnimatedBuilder(
                 animation: _pulse,
                 builder: (context, _) {
                   return Transform.scale(
@@ -2057,9 +2062,9 @@ class _SlotBarState extends State<_SlotBar>
                     ),
                   );
                 },
-              );
-            }),
-          ),
+              ),
+            );
+          }),
         ),
       ),
     );

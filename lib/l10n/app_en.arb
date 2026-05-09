@@ -521,12 +521,25 @@
   "a11yGemColor5": "Purple",
   "a11yGemColor6": "Orange",
   "a11yGemColor7": "Pale",
-  "a11yRackBarSummary": "{filled} of {max} rack slots are occupied.",
-  "@a11yRackBarSummary": {
-    "description": "VoiceOver summary for the bottom rack bar.",
+  "a11yRackSlotEmpty": "Rack slot {slot} of {max}, empty.",
+  "@a11yRackSlotEmpty": {
+    "description": "VoiceOver label for an empty rack slot (1-based slot index).",
     "placeholders": {
-      "filled": {"type": "int"},
+      "slot": {"type": "int"},
       "max": {"type": "int"}
     }
+  },
+  "a11yRackSlotGem": "Rack slot {slot} of {max}: {gem}.",
+  "@a11yRackSlotGem": {
+    "description": "VoiceOver label for a rack slot that holds a gem.",
+    "placeholders": {
+      "slot": {"type": "int"},
+      "max": {"type": "int"},
+      "gem": {"type": "String"}
+    }
+  },
+  "a11yRackSlotImminentHint": "Adjacent pair almost complete.",
+  "@a11yRackSlotImminentHint": {
+    "description": "Appended when this slot is part of an adjacent almost-match pair."
   }
 }

@@ -413,11 +413,20 @@
   "a11yGemColor5": "Violet",
   "a11yGemColor6": "Orange",
   "a11yGemColor7": "Pâle",
-  "a11yRackBarSummary": "{filled} sur {max} emplacements du rack sont occupés.",
-  "@a11yRackBarSummary": {
+  "a11yRackSlotEmpty": "Emplacement {slot} sur {max} du rack, vide.",
+  "@a11yRackSlotEmpty": {
     "placeholders": {
-      "filled": {"type": "int"},
+      "slot": {"type": "int"},
       "max": {"type": "int"}
     }
-  }
+  },
+  "a11yRackSlotGem": "Emplacement {slot} sur {max} du rack : {gem}.",
+  "@a11yRackSlotGem": {
+    "placeholders": {
+      "slot": {"type": "int"},
+      "max": {"type": "int"},
+      "gem": {"type": "String"}
+    }
+  },
+  "a11yRackSlotImminentHint": "Paire adjacente presque complète."
 }

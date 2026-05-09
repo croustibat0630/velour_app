@@ -1593,11 +1593,23 @@ abstract class AppLocalizations {
   /// **'Pale'**
   String get a11yGemColor7;
 
-  /// VoiceOver summary for the bottom rack bar.
+  /// VoiceOver label for an empty rack slot (1-based slot index).
   ///
   /// In en, this message translates to:
-  /// **'{filled} of {max} rack slots are occupied.'**
-  String a11yRackBarSummary(int filled, int max);
+  /// **'Rack slot {slot} of {max}, empty.'**
+  String a11yRackSlotEmpty(int slot, int max);
+
+  /// VoiceOver label for a rack slot that holds a gem.
+  ///
+  /// In en, this message translates to:
+  /// **'Rack slot {slot} of {max}: {gem}.'**
+  String a11yRackSlotGem(int slot, int max, String gem);
+
+  /// Appended when this slot is part of an adjacent almost-match pair.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjacent pair almost complete.'**
+  String get a11yRackSlotImminentHint;
 }
 
 class _AppLocalizationsDelegate

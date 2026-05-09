@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:cloud_firestore/cloud_firestore.dart' show QuerySnapshot;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'game_state_cloud_sync_guard.dart';
 import 'game_state_local_store.dart';
 import 'game_state_types.dart';
 export 'game_state_types.dart';
@@ -83,31 +84,29 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     _oracleNaming.addListener(notifyListeners);
   }
 
-  bool _cloudLifecycleFlushBusy = false;
+  final GameStateCloudSyncGuard _cloudFlushGuard = GameStateCloudSyncGuard();
 
   /// Annule le debounce LUX, persiste le disque puis pousse LUX / record / skins
   /// vers Firestore (best-effort). Appelé sur [AppLifecycleState.paused] / [hidden].
   Future<void> flushCloudSyncOnAppHidden() async {
-    if (_cloudLifecycleFlushBusy) return;
-    _cloudLifecycleFlushBusy = true;
-    try {
-      await _economy.flushCloudSyncOnLifecycleHide();
-      if (FirestoreService.instance.isCloudReady) {
-        await FirestoreService.instance.pushMergedPlayerProgress(
-          highScore: _economy.highScore,
-          inventory: List<String>.from(_unlockedSkins),
-          activeSkinId: _activeSkinId,
+    await _cloudFlushGuard.run(() async {
+      try {
+        await _economy.flushCloudSyncOnLifecycleHide();
+        if (FirestoreService.instance.isCloudReady) {
+          await FirestoreService.instance.pushMergedPlayerProgress(
+            highScore: _economy.highScore,
+            inventory: List<String>.from(_unlockedSkins),
+            activeSkinId: _activeSkinId,
+          );
+        }
+      } catch (e, st) {
+        VelourObservability.logFirestoreFailure(
+          'flushCloudSyncOnAppHidden',
+          error: e,
+          stackTrace: st,
         );
       }
-    } catch (e, st) {
-      VelourObservability.logFirestoreFailure(
-        'flushCloudSyncOnAppHidden',
-        error: e,
-        stackTrace: st,
-      );
-    } finally {
-      _cloudLifecycleFlushBusy = false;
-    }
+    });
   }
 
   @override

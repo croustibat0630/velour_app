@@ -7,6 +7,7 @@ import 'package:velour_app/screens/game_screen.dart';
 import 'package:velour_app/screens/main_menu_view.dart';
 import 'package:velour_app/screens/preparation_view.dart';
 import 'package:velour_app/screens/settings_view.dart';
+import 'package:velour_app/screens/shop_view.dart';
 import 'package:velour_app/widgets/ui/pause_overlay.dart';
 
 /// Smoke `integration_test` (app réelle : Firebase, audio, polices).
@@ -30,7 +31,7 @@ void main() {
 
   /// Un seul [testWidgets] + un seul [app.main] : évite les callbacks tardifs (ex.
   /// welcome LUX) qui survivent au teardown et touchent un [EconomyService] disposé.
-  testWidgets('smoke: binding → menu → réglages → menu → préparation → jeu → '
+  testWidgets('smoke: binding → menu → réglages → shop → préparation → jeu → '
       'pause → reprise → pause → menu', (WidgetTester tester) async {
     expect(IntegrationTestWidgetsFlutterBinding.instance, isNotNull);
 
@@ -105,7 +106,22 @@ Future<void> _reachClassicPlayZone(WidgetTester tester) async {
     tester.element(find.byType(MainMenuView).first),
   )!;
 
-  await tester.tap(find.text(l10nMenu2.menuPlay));
+  await tester.tap(find.text(l10nMenu2.menuShop));
+  await _pumpUntil(tester, find.byType(ShopView), maxSteps: 120);
+  expect(find.byType(ShopView), findsOneWidget);
+  final AppLocalizations l10nShopFromMenu = AppLocalizations.of(
+    tester.element(find.byType(ShopView).first),
+  )!;
+  await tester.tap(find.byTooltip(l10nShopFromMenu.shopBackTooltip));
+  await _pumpUntil(tester, find.byType(MainMenuView), maxSteps: 120);
+  await _pumpUntilAbsent(tester, find.byType(ShopView), maxSteps: 80);
+  expect(find.byType(MainMenuView), findsWidgets);
+
+  final AppLocalizations l10nMenu3 = AppLocalizations.of(
+    tester.element(find.byType(MainMenuView).first),
+  )!;
+
+  await tester.tap(find.text(l10nMenu3.menuPlay));
   await _pumpUntil(tester, find.byType(PreparationView), maxSteps: 120);
   expect(find.byType(PreparationView), findsOneWidget);
 

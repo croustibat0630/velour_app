@@ -300,16 +300,15 @@ class AudioHandler {
     try {
       await _withNativeSourceLoadLock(() async {
         if (_disabled) return;
-        await configure();
-        if (_disabled) return;
+        // Même séquence que le menu (micro one-shots) : sans çi, iOS simulateur
+        // peut laisser `setSource` sur le pool pendre après navigation / réglages
+        // alors que [configureVelourAudioPipeline] seul ne suffit pas.
         if (!kIsWeb) {
-          try {
-            await configureVelourAudioPipeline(
-              activateSession: true,
-              force: true,
-            );
-          } catch (_) {}
+          await _unlockAudioCore();
+        } else {
+          await configure();
         }
+        if (_disabled) return;
 
         try {
           await _populateMatchPoolIfNeeded();

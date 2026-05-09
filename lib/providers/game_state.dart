@@ -493,6 +493,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     _levelTransitionTimer = null;
     _isLevelTransitionInProgress = false;
     _pendingLevelUpNeedLux = null;
+    _queuedLuxFloaterDuringLevelUp = null;
   }
 
   /// À appeler quand l'animation "Level Up" se termine (ou via timer de secours).
@@ -508,6 +509,12 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     _luxAtLevelStart += need;
     _gameLevel++;
     _isLevelTransitionInProgress = false;
+    final FloatingTextFx? deferredLuxFloater = _queuedLuxFloaterDuringLevelUp;
+    _queuedLuxFloaterDuringLevelUp = null;
+    if (deferredLuxFloater != null) {
+      _floatingTextFx = deferredLuxFloater;
+      _floatingTick++;
+    }
     // Si le score dépasse encore le palier suivant (gros combo), on ne retrigger
     // pas instantanément : un prochain gain relancera _maybeAdvanceLevel.
     notifyListeners();
@@ -1480,6 +1487,9 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
   FloatingTextFx? _floatingTextFx;
   FloatingTextFx? get floatingTextFx => _floatingTextFx;
 
+  /// Floater LUX reporté pendant [_isLevelTransitionInProgress] (priorité au flash niveau).
+  FloatingTextFx? _queuedLuxFloaterDuringLevelUp;
+
   int _matchParticleTick = 0;
   int get matchParticleTick => _matchParticleTick;
   MatchParticleFx? _matchParticleFx;
@@ -1555,6 +1565,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
 
     _flightFx = null;
     _floatingTextFx = null;
+    _queuedLuxFloaterDuringLevelUp = null;
     // Force UI to drop any in-flight overlays instantly (trail / floating text).
     _flightTick++;
     _floatingTick++;
@@ -1664,6 +1675,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     _gameOverFlashTick = 0;
     _flightFx = null;
     _floatingTextFx = null;
+    _queuedLuxFloaterDuringLevelUp = null;
     _flightTick++;
     _floatingTick++;
     _matchParticleFx = null;
@@ -2531,7 +2543,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
       _floatingTextFx = null;
       _floatingTick++;
     } else {
-      _floatingTextFx = FloatingTextFx(
+      final FloatingTextFx nextLuxFloater = FloatingTextFx(
         id: _nextId(),
         text: luxLabel,
         position: center,
@@ -2545,7 +2557,16 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
         textColorOverride: perfectHeatNear ? const Color(0xFFFFB74D) : null,
         appendPerfectHeatNear: perfectHeatNear,
       );
-      _floatingTick++;
+      if (_isLevelTransitionInProgress) {
+        _queuedLuxFloaterDuringLevelUp = nextLuxFloater;
+        if (_floatingTextFx != null) {
+          _floatingTextFx = null;
+          _floatingTick++;
+        }
+      } else {
+        _floatingTextFx = nextLuxFloater;
+        _floatingTick++;
+      }
     }
     final bool perfectBurst = basis == RunBasis.perfect;
     final int dominantColorId = matched.first.colorId;

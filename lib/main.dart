@@ -128,6 +128,24 @@ Future<void> main() async {
     }
   }
 
+  // If no debug token was provided, still expose the generated token in logs so
+  // it can be registered in Firebase Console (App Check -> Debug tokens).
+  if (!kIsWeb &&
+      !kReleaseMode &&
+      debugAppCheckToken.isEmpty &&
+      (defaultTargetPlatform == TargetPlatform.iOS ||
+          defaultTargetPlatform == TargetPlatform.macOS)) {
+    try {
+      const MethodChannel ch = MethodChannel('velour/app_check');
+      final String? t = await ch.invokeMethod<String>('getDebugToken');
+      if (t != null && t.isNotEmpty) {
+        debugPrint('Firebase App Check debug token (iOS): $t');
+      }
+    } catch (e) {
+      debugPrint('App Check debug token read failed: $e');
+    }
+  }
+
   // Réduit le timeout interne « preparation » d’audioplayers (30s par défaut) pour
   // éviter des TimeoutException fantômes remontées à Crashlytics après nos awaits.
   AudioHandler.installAudioplayersTimeoutGuardsEarly();

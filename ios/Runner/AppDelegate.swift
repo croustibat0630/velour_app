@@ -10,6 +10,14 @@ import FirebaseAppCheck
     #if DEBUG
       let channel = FlutterMethodChannel(name: "velour/app_check", binaryMessenger: messenger)
       channel.setMethodCallHandler { call, result in
+        if call.method == "getDebugToken" {
+          // Returns (and generates if needed) the current debug token.
+          // This token must be registered in Firebase Console -> App Check -> Debug tokens.
+          let t = AppCheckDebugProvider.currentDebugToken()
+          result(t)
+          return
+        }
+
         guard call.method == "setDebugToken" else {
           result(FlutterMethodNotImplemented)
           return

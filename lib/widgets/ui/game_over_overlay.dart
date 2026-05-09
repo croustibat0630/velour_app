@@ -729,9 +729,11 @@ class _OracleNamingBanner extends StatelessWidget {
       borderRadius: BorderRadius.circular(r),
       child: Stack(
         children: [
-          BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-            child: const SizedBox.expand(),
+          Positioned.fill(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+              child: const SizedBox(),
+            ),
           ),
           DecoratedBox(
             decoration: BoxDecoration(

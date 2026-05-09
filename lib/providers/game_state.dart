@@ -1802,6 +1802,14 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
           velourDebug(
             '[Velour][Timer] chrono à zéro pendant pipeline match — gameOver différé',
           );
+          VelourAuditLog.event(
+            'timer.zero.defer',
+            data: <String, Object?>{
+              't': timeBar.value,
+              'processingMatch': _isProcessingMatch,
+              'awaitingScheduledMatch': _awaitingScheduledMatch,
+            },
+          );
           notifyListeners();
           return;
         }
@@ -1809,6 +1817,14 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
         if (_tryConsumeChronoPulseRefill()) {
           return;
         }
+        VelourAuditLog.event(
+          'timer.zero.game_over',
+          data: <String, Object?>{
+            't': timeBar.value,
+            'lux': _lux,
+            'level': _gameLevel,
+          },
+        );
         gameOver();
         return;
       }
@@ -1856,6 +1872,14 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
       velourDebug(
         '[Velour][GameOver] appel ignoré (match en cours / check armé) — différé',
       );
+      VelourAuditLog.event(
+        'game_over.defer',
+        data: <String, Object?>{
+          't': timeBar.value,
+          'processingMatch': _isProcessingMatch,
+          'awaitingScheduledMatch': _awaitingScheduledMatch,
+        },
+      );
       notifyListeners();
       return;
     }
@@ -1866,15 +1890,39 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     _breakPerfectHeatTimerGameOverInternal();
     _cancelMatchScheduling();
     _stopTimeLoop();
+    VelourAuditLog.event(
+      'game_over.begin',
+      data: <String, Object?>{
+        't': timeBar.value,
+        'lux': _lux,
+        'level': _gameLevel,
+      },
+    );
     try {
       unawaited(_recordRunStatsIfNeeded());
       _resolveSessionStakeOnGameOver();
       _lastGameWasPersonalBest = _lux > _economy.highScore;
-      _persistHighScoreIfNeeded();
+      unawaited(
+        _persistHighScoreIfNeeded().catchError((Object e, StackTrace st) {
+          velourDebug('[Velour][GameOver] persistHighScore failed: $e');
+          velourDebug('$st');
+          VelourAuditLog.event(
+            'game_over.persist_high_score_failed',
+            data: <String, Object?>{'err': e.toString()},
+          );
+        }),
+      );
       _playGameOverSound();
       AudioHandler.instance.cutAllAudio();
       _gameOverFlashTick++;
     } finally {
+      VelourAuditLog.event(
+        'game_over.end',
+        data: <String, Object?>{
+          'flashTick': _gameOverFlashTick,
+          'lastPersonalBest': _lastGameWasPersonalBest,
+        },
+      );
       notifyListeners();
     }
   }
@@ -2590,7 +2638,16 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
       _lastGameWasPersonalBest = _lux > _economy.highScore;
       _playGameOverSound();
       AudioHandler.instance.cutAllAudio();
-      _persistHighScoreIfNeeded();
+      unawaited(
+        _persistHighScoreIfNeeded().catchError((Object e, StackTrace st) {
+          velourDebug('[Velour][Deadlock] persistHighScore failed: $e');
+          velourDebug('$st');
+          VelourAuditLog.event(
+            'deadlock.persist_high_score_failed',
+            data: <String, Object?>{'err': e.toString()},
+          );
+        }),
+      );
       _stopTimeLoop();
       _gameOverFlashTick++;
     }

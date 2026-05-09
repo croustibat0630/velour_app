@@ -135,15 +135,26 @@ Future<void> main() async {
       debugAppCheckToken.isEmpty &&
       (defaultTargetPlatform == TargetPlatform.iOS ||
           defaultTargetPlatform == TargetPlatform.macOS)) {
-    try {
+    unawaited(() async {
+      // The channel may be registered slightly after Dart starts.
+      await Future<void>.delayed(const Duration(milliseconds: 200));
       const MethodChannel ch = MethodChannel('velour/app_check');
-      final String? t = await ch.invokeMethod<String>('getDebugToken');
-      if (t != null && t.isNotEmpty) {
-        debugPrint('Firebase App Check debug token (iOS): $t');
+      Object? lastErr;
+      for (int i = 0; i < 25; i++) {
+        try {
+          final String? t = await ch.invokeMethod<String>('getDebugToken');
+          if (t != null && t.isNotEmpty) {
+            debugPrint('Firebase App Check debug token (iOS): $t');
+            return;
+          }
+          lastErr = 'empty_token';
+        } catch (e) {
+          lastErr = e;
+        }
+        await Future<void>.delayed(const Duration(milliseconds: 120));
       }
-    } catch (e) {
-      debugPrint('App Check debug token read failed: $e');
-    }
+      debugPrint('App Check debug token read failed: $lastErr');
+    }());
   }
 
   // Réduit le timeout interne « preparation » d’audioplayers (30s par défaut) pour

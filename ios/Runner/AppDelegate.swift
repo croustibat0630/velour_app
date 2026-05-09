@@ -50,6 +50,14 @@ import FirebaseAppCheck
     if let controller = window?.rootViewController as? FlutterViewController {
       setupAppCheckDebugChannel(controller.binaryMessenger)
     }
+
+    #if DEBUG
+      // Make it easy to register the simulator in Firebase Console:
+      // Build -> App Check -> iOS app -> Manage debug tokens -> Add token.
+      // This token is stable across launches (stored by the SDK).
+      let t = AppCheckDebugProvider.currentDebugToken()
+      NSLog("[Firebase/AppCheck] Debug token: %@", t)
+    #endif
     return ok
   }
 

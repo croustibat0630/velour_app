@@ -171,35 +171,8 @@ Future<void> main() async {
 
   runApp(const VelourApp());
 
-  // If no debug token was provided, print the generated iOS debug token after
-  // the engine+plugins have fully bootstrapped (avoids MissingPluginException).
-  if (!kIsWeb &&
-      !kReleaseMode &&
-      debugAppCheckToken.isEmpty &&
-      (defaultTargetPlatform == TargetPlatform.iOS ||
-          defaultTargetPlatform == TargetPlatform.macOS)) {
-    unawaited(() async {
-      WidgetsBinding.instance.addPostFrameCallback((_) {});
-      // Give iOS a bit of time to finish registering channels/plugins.
-      await Future<void>.delayed(const Duration(seconds: 2));
-      const MethodChannel ch = MethodChannel('velour/app_check');
-      Object? lastErr;
-      for (int i = 0; i < 60; i++) {
-        try {
-          final String? t = await ch.invokeMethod<String>('getDebugToken');
-          if (t != null && t.isNotEmpty) {
-            debugPrint('Firebase App Check debug token (iOS): $t');
-            return;
-          }
-          lastErr = 'empty_token';
-        } catch (e) {
-          lastErr = e;
-        }
-        await Future<void>.delayed(const Duration(milliseconds: 200));
-      }
-      debugPrint('App Check debug token read failed: $lastErr');
-    }());
-  }
+  // iOS App Check debug token is printed natively (see AppDelegate) because
+  // early MethodChannel calls are timing-sensitive during engine bootstrap.
 }
 
 class VelourApp extends StatelessWidget {

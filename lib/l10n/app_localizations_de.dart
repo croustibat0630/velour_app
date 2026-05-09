@@ -840,4 +840,61 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get gameHudTimeResolvingA11y =>
       'Combo wird gewertet, Steine kurz gesperrt.';
+
+  @override
+  String get settingsSectionAccessibility => 'BEWEGUNG & BARRIEREFREIHEIT';
+
+  @override
+  String get settingsAccessibilityBody =>
+      'Aktiviere „Bewegung reduzieren“ in den Systemeinstellungen (Bedienungshilfen → Bewegung) für ruhigere Darstellung und weniger Blitzlicht. Velour erkennt das automatisch.';
+
+  @override
+  String a11yGemButtonLabel(String shape, String color) {
+    return '$shape, $color';
+  }
+
+  @override
+  String get a11yGemShape1 => 'Kristall';
+
+  @override
+  String get a11yGemShape2 => 'Kugel';
+
+  @override
+  String get a11yGemShape3 => 'Pyramide';
+
+  @override
+  String get a11yGemShape4 => 'Stern';
+
+  @override
+  String get a11yGemShape5 => 'Diamant';
+
+  @override
+  String get a11yGemShape6 => 'Fünfeck';
+
+  @override
+  String get a11yGemShape7 => 'Sechsstrahlstern';
+
+  @override
+  String get a11yGemColor0 => 'Weiß';
+
+  @override
+  String get a11yGemColor1 => 'Cyan';
+
+  @override
+  String get a11yGemColor2 => 'Gold';
+
+  @override
+  String get a11yGemColor3 => 'Magenta';
+
+  @override
+  String get a11yGemColor4 => 'Grün';
+
+  @override
+  String get a11yGemColor5 => 'Violett';
+
+  @override
+  String get a11yGemColor6 => 'Orange';
+
+  @override
+  String get a11yGemColor7 => 'Blass';
 }

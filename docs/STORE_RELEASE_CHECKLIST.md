@@ -15,7 +15,7 @@
 
 - [ ] Parcours froid : splash → menu → préparation → partie → pause → menu (appareil réel iOS + Android).
 - [ ] Activer **Réduire les mouvements** (iOS) / équivalent : vérifier que le jeu reste lisible et jouable.
-- [ ] VoiceOver / TalkBack : menu principal, préparation (choix de mise, confirmer), bouton pause.
+- [ ] VoiceOver / TalkBack : menu principal, préparation (choix de mise, confirmer), bouton pause, **gemmes du plateau** (forme + couleur annoncées).
 
 ## Firebase & backend
 

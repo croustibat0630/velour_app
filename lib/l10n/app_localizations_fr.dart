@@ -830,4 +830,61 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get gameHudTimeResolvingA11y =>
       'Résolution du combo, gemmes figées un instant.';
+
+  @override
+  String get settingsSectionAccessibility => 'MOUVEMENT & ACCESSIBILITÉ';
+
+  @override
+  String get settingsAccessibilityBody =>
+      'Active « Réduire les mouvements » dans Réglages système (Accessibilité → Mouvements) pour des visuels plus calmes et moins d’éclairs. Velour s’adapte automatiquement.';
+
+  @override
+  String a11yGemButtonLabel(String shape, String color) {
+    return '$shape, $color';
+  }
+
+  @override
+  String get a11yGemShape1 => 'Cristal';
+
+  @override
+  String get a11yGemShape2 => 'Sphère';
+
+  @override
+  String get a11yGemShape3 => 'Pyramide';
+
+  @override
+  String get a11yGemShape4 => 'Étoile';
+
+  @override
+  String get a11yGemShape5 => 'Diamant';
+
+  @override
+  String get a11yGemShape6 => 'Pentagone';
+
+  @override
+  String get a11yGemShape7 => 'Étoile à six branches';
+
+  @override
+  String get a11yGemColor0 => 'Blanc';
+
+  @override
+  String get a11yGemColor1 => 'Cyan';
+
+  @override
+  String get a11yGemColor2 => 'Or';
+
+  @override
+  String get a11yGemColor3 => 'Magenta';
+
+  @override
+  String get a11yGemColor4 => 'Vert';
+
+  @override
+  String get a11yGemColor5 => 'Violet';
+
+  @override
+  String get a11yGemColor6 => 'Orange';
+
+  @override
+  String get a11yGemColor7 => 'Pâle';
 }

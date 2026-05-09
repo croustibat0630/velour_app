@@ -28,6 +28,7 @@ import 'package:velour_app/services/audio_handler.dart';
 import 'package:velour_app/services/haptics_handler.dart';
 import 'package:velour_app/widgets/items/gem_shape_paths.dart';
 import 'package:velour_app/game/particle_system.dart';
+import 'package:velour_app/utils/gem_accessibility.dart';
 import 'package:velour_app/utils/velour_accessibility.dart';
 import 'dart:math' as math;
 
@@ -527,7 +528,9 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                               begin: _pulseUp ? 0.2 : 0.4,
                               end: _pulseUp ? 0.4 : 0.2,
                             ),
-                            duration: const Duration(seconds: 4),
+                            duration: reduceMotion
+                                ? Duration.zero
+                                : const Duration(seconds: 4),
                             onEnd: () {
                               if (!gameState.criticalFailure) {
                                 setState(() => _pulseUp = !_pulseUp);
@@ -665,7 +668,9 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                                   : 0.0,
                               end: 1.0,
                             ),
-                            duration: gameState.postNarrativeSpawnFadeTick == 0
+                            duration:
+                                gameState.postNarrativeSpawnFadeTick == 0 ||
+                                    reduceMotion
                                 ? Duration.zero
                                 : const Duration(milliseconds: 780),
                             curve: Curves.easeOutCubic,
@@ -677,10 +682,12 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                                 for (final item in items)
                                   AnimatedPositioned(
                                     key: ValueKey(item.id),
-                                    duration: Duration(
-                                      milliseconds:
-                                          gameState.narrativeGemFlightMs,
-                                    ),
+                                    duration: reduceMotion
+                                        ? Duration.zero
+                                        : Duration(
+                                            milliseconds:
+                                                gameState.narrativeGemFlightMs,
+                                          ),
                                     curve: Curves.easeInOutCubic,
                                     left: item.position.dx,
                                     top: item.position.dy,
@@ -703,6 +710,12 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                                           floatPhase: item.floatPhase,
                                           size: itemSize,
                                           child: _GemTapJuice(
+                                            semanticsLabel:
+                                                gemAccessibilityLabel(
+                                                  AppLocalizations.of(context)!,
+                                                  item.typeId,
+                                                  item.colorId,
+                                                ),
                                             isOnBoard: boardIds.contains(
                                               item.id,
                                             ),
@@ -1211,6 +1224,7 @@ Widget _itemWidget(GameItem item, double size, Color neon) {
 /// Tactile “pop” + color flash before a board piece commits to the slot queue.
 class _GemTapJuice extends StatefulWidget {
   const _GemTapJuice({
+    required this.semanticsLabel,
     required this.isOnBoard,
     required this.typeId,
     required this.neon,
@@ -1219,6 +1233,9 @@ class _GemTapJuice extends StatefulWidget {
     this.stakeTapTraceColor,
     this.stakeTapParticleBoost = 1.0,
   });
+
+  /// VoiceOver / TalkBack (forme + couleur).
+  final String semanticsLabel;
 
   final bool isOnBoard;
   final int typeId;
@@ -1271,6 +1288,13 @@ class _GemTapJuiceState extends State<_GemTapJuice>
       return;
     }
     _busy = true;
+    if (velourReduceMotion(context)) {
+      await widget.onSelect();
+      if (mounted) {
+        _busy = false;
+      }
+      return;
+    }
     await _pop.forward(from: 0);
     if (!mounted) return;
     await widget.onSelect();
@@ -1281,67 +1305,77 @@ class _GemTapJuiceState extends State<_GemTapJuice>
   @override
   Widget build(BuildContext context) {
     final Color c = widget.neon;
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTapDown: (_) {
-        // Immediate select feedback on press (not release).
-        AudioHandler.instance.playGemSelect();
-        AudioHandler.instance.primeMatchPoolOnFirstUserTap();
-        HapticsHandler.instance.selectionClick();
-        if (widget.stakeTapTraceColor != null && widget.isOnBoard) {
-          _dustSeed++;
-          _goldTrace.forward(from: 0);
-        }
-      },
-      onTap: _handleTap,
-      child: SizedBox.expand(
-        child: AnimatedBuilder(
-          animation: Listenable.merge([_pop, _goldTrace]),
-          builder: (context, child) {
-            final double t = _popCurved.value;
-            final double scale = 1.0 + 0.2 * t;
-            final double flash = (math.sin(math.pi * t) * 0.34).clamp(0.0, 1.0);
-            return Stack(
-              fit: StackFit.expand,
-              clipBehavior: Clip.none,
-              alignment: Alignment.center,
-              children: [
-                Transform.scale(
-                  scale: scale,
-                  alignment: Alignment.center,
-                  child: child,
-                ),
-                Positioned.fill(
-                  child: IgnorePointer(
-                    child: Opacity(
-                      opacity: flash,
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          color: c.withValues(alpha: 0.42),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
+    final bool rm = velourReduceMotion(context);
+    return Semantics(
+      button: true,
+      label: widget.semanticsLabel,
+      excludeSemantics: true,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTapDown: (_) {
+          // Immediate select feedback on press (not release).
+          AudioHandler.instance.playGemSelect();
+          AudioHandler.instance.primeMatchPoolOnFirstUserTap();
+          HapticsHandler.instance.selectionClick();
+          if (!rm && widget.stakeTapTraceColor != null && widget.isOnBoard) {
+            _dustSeed++;
+            _goldTrace.forward(from: 0);
+          }
+        },
+        onTap: _handleTap,
+        child: SizedBox.expand(
+          child: AnimatedBuilder(
+            animation: Listenable.merge([_pop, _goldTrace]),
+            builder: (context, child) {
+              final double t = rm ? 0.0 : _popCurved.value;
+              final double scale = rm ? 1.0 : (1.0 + 0.2 * t);
+              final double flash = rm
+                  ? 0.0
+                  : (math.sin(math.pi * t) * 0.34).clamp(0.0, 1.0);
+              return Stack(
+                fit: StackFit.expand,
+                clipBehavior: Clip.none,
+                alignment: Alignment.center,
+                children: [
+                  Transform.scale(
+                    scale: scale,
+                    alignment: Alignment.center,
+                    child: child,
                   ),
-                ),
-                if (widget.stakeTapTraceColor != null && widget.isOnBoard)
                   Positioned.fill(
                     child: IgnorePointer(
-                      child: CustomPaint(
-                        painter: StakeGemTapFxPainter(
-                          typeId: widget.typeId,
-                          t: _goldTrace.value,
-                          particleSeed: _dustSeed,
-                          accentColor: widget.stakeTapTraceColor!,
-                          particleBoost: widget.stakeTapParticleBoost,
+                      child: Opacity(
+                        opacity: flash,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: c.withValues(alpha: 0.42),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
                       ),
                     ),
                   ),
-              ],
-            );
-          },
-          child: widget.child,
+                  if (!rm &&
+                      widget.stakeTapTraceColor != null &&
+                      widget.isOnBoard)
+                    Positioned.fill(
+                      child: IgnorePointer(
+                        child: CustomPaint(
+                          painter: StakeGemTapFxPainter(
+                            typeId: widget.typeId,
+                            t: _goldTrace.value,
+                            particleSeed: _dustSeed,
+                            accentColor: widget.stakeTapTraceColor!,
+                            particleBoost: widget.stakeTapParticleBoost,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+            child: widget.child,
+          ),
         ),
       ),
     );

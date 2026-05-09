@@ -489,5 +489,36 @@
       "count": {"type": "int"}
     }
   },
-  "gameHudTimeResolvingA11y": "Combo resolving, gems locked briefly."
+  "gameHudTimeResolvingA11y": "Combo resolving, gems locked briefly.",
+  "settingsSectionAccessibility": "MOTION & ACCESSIBILITY",
+  "@settingsSectionAccessibility": {
+    "description": "Settings: section for system accessibility guidance."
+  },
+  "settingsAccessibilityBody": "Turn on “Reduce Motion” in the system Settings app (Accessibility → Motion) for calmer visuals and fewer flashes. Velour detects this automatically.",
+  "@settingsAccessibilityBody": {
+    "description": "Settings: explain Reduce Motion and that the game adapts."
+  },
+  "a11yGemButtonLabel": "{shape}, {color}",
+  "@a11yGemButtonLabel": {
+    "description": "VoiceOver label for a playable gem (shape + color).",
+    "placeholders": {
+      "shape": {"type": "String"},
+      "color": {"type": "String"}
+    }
+  },
+  "a11yGemShape1": "Crystal",
+  "a11yGemShape2": "Sphere",
+  "a11yGemShape3": "Pyramid",
+  "a11yGemShape4": "Star",
+  "a11yGemShape5": "Diamond",
+  "a11yGemShape6": "Pentagon",
+  "a11yGemShape7": "Hex star",
+  "a11yGemColor0": "White",
+  "a11yGemColor1": "Cyan",
+  "a11yGemColor2": "Gold",
+  "a11yGemColor3": "Magenta",
+  "a11yGemColor4": "Green",
+  "a11yGemColor5": "Purple",
+  "a11yGemColor6": "Orange",
+  "a11yGemColor7": "Pale"
 }

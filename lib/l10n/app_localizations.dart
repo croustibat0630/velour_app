@@ -1484,6 +1484,114 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Combo resolving, gems locked briefly.'**
   String get gameHudTimeResolvingA11y;
+
+  /// Settings: section for system accessibility guidance.
+  ///
+  /// In en, this message translates to:
+  /// **'MOTION & ACCESSIBILITY'**
+  String get settingsSectionAccessibility;
+
+  /// Settings: explain Reduce Motion and that the game adapts.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on “Reduce Motion” in the system Settings app (Accessibility → Motion) for calmer visuals and fewer flashes. Velour detects this automatically.'**
+  String get settingsAccessibilityBody;
+
+  /// VoiceOver label for a playable gem (shape + color).
+  ///
+  /// In en, this message translates to:
+  /// **'{shape}, {color}'**
+  String a11yGemButtonLabel(String shape, String color);
+
+  /// No description provided for @a11yGemShape1.
+  ///
+  /// In en, this message translates to:
+  /// **'Crystal'**
+  String get a11yGemShape1;
+
+  /// No description provided for @a11yGemShape2.
+  ///
+  /// In en, this message translates to:
+  /// **'Sphere'**
+  String get a11yGemShape2;
+
+  /// No description provided for @a11yGemShape3.
+  ///
+  /// In en, this message translates to:
+  /// **'Pyramid'**
+  String get a11yGemShape3;
+
+  /// No description provided for @a11yGemShape4.
+  ///
+  /// In en, this message translates to:
+  /// **'Star'**
+  String get a11yGemShape4;
+
+  /// No description provided for @a11yGemShape5.
+  ///
+  /// In en, this message translates to:
+  /// **'Diamond'**
+  String get a11yGemShape5;
+
+  /// No description provided for @a11yGemShape6.
+  ///
+  /// In en, this message translates to:
+  /// **'Pentagon'**
+  String get a11yGemShape6;
+
+  /// No description provided for @a11yGemShape7.
+  ///
+  /// In en, this message translates to:
+  /// **'Hex star'**
+  String get a11yGemShape7;
+
+  /// No description provided for @a11yGemColor0.
+  ///
+  /// In en, this message translates to:
+  /// **'White'**
+  String get a11yGemColor0;
+
+  /// No description provided for @a11yGemColor1.
+  ///
+  /// In en, this message translates to:
+  /// **'Cyan'**
+  String get a11yGemColor1;
+
+  /// No description provided for @a11yGemColor2.
+  ///
+  /// In en, this message translates to:
+  /// **'Gold'**
+  String get a11yGemColor2;
+
+  /// No description provided for @a11yGemColor3.
+  ///
+  /// In en, this message translates to:
+  /// **'Magenta'**
+  String get a11yGemColor3;
+
+  /// No description provided for @a11yGemColor4.
+  ///
+  /// In en, this message translates to:
+  /// **'Green'**
+  String get a11yGemColor4;
+
+  /// No description provided for @a11yGemColor5.
+  ///
+  /// In en, this message translates to:
+  /// **'Purple'**
+  String get a11yGemColor5;
+
+  /// No description provided for @a11yGemColor6.
+  ///
+  /// In en, this message translates to:
+  /// **'Orange'**
+  String get a11yGemColor6;
+
+  /// No description provided for @a11yGemColor7.
+  ///
+  /// In en, this message translates to:
+  /// **'Pale'**
+  String get a11yGemColor7;
 }
 
 class _AppLocalizationsDelegate

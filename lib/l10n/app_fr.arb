@@ -388,5 +388,29 @@
       "count": {"type": "int"}
     }
   },
-  "gameHudTimeResolvingA11y": "Résolution du combo, gemmes figées un instant."
+  "gameHudTimeResolvingA11y": "Résolution du combo, gemmes figées un instant.",
+  "settingsSectionAccessibility": "MOUVEMENT & ACCESSIBILITÉ",
+  "settingsAccessibilityBody": "Active « Réduire les mouvements » dans Réglages système (Accessibilité → Mouvements) pour des visuels plus calmes et moins d’éclairs. Velour s’adapte automatiquement.",
+  "a11yGemButtonLabel": "{shape}, {color}",
+  "@a11yGemButtonLabel": {
+    "placeholders": {
+      "shape": {"type": "String"},
+      "color": {"type": "String"}
+    }
+  },
+  "a11yGemShape1": "Cristal",
+  "a11yGemShape2": "Sphère",
+  "a11yGemShape3": "Pyramide",
+  "a11yGemShape4": "Étoile",
+  "a11yGemShape5": "Diamant",
+  "a11yGemShape6": "Pentagone",
+  "a11yGemShape7": "Étoile à six branches",
+  "a11yGemColor0": "Blanc",
+  "a11yGemColor1": "Cyan",
+  "a11yGemColor2": "Or",
+  "a11yGemColor3": "Magenta",
+  "a11yGemColor4": "Vert",
+  "a11yGemColor5": "Violet",
+  "a11yGemColor6": "Orange",
+  "a11yGemColor7": "Pâle"
 }

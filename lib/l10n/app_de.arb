@@ -537,5 +537,29 @@
       "count": {"type": "int"}
     }
   },
-  "gameHudTimeResolvingA11y": "Combo wird gewertet, Steine kurz gesperrt."
+  "gameHudTimeResolvingA11y": "Combo wird gewertet, Steine kurz gesperrt.",
+  "settingsSectionAccessibility": "BEWEGUNG & BARRIEREFREIHEIT",
+  "settingsAccessibilityBody": "Aktiviere „Bewegung reduzieren“ in den Systemeinstellungen (Bedienungshilfen → Bewegung) für ruhigere Darstellung und weniger Blitzlicht. Velour erkennt das automatisch.",
+  "a11yGemButtonLabel": "{shape}, {color}",
+  "@a11yGemButtonLabel": {
+    "placeholders": {
+      "shape": {"type": "String"},
+      "color": {"type": "String"}
+    }
+  },
+  "a11yGemShape1": "Kristall",
+  "a11yGemShape2": "Kugel",
+  "a11yGemShape3": "Pyramide",
+  "a11yGemShape4": "Stern",
+  "a11yGemShape5": "Diamant",
+  "a11yGemShape6": "Fünfeck",
+  "a11yGemShape7": "Sechsstrahlstern",
+  "a11yGemColor0": "Weiß",
+  "a11yGemColor1": "Cyan",
+  "a11yGemColor2": "Gold",
+  "a11yGemColor3": "Magenta",
+  "a11yGemColor4": "Grün",
+  "a11yGemColor5": "Violett",
+  "a11yGemColor6": "Orange",
+  "a11yGemColor7": "Blass"
 }

@@ -9,6 +9,7 @@ import '../../game/perfect_heat_logic.dart';
 import '../../providers/game_state.dart';
 import '../../services/haptics_handler.dart';
 import '../../utils/responsive.dart';
+import '../../utils/velour_accessibility.dart';
 import 'neon_timer_bar.dart';
 
 /// Ligne « XXXX LUX » (animations + SFX sur delta), utilisée dans le bandeau HUD.
@@ -43,6 +44,7 @@ class _NeonLuxCaptionState extends State<NeonLuxCaption>
 
   bool _luxIntroHapticFired = false;
   double _luxIntroScaleMax = 1.0;
+  bool _reduceMotion = false;
 
   static const Color _cyan = Color(0xFF00FFFF);
   static const Color _comboWhite = Color(0xFFFFFFFF);
@@ -53,7 +55,7 @@ class _NeonLuxCaptionState extends State<NeonLuxCaption>
     _glow = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 3200),
-    )..repeat();
+    );
     _comboFlash = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 200),
@@ -77,6 +79,26 @@ class _NeonLuxCaptionState extends State<NeonLuxCaption>
     );
     _luxIntroScale.addListener(_luxIntroScalePeakListener);
     _luxIntro.addStatusListener(_luxIntroCompletedFallback);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final bool next = velourReduceMotion(context);
+    if (next != _reduceMotion) {
+      _reduceMotion = next;
+    }
+    _syncGlowRepeat();
+  }
+
+  void _syncGlowRepeat() {
+    if (!mounted) return;
+    if (_reduceMotion) {
+      _glow.stop();
+      _glow.value = 0.5;
+    } else if (!_glow.isAnimating) {
+      _glow.repeat();
+    }
   }
 
   void _luxIntroScalePeakListener() {
@@ -171,7 +193,7 @@ class _NeonLuxCaptionState extends State<NeonLuxCaption>
     return TweenAnimationBuilder<double>(
       key: ValueKey(widget.lux),
       tween: Tween<double>(begin: 0, end: 1),
-      duration: const Duration(milliseconds: 100),
+      duration: Duration(milliseconds: _reduceMotion ? 0 : 100),
       curve: Curves.easeOut,
       builder: (context, t, child) {
         final double bump = (t < 0.5) ? (t / 0.5) : ((1 - t) / 0.5);
@@ -551,22 +573,36 @@ class _ForgeSurvivalHudState extends State<_ForgeSurvivalHud>
       vsync: this,
       duration: const Duration(milliseconds: 560),
     );
-    if (_anyPrewarn(widget.gameState)) {
-      _pulse.repeat(reverse: true);
-    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _syncForgePulse();
   }
 
   @override
   void didUpdateWidget(covariant _ForgeSurvivalHud oldWidget) {
     super.didUpdateWidget(oldWidget);
+    _syncForgePulse();
+  }
+
+  void _syncForgePulse() {
+    if (!mounted) return;
     final bool now = _anyPrewarn(widget.gameState);
-    final bool was = _anyPrewarn(oldWidget.gameState);
-    if (now && !was) {
-      _pulse.repeat(reverse: true);
-    } else if (!now && was) {
+    if (!now) {
       _pulse
         ..stop()
         ..value = 0;
+      return;
+    }
+    if (velourReduceMotion(context)) {
+      _pulse.stop();
+      _pulse.value = 0.5;
+      return;
+    }
+    if (!_pulse.isAnimating) {
+      _pulse.repeat(reverse: true);
     }
   }
 
@@ -922,6 +958,12 @@ class _MatchResolutionChronoCueState extends State<_MatchResolutionChronoCue>
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _syncPulse();
+  }
+
+  @override
   void didUpdateWidget(covariant _MatchResolutionChronoCue oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.active != oldWidget.active) {
@@ -930,14 +972,20 @@ class _MatchResolutionChronoCueState extends State<_MatchResolutionChronoCue>
   }
 
   void _syncPulse() {
-    if (widget.active) {
-      if (!_pulse.isAnimating) {
-        _pulse.repeat(reverse: true);
-      }
-    } else {
+    if (!mounted) return;
+    if (!widget.active) {
       _pulse
         ..stop()
         ..reset();
+      return;
+    }
+    if (velourReduceMotion(context)) {
+      _pulse.stop();
+      _pulse.value = 0.5;
+      return;
+    }
+    if (!_pulse.isAnimating) {
+      _pulse.repeat(reverse: true);
     }
   }
 

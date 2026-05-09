@@ -171,6 +171,31 @@ class SettingsView extends StatelessWidget {
                           ),
                           SizedBox(height: 14 * sH),
                           _SectionCard(
+                            title: l10n.settingsSectionAccessibility,
+                            accent: accent,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 2,
+                                  vertical: 4,
+                                ),
+                                child: Text(
+                                  l10n.settingsAccessibilityBody,
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(
+                                        height: 1.45,
+                                        letterSpacing: 0.4,
+                                        color: Colors.white.withValues(
+                                          alpha: 0.62,
+                                        ),
+                                        fontSize: (12.5 * sT).clamp(11.0, 14.5),
+                                      ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 14 * sH),
+                          _SectionCard(
                             title: l10n.settingsSectionLanguage,
                             accent: accent,
                             children: [

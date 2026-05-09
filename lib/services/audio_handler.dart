@@ -82,6 +82,10 @@ class AudioHandler {
   bool _levelUpReady = false;
   bool _creditReady = false;
 
+  /// iOS/macOS : [setSource] sur lecteurs pool a échoué — bascule sur one-shots
+  /// jetables (même stratégie que le menu) pour éviter les parties silencieuses.
+  bool _darwinDisposableSfxMode = false;
+
   bool _matchPrimedThisRun = false;
   bool _tapPrimedThisRun = false;
   bool _tapChannelConfirmedThisRun = false;
@@ -335,6 +339,11 @@ class AudioHandler {
     try {
       await _withNativeSourceLoadLock(() async {
         if (_disabled) return;
+        if (!kIsWeb &&
+            (defaultTargetPlatform == TargetPlatform.iOS ||
+                defaultTargetPlatform == TargetPlatform.macOS)) {
+          _darwinDisposableSfxMode = false;
+        }
         // Même séquence que le menu (micro one-shots) : sans çi, iOS simulateur
         // peut laisser `setSource` sur le pool pendre après navigation / réglages
         // alors que [configureVelourAudioPipeline] seul ne suffit pas.
@@ -381,8 +390,33 @@ class AudioHandler {
           player: _sfxCredit,
           fileName: _creditFile,
         );
+
+        if (!kIsWeb && _darwinPooledSfx) {
+          final bool pooledIncomplete =
+              !_tapReady ||
+              !_matchPoolReady ||
+              !_perfectPoolReady ||
+              !_levelUpReady ||
+              !_creditReady;
+          if (pooledIncomplete) {
+            _darwinDisposableSfxMode = true;
+            velourAudioTrace(
+              'AudioHandler: Darwin disposable SFX mode (pooled load incomplete: '
+              'tap=$_tapReady match=$_matchPoolReady perfect=$_perfectPoolReady '
+              'levelUp=$_levelUpReady credit=$_creditReady)',
+            );
+          }
+        }
       });
     } catch (_) {
+      if (!kIsWeb &&
+          (defaultTargetPlatform == TargetPlatform.iOS ||
+              defaultTargetPlatform == TargetPlatform.macOS)) {
+        _darwinDisposableSfxMode = true;
+        velourAudioTrace(
+          'AudioHandler: Darwin disposable SFX mode (preload exception)',
+        );
+      }
       // Best-effort preload; ignore in production.
     }
   }
@@ -547,6 +581,10 @@ class AudioHandler {
   void playGemSelect() {
     if (_disabled) return;
     if (sfxMuted.value) return;
+    if (_darwinDisposableSfxMode) {
+      unawaited(_playDisposableOneShot(_tapFile, volume: 0.8, holdMs: 220));
+      return;
+    }
     // iOS: le premier `resume()` d'un canal low-latency peut être silencieux même si
     // la source est prête. On "prime" une seule fois avec un one-shot audible.
     if (!_tapPrimedThisRun) {
@@ -812,6 +850,17 @@ class AudioHandler {
 
   Future<void> _playMatchExclusive({required double volume}) async {
     try {
+      if (_darwinDisposableSfxMode) {
+        unawaited(_interruptMatchAndPerfect());
+        unawaited(
+          _playDisposableOneShot(
+            _matchFile,
+            volume: volume.clamp(0.0, 1.0),
+            holdMs: 280,
+          ),
+        );
+        return;
+      }
       await _ensureMatchPool();
       if (_disabled || !_matchPoolReady) return;
       // Ne pas attendre : la coupure des sons précédents ne doit pas retarder celui-ci.
@@ -828,6 +877,13 @@ class AudioHandler {
 
   Future<void> _playPerfectExclusive() async {
     try {
+      if (_darwinDisposableSfxMode) {
+        unawaited(_interruptMatchAndPerfect());
+        unawaited(
+          _playDisposableOneShot(_perfectFile, volume: 1.0, holdMs: 320),
+        );
+        return;
+      }
       await _ensurePerfectPool();
       if (_disabled || !_perfectPoolReady) return;
       // Ne pas attendre : la coupure des sons précédents ne doit pas retarder celui-ci.
@@ -842,6 +898,12 @@ class AudioHandler {
 
   Future<void> _playWelcomeGiftChime() async {
     try {
+      if (_darwinDisposableSfxMode) {
+        unawaited(
+          _playDisposableOneShot(_perfectFile, volume: 0.28, holdMs: 220),
+        );
+        return;
+      }
       await _ensurePerfectPool();
       if (_disabled || !_perfectPoolReady) return;
       await _sfxPerfect.seek(Duration.zero);
@@ -857,6 +919,12 @@ class AudioHandler {
 
   Future<void> _playCreditSfx() async {
     try {
+      if (_darwinDisposableSfxMode) {
+        unawaited(
+          _playDisposableOneShot(_creditFile, volume: 1.0, holdMs: 450),
+        );
+        return;
+      }
       await _ensureCreditReady();
       if (_disabled || !_creditReady) return;
       await _sfxCredit.seek(Duration.zero);
@@ -871,6 +939,9 @@ class AudioHandler {
 
   Future<void> _primeMatchPoolMicro() async {
     try {
+      if (_darwinDisposableSfxMode) {
+        return;
+      }
       await _ensureMatchPool();
       if (_disabled || !_matchPoolReady) return;
       // Ensure we don't leave a faint tail behind on browsers.
@@ -889,6 +960,12 @@ class AudioHandler {
 
   Future<void> _playLevelUpCapped() async {
     try {
+      if (_darwinDisposableSfxMode) {
+        unawaited(
+          _playDisposableOneShot(_levelUpFile, volume: 1.0, holdMs: 3200),
+        );
+        return;
+      }
       await _ensureLevelUpReady();
       if (_disabled || !_levelUpReady) return;
 

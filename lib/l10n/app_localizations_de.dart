@@ -595,6 +595,16 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get gameOverOracleNamingBannerTitle => 'BESTENLISTE-EINTRAG';
+
+  @override
+  String get gameOverOracleNamingBannerBody =>
+      'Lege deinen Namen fest, um in der weltweiten Bestenliste zu erscheinen.';
+
+  @override
+  String get gameOverOracleNamingNameNowButton => 'NAMEN WÄHLEN';
+
+  @override
   String get oracleDockStep1Shape =>
       'Form = mind. +100 LUX\nGleiche Silhouette • 3 Farben → Ablage';
 

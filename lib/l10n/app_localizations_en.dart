@@ -587,6 +587,16 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get gameOverOracleNamingBannerTitle => 'LEADERBOARD ENTRY';
+
+  @override
+  String get gameOverOracleNamingBannerBody =>
+      'Seal your name to appear on the global leaderboard.';
+
+  @override
+  String get gameOverOracleNamingNameNowButton => 'NAME IT';
+
+  @override
   String get oracleDockStep1Shape =>
       'Shape = +100 LUX (min.)\nSame silhouette • 3 colors → rack';
 

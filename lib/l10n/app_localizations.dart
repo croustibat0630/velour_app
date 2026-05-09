@@ -1089,6 +1089,24 @@ abstract class AppLocalizations {
   /// **'+{lux} LUX returned to your purse'**
   String gameOverOracleInsuranceRefund(int lux);
 
+  /// No description provided for @gameOverOracleNamingBannerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'LEADERBOARD ENTRY'**
+  String get gameOverOracleNamingBannerTitle;
+
+  /// No description provided for @gameOverOracleNamingBannerBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Seal your name to appear on the global leaderboard.'**
+  String get gameOverOracleNamingBannerBody;
+
+  /// No description provided for @gameOverOracleNamingNameNowButton.
+  ///
+  /// In en, this message translates to:
+  /// **'NAME IT'**
+  String get gameOverOracleNamingNameNowButton;
+
   /// No description provided for @oracleDockStep1Shape.
   ///
   /// In en, this message translates to:

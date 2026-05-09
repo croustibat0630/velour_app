@@ -231,6 +231,9 @@
       "lux": {"type": "int"}
     }
   },
+  "gameOverOracleNamingBannerTitle": "ENTRÉE AU CLASSEMENT",
+  "gameOverOracleNamingBannerBody": "Scelle ton nom pour apparaître dans le classement mondial.",
+  "gameOverOracleNamingNameNowButton": "NOMMER",
   "oracleDockStep1Shape": "Forme = +100 LUX (min.)\nMême silhouette • 3 couleurs → rack",
   "oracleDockStep2Color": "Couleur = +150 LUX\nMême teinte • 3 formes → rack",
   "oracleDockStep3Perfect": "Parfait = +500 LUX\n3 gemmes identiques → rack\nEnchaîne les parfaits : le FEU monte (LUX & temps).\nEn partie réelle, la jauge FEU sous le score suit ta série.",

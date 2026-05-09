@@ -732,6 +732,7 @@ class _OracleNamingBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
     final double sH = scaleH;
     final double sT = scaleT;
     final Color a = accent;
@@ -813,7 +814,7 @@ class _OracleNamingBanner extends StatelessWidget {
                       ),
                       SizedBox(width: (10 * sH).clamp(8.0, 12.0)),
                       Text(
-                        'ENTRÉE AU CLASSEMENT',
+                        l10n.gameOverOracleNamingBannerTitle,
                         textAlign: TextAlign.center,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -828,7 +829,7 @@ class _OracleNamingBanner extends StatelessWidget {
                   ),
                   SizedBox(height: (8 * sH).clamp(6.0, 12.0)),
                   Text(
-                    'Scelle ton nom pour apparaître dans le classement mondial.',
+                    l10n.gameOverOracleNamingBannerBody,
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       height: 1.35,
@@ -852,7 +853,7 @@ class _OracleNamingBanner extends StatelessWidget {
                       side: BorderSide(color: a.withValues(alpha: 0.52)),
                     ),
                     child: Text(
-                      'NOMMER',
+                      l10n.gameOverOracleNamingNameNowButton,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.labelLarge?.copyWith(

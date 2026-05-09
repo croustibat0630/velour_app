@@ -585,6 +585,16 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get gameOverOracleNamingBannerTitle => 'ENTRÉE AU CLASSEMENT';
+
+  @override
+  String get gameOverOracleNamingBannerBody =>
+      'Scelle ton nom pour apparaître dans le classement mondial.';
+
+  @override
+  String get gameOverOracleNamingNameNowButton => 'NOMMER';
+
+  @override
   String get oracleDockStep1Shape =>
       'Forme = +100 LUX (min.)\nMême silhouette • 3 couleurs → rack';
 

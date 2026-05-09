@@ -808,12 +808,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get gameHudPerfectHeatSurgeTitle => 'FEU MONTANT !';
 
   @override
-  String gameHudPerfectHeatSurgeSubtitle(
-    int heatTier,
-    int luxPercent,
-    String multLabel,
-  ) {
-    return 'Palier $heatTier : +$luxPercent % LUX sur les parfaits ($multLabel)';
+  String gameHudPerfectHeatSurgeSubtitle(int heatTier) {
+    return 'Palier $heatTier';
+  }
+
+  @override
+  String gameHudPerfectHeatHudBonus(int luxPercent, String multLabel) {
+    return '+$luxPercent % $multLabel';
   }
 
   @override

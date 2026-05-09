@@ -464,10 +464,15 @@
     }
   },
   "gameHudPerfectHeatSurgeTitle": "HEAT SURGE",
-  "gameHudPerfectHeatSurgeSubtitle": "Stage {heatTier}: +{luxPercent}% perfect LUX ({multLabel})",
+  "gameHudPerfectHeatSurgeSubtitle": "Stage {heatTier}",
   "@gameHudPerfectHeatSurgeSubtitle": {
     "placeholders": {
-      "heatTier": {"type": "int"},
+      "heatTier": {"type": "int"}
+    }
+  },
+  "gameHudPerfectHeatHudBonus": "+{luxPercent}% {multLabel}",
+  "@gameHudPerfectHeatHudBonus": {
+    "placeholders": {
       "luxPercent": {"type": "int"},
       "multLabel": {"type": "String"}
     }

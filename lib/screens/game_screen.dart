@@ -20,7 +20,6 @@ import 'package:velour_app/screens/preparation_view.dart';
 import 'package:velour_app/widgets/ui/game_over_overlay.dart';
 import 'package:velour_app/widgets/ui/neon_score_board.dart';
 import 'package:velour_app/widgets/ui/narrative_tutorial_chrome.dart';
-import 'package:velour_app/game/perfect_heat_logic.dart';
 import 'package:velour_app/providers/game_state.dart';
 import 'package:velour_app/models/game_item.dart';
 import 'package:velour_app/widgets/ui/pause_overlay.dart';
@@ -2275,8 +2274,6 @@ class _PerfectHeatSurgeFlashState extends State<_PerfectHeatSurgeFlash>
   @override
   Widget build(BuildContext context) {
     final AppLocalizations l10n = AppLocalizations.of(context)!;
-    final int luxPct = PerfectHeatLogic.luxBonusPercent(widget.tier);
-    final String mult = PerfectHeatLogic.perfectLuxMultiplierLabel(widget.tier);
     return AnimatedBuilder(
       animation: _c,
       builder: (context, _) {
@@ -2326,22 +2323,18 @@ class _PerfectHeatSurgeFlashState extends State<_PerfectHeatSurgeFlash>
                               ],
                             ),
                           ),
-                          const SizedBox(height: 10),
+                          const SizedBox(height: 6),
                           Text(
-                            l10n.gameHudPerfectHeatSurgeSubtitle(
-                              widget.tier,
-                              luxPct,
-                              mult,
-                            ),
+                            l10n.gameHudPerfectHeatSurgeSubtitle(widget.tier),
                             textAlign: TextAlign.center,
-                            maxLines: 3,
+                            maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               fontFamily: 'monospace',
-                              fontSize: 15,
+                              fontSize: 14,
                               fontWeight: FontWeight.w600,
-                              letterSpacing: 0.6,
-                              color: Colors.white.withValues(alpha: 0.92),
+                              letterSpacing: 1.0,
+                              color: Colors.white.withValues(alpha: 0.88),
                             ),
                           ),
                         ],

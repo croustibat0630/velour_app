@@ -512,10 +512,15 @@
     }
   },
   "gameHudPerfectHeatSurgeTitle": "HITZE-WELLE!",
-  "gameHudPerfectHeatSurgeSubtitle": "Stufe {heatTier}: +{luxPercent} % Perfect-LUX ({multLabel})",
+  "gameHudPerfectHeatSurgeSubtitle": "Stufe {heatTier}",
   "@gameHudPerfectHeatSurgeSubtitle": {
     "placeholders": {
-      "heatTier": {"type": "int"},
+      "heatTier": {"type": "int"}
+    }
+  },
+  "gameHudPerfectHeatHudBonus": "+{luxPercent} % {multLabel}",
+  "@gameHudPerfectHeatHudBonus": {
+    "placeholders": {
       "luxPercent": {"type": "int"},
       "multLabel": {"type": "String"}
     }

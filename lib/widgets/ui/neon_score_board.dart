@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:velour_app/l10n/app_localizations.dart';
 
+import '../../game/perfect_heat_logic.dart';
 import '../../providers/game_state.dart';
 import '../../services/haptics_handler.dart';
 import '../../utils/responsive.dart';
@@ -1016,48 +1017,94 @@ class _PerfectHeatHudRow extends StatelessWidget {
     final double segH = math.max(3.0, barThickness * 0.9);
     final Color dimTrack = const Color(0xFF1E2D45).withValues(alpha: 0.72);
 
+    final int tierC = tier.clamp(0, 5);
+    final int luxPctHud = PerfectHeatLogic.luxBonusPercent(tierC.clamp(1, 5));
+    final String multHud = PerfectHeatLogic.perfectLuxMultiplierLabel(
+      tierC.clamp(1, 5),
+    );
+    final bool showHudBonus = !rebound && tier >= 2 && luxPctHud > 0;
+
     return Padding(
       padding: EdgeInsets.only(top: 5 * scaleH),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                l10n.gameHudPerfectHeatLabel,
-                style: GoogleFonts.montserrat(
-                  fontSize: (9 * scaleT).clamp(8.0, 11.0),
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 1.4,
-                  color: Colors.white.withValues(alpha: 0.58),
-                  shadows: [
-                    Shadow(
-                      color: Colors.black.withValues(alpha: 0.55),
-                      blurRadius: 4,
-                      offset: const Offset(0, 1),
-                    ),
-                  ],
-                ),
-              ),
-              if (tier >= 5 && consec > 5)
-                Text(
-                  ' ×$consec',
-                  style: GoogleFonts.montserrat(
-                    fontSize: (9 * scaleT).clamp(8.0, 11.0),
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.6,
-                    color: _prestigeGold.withValues(alpha: 0.92),
-                    shadows: [
-                      Shadow(
-                        color: const Color(0xFFFFB74D).withValues(alpha: 0.35),
-                        blurRadius: 8,
+          SizedBox(
+            width: double.infinity,
+            child: Row(
+              children: [
+                Expanded(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        l10n.gameHudPerfectHeatLabel,
+                        style: GoogleFonts.montserrat(
+                          fontSize: (9 * scaleT).clamp(8.0, 11.0),
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 1.4,
+                          color: Colors.white.withValues(alpha: 0.58),
+                          shadows: [
+                            Shadow(
+                              color: Colors.black.withValues(alpha: 0.55),
+                              blurRadius: 4,
+                              offset: const Offset(0, 1),
+                            ),
+                          ],
+                        ),
                       ),
+                      if (tier >= 5 && consec > 5)
+                        Text(
+                          ' ×$consec',
+                          style: GoogleFonts.montserrat(
+                            fontSize: (9 * scaleT).clamp(8.0, 11.0),
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.6,
+                            color: _prestigeGold.withValues(alpha: 0.92),
+                            shadows: [
+                              Shadow(
+                                color: const Color(
+                                  0xFFFFB74D,
+                                ).withValues(alpha: 0.35),
+                                blurRadius: 8,
+                              ),
+                            ],
+                          ),
+                        ),
                     ],
                   ),
                 ),
-            ],
+                if (showHudBonus)
+                  Flexible(
+                    child: Text(
+                      l10n.gameHudPerfectHeatHudBonus(luxPctHud, multHud),
+                      textAlign: TextAlign.end,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.montserrat(
+                        fontSize: (8.5 * scaleT).clamp(7.5, 10.5),
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.35,
+                        color: const Color(0xFFFFE082).withValues(alpha: 0.95),
+                        shadows: [
+                          Shadow(
+                            color: const Color(
+                              0xFFFF8A34,
+                            ).withValues(alpha: 0.35),
+                            blurRadius: 6,
+                          ),
+                          Shadow(
+                            color: Colors.black.withValues(alpha: 0.55),
+                            blurRadius: 3,
+                            offset: const Offset(0, 1),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
           SizedBox(height: 2 * scaleH),
           SizedBox(

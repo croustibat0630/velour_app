@@ -818,12 +818,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get gameHudPerfectHeatSurgeTitle => 'HITZE-WELLE!';
 
   @override
-  String gameHudPerfectHeatSurgeSubtitle(
-    int heatTier,
-    int luxPercent,
-    String multLabel,
-  ) {
-    return 'Stufe $heatTier: +$luxPercent % Perfect-LUX ($multLabel)';
+  String gameHudPerfectHeatSurgeSubtitle(int heatTier) {
+    return 'Stufe $heatTier';
+  }
+
+  @override
+  String gameHudPerfectHeatHudBonus(int luxPercent, String multLabel) {
+    return '+$luxPercent % $multLabel';
   }
 
   @override

@@ -809,12 +809,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gameHudPerfectHeatSurgeTitle => 'HEAT SURGE';
 
   @override
-  String gameHudPerfectHeatSurgeSubtitle(
-    int heatTier,
-    int luxPercent,
-    String multLabel,
-  ) {
-    return 'Stage $heatTier: +$luxPercent% perfect LUX ($multLabel)';
+  String gameHudPerfectHeatSurgeSubtitle(int heatTier) {
+    return 'Stage $heatTier';
+  }
+
+  @override
+  String gameHudPerfectHeatHudBonus(int luxPercent, String multLabel) {
+    return '+$luxPercent% $multLabel';
   }
 
   @override

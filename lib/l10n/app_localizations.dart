@@ -1458,12 +1458,14 @@ abstract class AppLocalizations {
   /// No description provided for @gameHudPerfectHeatSurgeSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Stage {heatTier}: +{luxPercent}% perfect LUX ({multLabel})'**
-  String gameHudPerfectHeatSurgeSubtitle(
-    int heatTier,
-    int luxPercent,
-    String multLabel,
-  );
+  /// **'Stage {heatTier}'**
+  String gameHudPerfectHeatSurgeSubtitle(int heatTier);
+
+  /// No description provided for @gameHudPerfectHeatHudBonus.
+  ///
+  /// In en, this message translates to:
+  /// **'+{luxPercent}% {multLabel}'**
+  String gameHudPerfectHeatHudBonus(int luxPercent, String multLabel);
 
   /// No description provided for @gameHudForgeChronoA11y.
   ///

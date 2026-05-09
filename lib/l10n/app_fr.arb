@@ -363,10 +363,15 @@
     }
   },
   "gameHudPerfectHeatSurgeTitle": "FEU MONTANT !",
-  "gameHudPerfectHeatSurgeSubtitle": "Palier {heatTier} : +{luxPercent} % LUX sur les parfaits ({multLabel})",
+  "gameHudPerfectHeatSurgeSubtitle": "Palier {heatTier}",
   "@gameHudPerfectHeatSurgeSubtitle": {
     "placeholders": {
-      "heatTier": {"type": "int"},
+      "heatTier": {"type": "int"}
+    }
+  },
+  "gameHudPerfectHeatHudBonus": "+{luxPercent} % {multLabel}",
+  "@gameHudPerfectHeatHudBonus": {
+    "placeholders": {
       "luxPercent": {"type": "int"},
       "multLabel": {"type": "String"}
     }

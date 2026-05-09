@@ -339,9 +339,11 @@ class AudioHandler {
         // peut laisser `setSource` sur le pool pendre après navigation / réglages
         // alors que [configureVelourAudioPipeline] seul ne suffit pas.
         if (!kIsWeb) {
-          await _unlockAudioCore();
-          // Laisse le simulateur iOS finir de relâcher les lecteurs one-shot
-          // avant les `setSource` pool (réduit les timeouts en rafale après hot restart).
+          // Ne pas appeler [_ensureTapReadyCore] ici : le pool tap est chargé juste
+          // après sous le même verrou — un double `setSource` sur [_sfxTap] faisait
+          // souvent expirer la pile iOS (simulateur) après réglages / replace route.
+          await _unlockAudioCore(preloadPooledTapChannel: false);
+          // Laisse iOS finir de relâcher les lecteurs one-shot avant les `setSource` pool.
           await Future<void>.delayed(const Duration(milliseconds: 160));
         } else {
           await configure();
@@ -443,6 +445,7 @@ class AudioHandler {
 
   Future<void> _rebuildDarwinTapPlayer() async {
     if (!_darwinPooledSfx) return;
+    _tapReady = false;
     try {
       await _sfxTap.dispose();
     } catch (_) {}
@@ -453,6 +456,7 @@ class AudioHandler {
   /// Un `AudioPlayer` Darwin peut rester bloqué après timeout `setSource` : recréation
   /// + pipeline + délais avant nouveaux essais (simulateur iOS / navigation).
   Future<bool> _loadTapPooledWithDarwinRebuildIfNeeded() async {
+    if (_tapReady) return true;
     bool ok = await _setupPooledSfxCore(player: _sfxTap, fileName: _tapFile);
     if (ok || !_darwinPooledSfx) return ok;
     for (int pass = 0; pass < 2; pass++) {
@@ -546,9 +550,6 @@ class AudioHandler {
     // la source est prête. On "prime" une seule fois avec un one-shot audible.
     if (!_tapPrimedThisRun) {
       _tapPrimedThisRun = true;
-      velourAudioTrace(
-        'tap trigger (prime one-shot) t=${DateTime.now().microsecondsSinceEpoch}',
-      );
       unawaited(_playDisposableOneShot(_tapFile, volume: 0.8, holdMs: 220));
       unawaited(_ensureTapReady());
       return;
@@ -557,9 +558,6 @@ class AudioHandler {
     // On garantit au moins un tap audible avant de basculer 100% sur le canal.
     if (!_tapChannelConfirmedThisRun) {
       _tapChannelConfirmedThisRun = true;
-      velourAudioTrace(
-        'tap trigger (confirm channel + audible fallback) t=${DateTime.now().microsecondsSinceEpoch}',
-      );
       unawaited(_playDisposableOneShot(_tapFile, volume: 0.8, holdMs: 220));
       // Warm the dedicated channel in parallel (even if silent once).
       unawaited(_playTapFromChannel(volume: 0.001));
@@ -577,9 +575,6 @@ class AudioHandler {
       unawaited(_ensureTapReady());
       return;
     }
-    velourAudioTrace(
-      'tap trigger (channel) t=${DateTime.now().microsecondsSinceEpoch}',
-    );
     unawaited(_playTapFromChannel(volume: 0.8));
   }
 
@@ -587,9 +582,6 @@ class AudioHandler {
   void playMatchCombo() {
     if (_disabled) return;
     if (sfxMuted.value) return;
-    velourAudioTrace(
-      'match trigger t=${DateTime.now().microsecondsSinceEpoch}',
-    );
     unawaited(_playMatchExclusive(volume: 1.0));
   }
 
@@ -597,9 +589,6 @@ class AudioHandler {
   void playPerfectCombo() {
     if (_disabled) return;
     if (sfxMuted.value) return;
-    velourAudioTrace(
-      'perfect trigger t=${DateTime.now().microsecondsSinceEpoch}',
-    );
     unawaited(_playPerfectExclusive());
   }
 
@@ -620,16 +609,10 @@ class AudioHandler {
     // one-shot audible pour éviter un “crédit” en retard.
     if (!_creditPrimedThisRun) {
       _creditPrimedThisRun = true;
-      velourAudioTrace(
-        'credit trigger (prime one-shot) t=${DateTime.now().microsecondsSinceEpoch}',
-      );
       unawaited(_playDisposableOneShot(_creditFile, volume: 1.0, holdMs: 450));
       unawaited(_ensureCreditReady());
       return;
     }
-    velourAudioTrace(
-      'credit trigger (player) t=${DateTime.now().microsecondsSinceEpoch} ready=$_creditReady',
-    );
     unawaited(_playCreditSfx());
   }
 

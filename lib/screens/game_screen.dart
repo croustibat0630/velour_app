@@ -34,6 +34,7 @@ import 'package:velour_app/utils/velour_accessibility.dart';
 import 'dart:math' as math;
 
 part 'game_screen_widgets.dart';
+part 'game_screen_widgets_overlays.dart';
 
 /// Empreinte du rendu « plateau + chrome » de [GameScreen].
 ///

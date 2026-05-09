@@ -25,9 +25,9 @@ import 'package:velour_app/widgets/ui/universal_back_button.dart';
 /// macOS debug doit avoir l’entitlement sandbox `com.apple.security.network.client`
 /// (`macos/Runner/DebugProfile.entitlements`) pour que les requêtes sortantes passent.
 ///
-/// **Harness** : `main()` dans `lib/main.dart` n’installe pas les handlers Crashlytics
-/// globaux sous un binding de test (`integration_test` / `flutter test`), pour ne pas
-/// écraser celui du framework.
+/// **Harness** : `velourRunAppStartup()` (`lib/velour_bootstrap.dart`, appelé depuis
+/// `lib/main.dart`) n’installe pas les handlers Crashlytics globaux sous un binding de
+/// test (`integration_test` / `flutter test`), pour ne pas écraser celui du framework.
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 

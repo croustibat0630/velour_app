@@ -144,12 +144,6 @@ class GameScreen extends StatefulWidget {
 class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   GameState? _gameStateListenee;
 
-  /// Rebuild du plateau + chrome à chaque tick utile : l’[AnimatedBuilder] avec
-  /// `child: Scaffold` figeait le sous-arbre quand seules les animations
-  /// (shake/flash/particules) notifiaient — [criticalFailure] / chrono restaient obsolètes.
-  GameState? _shellGameStateRef;
-  Listenable? _shellListenable;
-
   late final AnimationController _shakeController;
   late final AnimationController _flashController;
   late final AnimationController _bgDrift;
@@ -230,20 +224,6 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   void _detachGameStateListener() {
     _gameStateListenee?.removeListener(_handleGameStateForFx);
     _gameStateListenee = null;
-  }
-
-  void _ensureShellListenable(GameState gs) {
-    if (identical(_shellGameStateRef, gs) && _shellListenable != null) {
-      return;
-    }
-    _shellGameStateRef = gs;
-    _shellListenable = Listenable.merge(<Listenable>[
-      gs,
-      gs.timeBar,
-      _shakeController,
-      _flashController,
-      _matchParticleController,
-    ]);
   }
 
   /// Réactions HUD/FX/audio : hors du corps de [build], déclenchées par notifies du [GameState].
@@ -329,7 +309,6 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     if (_gameStateListenee != gs) {
       _detachGameStateListener();
       _gameStateListenee = gs..addListener(_handleGameStateForFx);
-      _ensureShellListenable(gs);
       // Initialise à partir de l'état courant (évite une frame « stale » après hot-restart).
       _handleGameStateForFx();
     }
@@ -359,14 +338,17 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final ThemeEngine themeEngine = context.watch<ThemeEngine>();
-    final GameState shellGameState = context.read<GameState>();
-    _ensureShellListenable(shellGameState);
-    final Listenable shellListenable = _shellListenable!;
+    // Rebuild plateau sur chaque notify GameState (évite scaffold figé). Ne pas
+    // fusionner [GameState.timeBar] ici : ~20 ticks/s videraient le thread UI.
+    final GameState gameState = context.watch<GameState>();
     Color neonColor(int colorId) => themeEngine.colorForId(colorId);
     return ListenableBuilder(
-      listenable: shellListenable,
+      listenable: Listenable.merge(<Listenable>[
+        _shakeController,
+        _flashController,
+        _matchParticleController,
+      ]),
       builder: (BuildContext context, Widget? _) {
-        final GameState gameState = context.read<GameState>();
         return Transform.translate(
           offset: _shakeOffset(),
           child: Scaffold(

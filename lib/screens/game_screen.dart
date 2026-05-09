@@ -20,6 +20,7 @@ import 'package:velour_app/screens/preparation_view.dart';
 import 'package:velour_app/widgets/ui/game_over_overlay.dart';
 import 'package:velour_app/widgets/ui/neon_score_board.dart';
 import 'package:velour_app/widgets/ui/narrative_tutorial_chrome.dart';
+import 'package:velour_app/game/perfect_heat_logic.dart';
 import 'package:velour_app/providers/game_state.dart';
 import 'package:velour_app/models/game_item.dart';
 import 'package:velour_app/widgets/ui/pause_overlay.dart';
@@ -130,6 +131,8 @@ int _gameScreenStaticUiFingerprint(GameState gs) {
   parts.add(gs.perfectHeatUiTick);
   parts.add(gs.perfectHeatGhostFlashTick);
   parts.add(gs.perfectHeatFreezeTick);
+  parts.add(gs.perfectHeatSurgeTierDisplay);
+  parts.add(gs.perfectHeatSurgeFlashTick);
 
   return Object.hashAll(parts);
 }
@@ -996,6 +999,15 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                           },
                         ),
                       ),
+                      if (gameState.perfectHeatSurgeTierDisplay > 0)
+                        Positioned.fill(
+                          child: IgnorePointer(
+                            child: _PerfectHeatSurgeFlash(
+                              tick: gameState.perfectHeatSurgeFlashTick,
+                              tier: gameState.perfectHeatSurgeTierDisplay,
+                            ),
+                          ),
+                        ),
                       if (gameState.isLevelTransitionInProgress)
                         Positioned.fill(
                           child: IgnorePointer(
@@ -2219,6 +2231,131 @@ class _MiniDiamondPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _MiniDiamondPainter oldDelegate) =>
       oldDelegate.color != color || oldDelegate.glow != glow;
+}
+
+/// Plein écran bref quand le palier FEU / Heat augmente — teinte cyan/fuchsia,
+/// plus court que le level-up or pour éviter la confusion.
+class _PerfectHeatSurgeFlash extends StatefulWidget {
+  const _PerfectHeatSurgeFlash({required this.tick, required this.tier});
+
+  final int tick;
+  final int tier;
+
+  @override
+  State<_PerfectHeatSurgeFlash> createState() => _PerfectHeatSurgeFlashState();
+}
+
+class _PerfectHeatSurgeFlashState extends State<_PerfectHeatSurgeFlash>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c;
+
+  @override
+  void initState() {
+    super.initState();
+    _c = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1100),
+    )..forward();
+  }
+
+  @override
+  void didUpdateWidget(covariant _PerfectHeatSurgeFlash oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.tick != oldWidget.tick) {
+      _c.forward(from: 0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
+    final int luxPct = PerfectHeatLogic.luxBonusPercent(widget.tier);
+    final String mult = PerfectHeatLogic.perfectLuxMultiplierLabel(widget.tier);
+    return AnimatedBuilder(
+      animation: _c,
+      builder: (context, _) {
+        final double t = Curves.easeOutCubic.transform(_c.value);
+        final double a = (1 - t).clamp(0.0, 1.0);
+        final double pulse = 1.0 + 0.08 * math.sin(_c.value * math.pi);
+        const Color cA = Color(0xFF5CF6FF);
+        const Color cB = Color(0xFFFF6FD8);
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            ColoredBox(
+              color: Color.lerp(cA, cB, 0.35)!.withValues(alpha: 0.07 * a),
+            ),
+            Center(
+              child: Opacity(
+                opacity: (a * 0.94).clamp(0.0, 1.0),
+                child: Transform.scale(
+                  scale: pulse,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            l10n.gameHudPerfectHeatSurgeTitle,
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontFamily: 'monospace',
+                              fontSize: 40 - 7 * t,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 2,
+                              color: cA,
+                              shadows: [
+                                Shadow(
+                                  color: cB.withValues(alpha: 0.55),
+                                  blurRadius: 16,
+                                ),
+                                Shadow(
+                                  color: cA.withValues(alpha: 0.45),
+                                  blurRadius: 28,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            l10n.gameHudPerfectHeatSurgeSubtitle(
+                              widget.tier,
+                              luxPct,
+                              mult,
+                            ),
+                            textAlign: TextAlign.center,
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontFamily: 'monospace',
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.6,
+                              color: Colors.white.withValues(alpha: 0.92),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
 
 class _LevelUpFlash extends StatefulWidget {

@@ -1449,6 +1449,22 @@ abstract class AppLocalizations {
   /// **'LEVEL {level}'**
   String gameHudLevelUpSubtitle(int level);
 
+  /// No description provided for @gameHudPerfectHeatSurgeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'HEAT SURGE'**
+  String get gameHudPerfectHeatSurgeTitle;
+
+  /// No description provided for @gameHudPerfectHeatSurgeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Stage {heatTier}: +{luxPercent}% perfect LUX ({multLabel})'**
+  String gameHudPerfectHeatSurgeSubtitle(
+    int heatTier,
+    int luxPercent,
+    String multLabel,
+  );
+
   /// No description provided for @gameHudForgeChronoA11y.
   ///
   /// In en, this message translates to:

@@ -463,6 +463,15 @@
       "level": {"type": "int"}
     }
   },
+  "gameHudPerfectHeatSurgeTitle": "HEAT SURGE",
+  "gameHudPerfectHeatSurgeSubtitle": "Stage {heatTier}: +{luxPercent}% perfect LUX ({multLabel})",
+  "@gameHudPerfectHeatSurgeSubtitle": {
+    "placeholders": {
+      "heatTier": {"type": "int"},
+      "luxPercent": {"type": "int"},
+      "multLabel": {"type": "String"}
+    }
+  },
   "gameHudForgeChronoA11y": "Chrono reserve, {count} charges",
   "@gameHudForgeChronoA11y": {
     "placeholders": {

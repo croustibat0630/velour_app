@@ -548,6 +548,11 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
   int _heatGhostFlashTick = 0;
   int _perfectHeatUiTick = 0;
 
+  /// Flash plein écran « palier FEU » (montée de série), distinct du level-up.
+  Timer? _perfectHeatSurgeTimer;
+  int _perfectHeatSurgeTierDisplay = 0;
+  int _perfectHeatSurgeFlashTick = 0;
+
   /// Même périmètre que les consos Forge en run : pas pendant tutoriels scriptés.
   bool get perfectHeatMechanicsActive => _canUseForgeRunConsumables;
 
@@ -563,6 +568,10 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
   int get perfectHeatGhostFlashTick => _heatGhostFlashTick;
 
   int get perfectHeatUiTick => _perfectHeatUiTick;
+
+  int get perfectHeatSurgeTierDisplay => _perfectHeatSurgeTierDisplay;
+
+  int get perfectHeatSurgeFlashTick => _perfectHeatSurgeFlashTick;
 
   bool get perfectHeatFreezeActive =>
       _heatFreezeEnd != null && DateTime.now().isBefore(_heatFreezeEnd!);
@@ -664,6 +673,27 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     }
     _heatConsecutivePerfects++;
     _perfectHeatUiTick++;
+  }
+
+  void _triggerPerfectHeatSurgeFx(int tierAfterAdvance) {
+    final int t = tierAfterAdvance.clamp(2, 5);
+    if (PerfectHeatLogic.luxBonusPercent(t) <= 0) return;
+    _perfectHeatSurgeTierDisplay = t;
+    _perfectHeatSurgeFlashTick++;
+    _perfectHeatSurgeTimer?.cancel();
+    _perfectHeatSurgeTimer = Timer(const Duration(milliseconds: 1320), () {
+      _perfectHeatSurgeTimer = null;
+      if (_perfectHeatSurgeTierDisplay == t) {
+        _perfectHeatSurgeTierDisplay = 0;
+      }
+      notifyListeners();
+    });
+    notifyListeners();
+    try {
+      if (HapticsHandler.instance.enabled.value) {
+        HapticFeedback.lightImpact();
+      }
+    } catch (_) {}
   }
 
   void _breakPerfectHeatDeadlockInternal() {
@@ -1504,6 +1534,9 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     _matchParticleClearTimer = null;
     _comboFloaterClearTimer?.cancel();
     _comboFloaterClearTimer = null;
+    _perfectHeatSurgeTimer?.cancel();
+    _perfectHeatSurgeTimer = null;
+    _perfectHeatSurgeTierDisplay = 0;
     timeBar.value = 1.0;
     _criticalFailure = false;
     _runStartedAt = null;
@@ -2435,7 +2468,13 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
           }
         } catch (_) {}
       }
+      final int heatTierBeforeAdvance = _heatTier;
       _advanceHeatAfterPerfect();
+      final int heatTierAfterAdvance = _heatTier;
+      if (heatTierAfterAdvance >= 2 &&
+          heatTierAfterAdvance > heatTierBeforeAdvance) {
+        _triggerPerfectHeatSurgeFx(heatTierAfterAdvance);
+      }
     } else if (perfectHeatMechanicsActive && basis != RunBasis.perfect) {
       _applyHeatDecayNonPerfect(kind, basis, runCount);
     }

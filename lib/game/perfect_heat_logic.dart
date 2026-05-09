@@ -32,6 +32,15 @@ abstract final class PerfectHeatLogic {
         _ => 0,
       };
 
+  /// Libellé court du multiplicateur équivalent (1 + bonus %) pour l’UI (ex. ×1.25).
+  static String perfectLuxMultiplierLabel(int tierClamp1to5) {
+    final int p = luxBonusPercent(tierClamp1to5.clamp(1, 5));
+    if (p <= 0) return '×1';
+    final double m = 1.0 + p / 100.0;
+    final bool oneDecimal = p % 10 == 0;
+    return '×${oneDecimal ? m.toStringAsFixed(1) : m.toStringAsFixed(2)}';
+  }
+
   /// Refill temps (fraction de la portion restante), palier au moment du Perfect.
   /// Palier 4 (Hyper) : uniquement freeze côté GameState — refill 0 ici.
   static double timeRefillFractionOfRemaining(int tierClamp1to5) =>

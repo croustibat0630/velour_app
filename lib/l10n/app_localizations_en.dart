@@ -806,6 +806,18 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get gameHudPerfectHeatSurgeTitle => 'HEAT SURGE';
+
+  @override
+  String gameHudPerfectHeatSurgeSubtitle(
+    int heatTier,
+    int luxPercent,
+    String multLabel,
+  ) {
+    return 'Stage $heatTier: +$luxPercent% perfect LUX ($multLabel)';
+  }
+
+  @override
   String gameHudForgeChronoA11y(int count) {
     return 'Chrono reserve, $count charges';
   }

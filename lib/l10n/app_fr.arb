@@ -362,6 +362,15 @@
       "level": {"type": "int"}
     }
   },
+  "gameHudPerfectHeatSurgeTitle": "FEU MONTANT !",
+  "gameHudPerfectHeatSurgeSubtitle": "Palier {heatTier} : +{luxPercent} % LUX sur les parfaits ({multLabel})",
+  "@gameHudPerfectHeatSurgeSubtitle": {
+    "placeholders": {
+      "heatTier": {"type": "int"},
+      "luxPercent": {"type": "int"},
+      "multLabel": {"type": "String"}
+    }
+  },
   "gameHudForgeChronoA11y": "Réserve chrono, {count} charges",
   "@gameHudForgeChronoA11y": {
     "placeholders": {

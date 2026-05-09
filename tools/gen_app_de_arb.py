@@ -161,6 +161,8 @@ DE: dict[str, str] = {
     "gameHudLevelTag": "LEVEL",
     "gameHudLevelUpTitle": "LEVEL AUF!",
     "gameHudLevelUpSubtitle": "LEVEL {level}",
+    "gameHudPerfectHeatSurgeTitle": "HITZE-WELLE!",
+    "gameHudPerfectHeatSurgeSubtitle": "Stufe {heatTier}: +{luxPercent} % Perfect-LUX ({multLabel})",
 }
 
 

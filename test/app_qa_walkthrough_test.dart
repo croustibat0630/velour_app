@@ -1,5 +1,6 @@
 // Parcours QA automatisé : splash → menu → réglages → préparation → retour,
-// puis changements de viewport (tablette / paysage compact).
+// puis boutique / carrière (le classement exige Firebase → non couvert ici),
+// puis viewports (tablette / paysage).
 // Logs stdout préfixés [VelourQA] pour filtrage (`flutter test ... 2>&1 | rg VelourQA`).
 //
 // Note : le menu utilise une animation répétée ; on évite [pumpAndSettle] tant
@@ -15,6 +16,8 @@ import 'package:velour_app/providers/game_state.dart';
 import 'package:velour_app/screens/main_menu_view.dart';
 import 'package:velour_app/screens/preparation_view.dart';
 import 'package:velour_app/screens/settings_view.dart';
+import 'package:velour_app/screens/shop_view.dart';
+import 'package:velour_app/screens/stats_view.dart';
 import 'package:velour_app/theme/theme_engine.dart';
 
 void _qa(String message) {
@@ -66,7 +69,7 @@ void main() {
     SharedPreferences.setMockInitialValues(<String, Object>{});
   });
 
-  testWidgets('QA: splash, menu, settings, prep, responsive sizes', (
+  testWidgets('QA: splash, menu, settings, prep, shop, stats, viewports', (
     WidgetTester tester,
   ) async {
     addTearDown(() async {
@@ -127,6 +130,36 @@ void main() {
     expect(find.byType(PreparationView), findsNothing);
     expect(find.byType(MainMenuView), findsWidgets);
     _qa('back to menu from preparation');
+
+    l10n = _l10nOnMenu(tester);
+    await tester.tap(find.text(l10n.menuShop));
+    await _pumpUntil(tester, find.byType(ShopView), maxSteps: 100);
+    expect(find.byType(ShopView), findsOneWidget);
+    _qa('shop open');
+    await tester.tap(
+      find.descendant(
+        of: find.byType(ShopView),
+        matching: find.byIcon(Icons.close_rounded),
+      ),
+    );
+    await _pumpFrames(tester, 50);
+    expect(find.byType(ShopView), findsNothing);
+    _qa('shop closed');
+
+    l10n = _l10nOnMenu(tester);
+    await tester.tap(find.text(l10n.menuCareer));
+    await _pumpUntil(tester, find.byType(StatsView), maxSteps: 100);
+    expect(find.byType(StatsView), findsOneWidget);
+    _qa('stats (career) open');
+    await tester.tap(
+      find.descendant(
+        of: find.byType(StatsView),
+        matching: find.byIcon(Icons.arrow_back_rounded),
+      ),
+    );
+    await _pumpFrames(tester, 50);
+    expect(find.byType(StatsView), findsNothing);
+    _qa('stats closed');
 
     await _setViewport(tester, const Size(1024, 768));
     await _pumpFrames(tester, 30);

@@ -1024,6 +1024,19 @@ class _PerfectHeatHudRow extends StatelessWidget {
     );
     final bool showHudBonus = !rebound && tier >= 2 && luxPctHud > 0;
     final bool showHudTier1Neutral = !rebound && tier == 1;
+    final TextStyle perfectHeatTier1MultCaptionStyle = GoogleFonts.montserrat(
+      fontSize: (7.5 * scaleT).clamp(6.5, 9.0),
+      fontWeight: FontWeight.w600,
+      letterSpacing: 0.3,
+      color: Colors.white.withValues(alpha: 0.52),
+      shadows: [
+        Shadow(
+          color: Colors.black.withValues(alpha: 0.5),
+          blurRadius: 3,
+          offset: const Offset(0, 1),
+        ),
+      ],
+    );
 
     return Padding(
       padding: EdgeInsets.only(top: 5 * scaleH),
@@ -1103,28 +1116,6 @@ class _PerfectHeatHudRow extends StatelessWidget {
                         ],
                       ),
                     ),
-                  )
-                else if (showHudTier1Neutral)
-                  Flexible(
-                    child: Text(
-                      multHud,
-                      textAlign: TextAlign.end,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.montserrat(
-                        fontSize: (8 * scaleT).clamp(7.0, 10.0),
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.3,
-                        color: Colors.white.withValues(alpha: 0.52),
-                        shadows: [
-                          Shadow(
-                            color: Colors.black.withValues(alpha: 0.5),
-                            blurRadius: 3,
-                            offset: const Offset(0, 1),
-                          ),
-                        ],
-                      ),
-                    ),
                   ),
               ],
             ),
@@ -1133,41 +1124,59 @@ class _PerfectHeatHudRow extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: Row(
-              children: List<Widget>.generate(5, (int i) {
-                final bool lit = tier > 0 && i < tier;
-                final Color hot = _heatSegmentLit[i];
-                return Expanded(
-                  child: Padding(
-                    padding: EdgeInsets.only(left: i == 0 ? 0 : 2),
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(2),
-                        border: Border.all(
-                          color: lit
-                              ? hot.withValues(alpha: 0.55)
-                              : Colors.white.withValues(alpha: 0.06),
-                          width: 0.8,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Row(
+                    children: List<Widget>.generate(5, (int i) {
+                      final bool lit = tier > 0 && i < tier;
+                      final Color hot = _heatSegmentLit[i];
+                      return Expanded(
+                        child: Padding(
+                          padding: EdgeInsets.only(left: i == 0 ? 0 : 2),
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(2),
+                              border: Border.all(
+                                color: lit
+                                    ? hot.withValues(alpha: 0.55)
+                                    : Colors.white.withValues(alpha: 0.06),
+                                width: 0.8,
+                              ),
+                              color: lit
+                                  ? hot.withValues(alpha: 0.94)
+                                  : dimTrack,
+                              boxShadow: lit
+                                  ? <BoxShadow>[
+                                      BoxShadow(
+                                        color: hot.withValues(alpha: 0.48),
+                                        blurRadius: 6,
+                                        spreadRadius: 0.2,
+                                      ),
+                                      BoxShadow(
+                                        color: hot.withValues(alpha: 0.22),
+                                        blurRadius: 14,
+                                      ),
+                                    ]
+                                  : null,
+                            ),
+                            child: SizedBox(height: segH),
+                          ),
                         ),
-                        color: lit ? hot.withValues(alpha: 0.94) : dimTrack,
-                        boxShadow: lit
-                            ? <BoxShadow>[
-                                BoxShadow(
-                                  color: hot.withValues(alpha: 0.48),
-                                  blurRadius: 6,
-                                  spreadRadius: 0.2,
-                                ),
-                                BoxShadow(
-                                  color: hot.withValues(alpha: 0.22),
-                                  blurRadius: 14,
-                                ),
-                              ]
-                            : null,
-                      ),
-                      child: SizedBox(height: segH),
+                      );
+                    }),
+                  ),
+                ),
+                if (showHudTier1Neutral)
+                  Padding(
+                    padding: EdgeInsets.only(left: 5 * scaleH),
+                    child: Text(
+                      multHud,
+                      maxLines: 1,
+                      style: perfectHeatTier1MultCaptionStyle,
                     ),
                   ),
-                );
-              }),
+              ],
             ),
           ),
           if (rebound)

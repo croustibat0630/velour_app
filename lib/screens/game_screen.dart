@@ -352,12 +352,13 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     super.dispose();
   }
 
-  Offset _shakeOffset() {
+  Offset _shakeOffset(double strengthMultiplier) {
     // Cheap pseudo-random jitter based on animation value.
     final double t = _shakeController.value;
     final double a = math.sin(t * math.pi * 18);
     final double b = math.cos(t * math.pi * 23);
-    return Offset(a * _shakeStrength, b * _shakeStrength);
+    final double m = strengthMultiplier.clamp(0.0, 1.0);
+    return Offset(a * _shakeStrength * m, b * _shakeStrength * m);
   }
 
   List<LuxDustSeed> _buildLuxDustSeeds(MatchParticleFx fx, int seed) =>
@@ -377,9 +378,12 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
         _matchParticleController,
       ]),
       builder: (BuildContext context, Widget? _) {
+        // iOS « Réduire les mouvements » → [MediaQueryData.disableAnimations] (voir
+        // [velourReduceMotion] / [MediaQuery.disableAnimationsOf]).
         final bool reduceMotion = velourReduceMotion(context);
+        final double shakeMul = reduceMotion ? 0.0 : 1.0;
         return Transform.translate(
-          offset: reduceMotion ? Offset.zero : _shakeOffset(),
+          offset: _shakeOffset(shakeMul),
           child: Scaffold(
             backgroundColor: const Color(0xFF0A0A0F),
             body: SafeArea(
@@ -2733,28 +2737,39 @@ class _NarrativeTargetGemPulseState extends State<_NarrativeTargetGemPulse>
   AnimationController? _c;
 
   @override
-  void initState() {
-    super.initState();
-    if (widget.active) {
-      _c = AnimationController(
-        vsync: this,
-        duration: const Duration(milliseconds: 1100),
-      )..repeat(reverse: true);
-    }
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _syncNarrativeTargetPulse();
   }
 
   @override
   void didUpdateWidget(covariant _NarrativeTargetGemPulse oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.active && !oldWidget.active) {
-      _c ??= AnimationController(
-        vsync: this,
-        duration: const Duration(milliseconds: 1100),
-      )..repeat(reverse: true);
-      _c!.forward();
-    } else if (!widget.active && oldWidget.active) {
+    if (!widget.active && oldWidget.active) {
       _c?.dispose();
       _c = null;
+    } else if (widget.active) {
+      _syncNarrativeTargetPulse();
+    }
+  }
+
+  void _syncNarrativeTargetPulse() {
+    if (!widget.active) {
+      return;
+    }
+    if (velourReduceMotion(context)) {
+      if (_c != null) {
+        _c!.dispose();
+        _c = null;
+      }
+      return;
+    }
+    _c ??= AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1100),
+    );
+    if (!_c!.isAnimating) {
+      _c!.repeat(reverse: true);
     }
   }
 
@@ -2766,7 +2781,7 @@ class _NarrativeTargetGemPulseState extends State<_NarrativeTargetGemPulse>
 
   @override
   Widget build(BuildContext context) {
-    if (!widget.active || _c == null) {
+    if (!widget.active || _c == null || velourReduceMotion(context)) {
       return widget.child;
     }
     return AnimatedBuilder(

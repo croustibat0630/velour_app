@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:math' as math;
 
 import '../../utils/responsive.dart';
+import '../../utils/velour_accessibility.dart';
 
 class CriticalFailureOverlay extends StatefulWidget {
   const CriticalFailureOverlay({super.key, required this.onReset});
@@ -22,7 +23,25 @@ class _CriticalFailureOverlayState extends State<CriticalFailureOverlay>
     _flash = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 620),
-    )..repeat();
+    );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _syncCriticalFlashMotion();
+  }
+
+  void _syncCriticalFlashMotion() {
+    if (!mounted) return;
+    if (velourReduceMotion(context)) {
+      if (_flash.isAnimating) {
+        _flash.stop();
+      }
+      _flash.value = 0.5;
+    } else if (!_flash.isAnimating) {
+      _flash.repeat();
+    }
   }
 
   @override
@@ -34,6 +53,7 @@ class _CriticalFailureOverlayState extends State<CriticalFailureOverlay>
   @override
   Widget build(BuildContext context) {
     final double s = Responsive.compactHeightScale(context);
+    final bool reduceMotion = velourReduceMotion(context);
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -46,9 +66,10 @@ class _CriticalFailureOverlayState extends State<CriticalFailureOverlay>
             child: AnimatedBuilder(
               animation: _flash,
               builder: (context, _) {
-                final double flash =
-                    (math.sin(_flash.value * math.pi * 2) * 0.5 + 0.5);
-                final double a = 0.55 + 0.35 * flash;
+                final double flash = reduceMotion
+                    ? 0.5
+                    : (math.sin(_flash.value * math.pi * 2) * 0.5 + 0.5);
+                final double a = reduceMotion ? 0.62 : (0.55 + 0.35 * flash);
                 return Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [

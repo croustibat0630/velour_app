@@ -2783,11 +2783,13 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    // Timers async : annuler en premier (évite toute fuite rare si dispose interrompt
+    // un surge Perfect Heat entre deux notifies).
+    _perfectHeatSurgeTimer?.cancel();
+    _perfectHeatSurgeTimer = null;
     // Timers annulés ici ; pas de StreamSubscription dans GameState.
     _cancelMatchScheduling();
     _stopTimeLoop();
-    _perfectHeatSurgeTimer?.cancel();
-    _perfectHeatSurgeTimer = null;
     _matchParticleClearTimer?.cancel();
     _comboFloaterClearTimer?.cancel();
     _levelTransitionTimer?.cancel();

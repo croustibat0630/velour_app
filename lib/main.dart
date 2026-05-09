@@ -29,6 +29,7 @@ import 'widgets/lux_iap_binding.dart';
 import 'widgets/ui/welcome_gift_global_layer.dart';
 import 'widgets/ui/lux_cloud_notice_global_layer.dart';
 import 'utils/route_transition_observer.dart';
+import 'utils/velour_release_links.dart';
 import 'utils/velour_route_observer.dart';
 
 /// Active App Check après [Firebase.initializeApp].
@@ -209,6 +210,7 @@ Future<void> main() async {
   _scheduleIosAppCheckDebugTokenEchoOnce(
     injectedViaDartDefine: debugAppCheckToken.isNotEmpty,
   );
+  VelourReleaseLinks.debugWarnIfPrivacyPolicyMisconfiguredForRelease();
   runApp(const VelourApp());
 }
 

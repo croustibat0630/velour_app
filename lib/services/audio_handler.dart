@@ -202,7 +202,10 @@ class AudioHandler {
     } catch (_) {}
   }
 
-  Future<void> _setupPooledSfx({
+  /// Prépare un lecteur pool (low-latency + setSource). Retourne `false` si
+  /// chargement / timeout — **sans** lancer d’exception (évite pause débogueur
+  /// « All Exceptions » et laisse le jeu continuer sans ce canal).
+  Future<bool> _setupPooledSfx({
     required AudioPlayer player,
     required String fileName,
   }) async {
@@ -215,16 +218,21 @@ class AudioHandler {
       await player.setSource(_sourceFor(fileName));
     }
 
-    await loadCore().timeout(
-      _pooledSfxLoadTimeout,
-      onTimeout: () {
-        velourAudioTrace(
-          'AudioHandler._setupPooledSfx setSource timeout file=$fileName '
-          'after ${_pooledSfxLoadTimeout.inSeconds}s',
-        );
-        throw TimeoutException('pooled sfx setSource', _pooledSfxLoadTimeout);
-      },
-    );
+    try {
+      await loadCore().timeout(_pooledSfxLoadTimeout);
+    } on TimeoutException {
+      velourAudioTrace(
+        'AudioHandler._setupPooledSfx setSource TIMEOUT file=$fileName '
+        'after ${_pooledSfxLoadTimeout.inSeconds}s',
+      );
+      return false;
+    } catch (e, st) {
+      velourAudioTrace(
+        'AudioHandler._setupPooledSfx loadCore failed file=$fileName err=$e',
+      );
+      velourAudioTrace('$st');
+      return false;
+    }
 
     try {
       await _warmUpSfxDecoder(player).timeout(_pooledSfxWarmTimeout);
@@ -240,6 +248,7 @@ class AudioHandler {
     try {
       await player.setVolume(1.0);
     } catch (_) {}
+    return true;
   }
 
   /// Précharge match (pool) + perfect (mono pool).
@@ -270,34 +279,23 @@ class AudioHandler {
         _matchPoolReady = false;
       }
 
-      try {
-        await _setupPooledSfx(player: _sfxTap, fileName: _tapFile);
-        _tapReady = true;
-      } catch (_) {
-        _tapReady = false;
-      }
+      _tapReady = await _setupPooledSfx(player: _sfxTap, fileName: _tapFile);
 
-      try {
-        await _setupPooledSfx(player: _sfxPerfect, fileName: _perfectFile);
-        _perfectPoolReady = true;
-      } catch (_) {
-        _perfectPoolReady = false;
-      }
+      _perfectPoolReady = await _setupPooledSfx(
+        player: _sfxPerfect,
+        fileName: _perfectFile,
+      );
 
       // Level-up is long; keep it ready but not playing.
-      try {
-        await _setupPooledSfx(player: _sfxLevelUp, fileName: _levelUpFile);
-        _levelUpReady = true;
-      } catch (_) {
-        _levelUpReady = false;
-      }
+      _levelUpReady = await _setupPooledSfx(
+        player: _sfxLevelUp,
+        fileName: _levelUpFile,
+      );
 
-      try {
-        await _setupPooledSfx(player: _sfxCredit, fileName: _creditFile);
-        _creditReady = true;
-      } catch (_) {
-        _creditReady = false;
-      }
+      _creditReady = await _setupPooledSfx(
+        player: _sfxCredit,
+        fileName: _creditFile,
+      );
     } catch (_) {
       // Best-effort preload; ignore in production.
     }
@@ -518,13 +516,16 @@ class AudioHandler {
     try {
       await _bgm.stop();
     } catch (_) {}
-    for (final p in _sfxMatchPool) {
+    // Ne pas await les stops du pool : en concurrence avec un setSource encore
+    // bloqué (simulateur / session), await(stop) peut prolonger indéfiniment le
+    // filet de fin de partie.
+    for (final AudioPlayer p in _sfxMatchPool) {
       try {
-        await p.stop();
+        unawaited(p.stop());
       } catch (_) {}
     }
     try {
-      await _sfxPerfect.stop();
+      unawaited(_sfxPerfect.stop());
     } catch (_) {}
   }
 
@@ -593,10 +594,13 @@ class AudioHandler {
         _sfxMatchPool.add(AudioPlayer(playerId: 'velour_sfx_match_$i'));
       }
     }
-    for (final p in _sfxMatchPool) {
-      await _setupPooledSfx(player: p, fileName: _matchFile);
+    int readyCount = 0;
+    for (final AudioPlayer p in _sfxMatchPool) {
+      if (await _setupPooledSfx(player: p, fileName: _matchFile)) {
+        readyCount++;
+      }
     }
-    _matchPoolReady = true;
+    _matchPoolReady = readyCount > 0;
   }
 
   Future<void> _ensurePerfectPool() async {
@@ -604,8 +608,10 @@ class AudioHandler {
     if (_disabled) return;
     await configure();
     if (_disabled) return;
-    await _setupPooledSfx(player: _sfxPerfect, fileName: _perfectFile);
-    _perfectPoolReady = true;
+    _perfectPoolReady = await _setupPooledSfx(
+      player: _sfxPerfect,
+      fileName: _perfectFile,
+    );
   }
 
   Future<void> _ensureLevelUpReady() async {
@@ -613,8 +619,10 @@ class AudioHandler {
     if (_disabled) return;
     await configure();
     if (_disabled) return;
-    await _setupPooledSfx(player: _sfxLevelUp, fileName: _levelUpFile);
-    _levelUpReady = true;
+    _levelUpReady = await _setupPooledSfx(
+      player: _sfxLevelUp,
+      fileName: _levelUpFile,
+    );
   }
 
   Future<void> _ensureCreditReady() async {
@@ -622,8 +630,10 @@ class AudioHandler {
     if (_disabled) return;
     await configure();
     if (_disabled) return;
-    await _setupPooledSfx(player: _sfxCredit, fileName: _creditFile);
-    _creditReady = true;
+    _creditReady = await _setupPooledSfx(
+      player: _sfxCredit,
+      fileName: _creditFile,
+    );
   }
 
   Future<void> _ensureTapReady() async {
@@ -631,8 +641,7 @@ class AudioHandler {
     if (_disabled) return;
     await configure();
     if (_disabled) return;
-    await _setupPooledSfx(player: _sfxTap, fileName: _tapFile);
-    _tapReady = true;
+    _tapReady = await _setupPooledSfx(player: _sfxTap, fileName: _tapFile);
   }
 
   Future<void> _playTapFromChannel({required double volume}) async {

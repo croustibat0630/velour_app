@@ -2,6 +2,13 @@
   "@@locale": "fr",
   "appTitle": "Velour",
   "brandTitleDisplay": "VELOUR",
+  "startScreenInitializeSystem": "INITIALISER LE SYSTÈME",
+  "startScreenHighScoreLine": "MEILLEUR SCORE  {high}",
+  "@startScreenHighScoreLine": {
+    "placeholders": {
+      "high": {"type": "int"}
+    }
+  },
   "menuEditionSubtitle": "ÉDITION DARK MATTE",
   "menuStreakDays": "{count, plural, one{SÉRIE : 1 JOUR} other{SÉRIE : {count} JOURS}}",
   "menuPlay": "COMMENCER",

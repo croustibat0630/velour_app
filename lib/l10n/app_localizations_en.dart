@@ -15,6 +15,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get brandTitleDisplay => 'VELOUR';
 
   @override
+  String get startScreenInitializeSystem => 'INITIALIZE SYSTEM';
+
+  @override
+  String startScreenHighScoreLine(int high) {
+    return 'HIGH SCORE  $high';
+  }
+
+  @override
   String get menuEditionSubtitle => 'DARK MATTE EDITION';
 
   @override

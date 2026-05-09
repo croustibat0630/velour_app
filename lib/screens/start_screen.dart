@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:velour_app/l10n/app_localizations.dart';
 
 import '../providers/game_state.dart';
 import '../utils/responsive.dart';
@@ -42,6 +43,7 @@ class _StartScreenState extends State<StartScreen>
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
     final double scaleH = Responsive.compactHeightScale(context);
     return Scaffold(
       backgroundColor: const Color(0xFF0A0A0F),
@@ -74,7 +76,7 @@ class _StartScreenState extends State<StartScreen>
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          'VELOUR',
+                          l10n.brandTitleDisplay,
                           style: GoogleFonts.orbitron(
                             fontSize: 56 * scaleH,
                             fontWeight: FontWeight.w900,
@@ -114,7 +116,7 @@ class _StartScreenState extends State<StartScreen>
                             ),
                           ),
                           child: Text(
-                            'INITIALIZE SYSTEM',
+                            l10n.startScreenInitializeSystem,
                             style: GoogleFonts.exo2(
                               fontWeight: FontWeight.w800,
                               letterSpacing: 2.2,
@@ -134,7 +136,7 @@ class _StartScreenState extends State<StartScreen>
               child: Consumer<GameState>(
                 builder: (context, gs, _) {
                   return Text(
-                    'HIGH SCORE  ${gs.highScore}',
+                    l10n.startScreenHighScoreLine(gs.highScore),
                     textAlign: TextAlign.center,
                     style: GoogleFonts.exo2(
                       fontSize: 12,

@@ -8,6 +8,19 @@
   "@brandTitleDisplay": {
     "description": "Logo-style app name on splash and main menu (uppercase)."
   },
+  "startScreenInitializeSystem": "SYSTEM INITIALISIEREN",
+  "@startScreenInitializeSystem": {
+    "description": "Legacy demo start screen: primary CTA."
+  },
+  "startScreenHighScoreLine": "BESTWERT  {high}",
+  "@startScreenHighScoreLine": {
+    "description": "Legacy demo start screen: footer high score only.",
+    "placeholders": {
+      "high": {
+        "type": "int"
+      }
+    }
+  },
   "menuEditionSubtitle": "DARK MATTE EDITION",
   "@menuEditionSubtitle": {
     "description": "Subtitle under the logo on the main menu."

@@ -112,6 +112,18 @@ abstract class AppLocalizations {
   /// **'VELOUR'**
   String get brandTitleDisplay;
 
+  /// Legacy demo start screen: primary CTA.
+  ///
+  /// In en, this message translates to:
+  /// **'INITIALIZE SYSTEM'**
+  String get startScreenInitializeSystem;
+
+  /// Legacy demo start screen: footer high score only.
+  ///
+  /// In en, this message translates to:
+  /// **'HIGH SCORE  {high}'**
+  String startScreenHighScoreLine(int high);
+
   /// Subtitle under the logo on the main menu.
   ///
   /// In en, this message translates to:

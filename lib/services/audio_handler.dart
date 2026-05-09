@@ -157,11 +157,10 @@ class AudioHandler {
     }
     velourAudioTrace('resumeAudioThenStartMenuBgm: begin');
     try {
-      // Un seul passage sous le verrou : `configureVelourAudioPipeline` hors lock
-      // peut bloquer `setSource` sur iOS (simulateur / retour depuis Paramètres).
+      // Un seul passage sous le verrou : unlock + BGM sans double reconfig pipeline.
       await _withNativeSourceLoadLock(() async {
         await _unlockAudioCore();
-        await _playMusicCore('music_main.mp3');
+        await _playMusicCore('music_main.mp3', skipVelourPipelineReload: true);
       });
       _bgmStarted = true;
     } catch (e) {
@@ -363,8 +362,15 @@ class AudioHandler {
     } catch (_) {}
   }
 
-  Future<void> _playMusicCore(String fileName) async {
-    await configureVelourAudioPipeline(activateSession: true, force: true);
+  Future<void> _playMusicCore(
+    String fileName, {
+    bool skipVelourPipelineReload = false,
+  }) async {
+    if (!skipVelourPipelineReload) {
+      try {
+        await configureVelourAudioPipeline(activateSession: true, force: true);
+      } catch (_) {}
+    }
     await configure();
     velourAudioTrace('playMusic: starting $fileName');
     await _bgm.play(

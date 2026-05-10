@@ -34,7 +34,9 @@ jobs:
   analyze_and_test:
     name: Analyze, test & web build
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # Format + analyze + tests + dart2js can approach the default runner limit; -O2
+    # on the web build lowers peak RSS vs default release optimizations.
+    timeout-minutes: 45
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -58,7 +60,7 @@ jobs:
         run: flutter test
 
       - name: Build web (release)
-        run: flutter build web --release --no-wasm-dry-run
+        run: flutter build web --release --no-wasm-dry-run -O2
 
   integration_smoke_macos:
     name: Integration smoke (macOS)

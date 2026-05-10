@@ -144,8 +144,6 @@ extension _GameScreenStateLayout on _GameScreenState {
                         context: context,
                         gameState: gameState,
                         reduceMotion: reduceMotion,
-                        width: width,
-                        height: height,
                       ),
                       ...buildScreenLayoutPlayfieldLayers(
                         context: context,

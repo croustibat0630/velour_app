@@ -7,8 +7,6 @@ extension _GameScreenStateLayoutAmbient on _GameScreenState {
     required BuildContext context,
     required GameState gameState,
     required bool reduceMotion,
-    required double width,
-    required double height,
   }) {
     return <Widget>[
       // Fond : léger drift du centre (premium, sans distraire du jeu).

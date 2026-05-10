@@ -3,20 +3,7 @@
 part of 'game_screen.dart';
 
 extension _GameScreenStateOverlayHud on _GameScreenState {
-  List<Widget> buildHudOverlayLayers({
-    required BuildContext context,
-    required GameState gameState,
-    required bool reduceMotion,
-    required double width,
-    required double height,
-    required double slotBarHeight,
-    required double uiScale,
-    required double narrativeOracleW,
-    required Color Function(int colorId) neonColor,
-    required double luxBoardTop,
-    required double boardSpawnMinY,
-    required double itemSize,
-  }) {
+  List<Widget> buildHudOverlayLayers(_GameOverlayLayoutBundle overlays) {
     return <Widget>[
       // Menu isolé (haut gauche), en dehors du HUD.
       Positioned(
@@ -27,13 +14,15 @@ extension _GameScreenStateOverlayHud on _GameScreenState {
           child: Material(
             type: MaterialType.transparency,
             child: IconButton(
-              tooltip: AppLocalizations.of(context)!.gameHudMenuTooltip,
+              tooltip: AppLocalizations.of(
+                overlays.context,
+              )!.gameHudMenuTooltip,
               onPressed: () async {
-                if (!context.mounted) return;
+                if (!overlays.context.mounted) return;
                 AudioHandler.instance.playMenuClick();
-                context.read<GameState>().setPaused(true);
+                overlays.context.read<GameState>().setPaused(true);
                 await showDialog<void>(
-                  context: context,
+                  context: overlays.context,
                   barrierDismissible: true,
                   builder: (context) {
                     return PauseOverlay(
@@ -47,8 +36,8 @@ extension _GameScreenStateOverlayHud on _GameScreenState {
                     );
                   },
                 );
-                if (!context.mounted) return;
-                context.read<GameState>().setPaused(false);
+                if (!overlays.context.mounted) return;
+                overlays.context.read<GameState>().setPaused(false);
               },
               icon: Icon(
                 Icons.menu_rounded,
@@ -59,7 +48,7 @@ extension _GameScreenStateOverlayHud on _GameScreenState {
           ),
         ),
       ),
-      if (gameState.hasPremiumStakeSession)
+      if (overlays.gameState.hasPremiumStakeSession)
         Positioned(
           top: 8,
           left: 48,
@@ -67,8 +56,8 @@ extension _GameScreenStateOverlayHud on _GameScreenState {
           child: IgnorePointer(
             child: Center(
               child: _StakeObjectiveStrip(
-                stake: gameState.sessionStake,
-                gameLevel: gameState.gameLevel,
+                stake: overlays.gameState.sessionStake,
+                gameLevel: overlays.gameState.gameLevel,
               ),
             ),
           ),
@@ -77,30 +66,31 @@ extension _GameScreenStateOverlayHud on _GameScreenState {
       Positioned(
         left: 0,
         right: 0,
-        top: luxBoardTop,
+        top: overlays.luxBoardTop,
         child: Builder(
           builder: (context) {
             final ({double level, double lux, double score, double time}) op =
-                gameState.narrativeHudOpacities;
+                overlays.gameState.narrativeHudOpacities;
             return AnimatedOpacity(
               duration: Duration(
                 milliseconds: velourReduceMotion(context) ? 0 : 900,
               ),
               curve: Curves.easeOutCubic,
               opacity:
-                  gameState.isNarrativeTutorialActive &&
-                      gameState.narrativeUiReveal == 0
+                  overlays.gameState.isNarrativeTutorialActive &&
+                      overlays.gameState.narrativeUiReveal == 0
                   ? 0.0
                   : 1.0,
               child: RepaintBoundary(
                 child: NeonScoreBoard(
-                  gameLevel: gameState.gameLevel,
-                  lux: gameState.lux,
-                  comboFlashTick: gameState.luxComboFlashTick,
-                  luxIntroTick: gameState.narrativeLuxIntroTick,
-                  levelUpFlashTick: gameState.isLevelTransitionInProgress
+                  gameLevel: overlays.gameState.gameLevel,
+                  lux: overlays.gameState.lux,
+                  comboFlashTick: overlays.gameState.luxComboFlashTick,
+                  luxIntroTick: overlays.gameState.narrativeLuxIntroTick,
+                  levelUpFlashTick:
+                      overlays.gameState.isLevelTransitionInProgress
                       ? 0
-                      : gameState.levelUpFlashTick,
+                      : overlays.gameState.levelUpFlashTick,
                   maxWidth: 500,
                   levelOpacity: op.level,
                   luxOpacity: op.lux,

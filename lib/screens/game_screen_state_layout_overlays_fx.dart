@@ -4,20 +4,9 @@
 part of 'game_screen.dart';
 
 extension _GameScreenStateOverlayFx on _GameScreenState {
-  List<Widget> buildFxOverlayLayersBetweenNarrativeAndHud({
-    required BuildContext context,
-    required GameState gameState,
-    required bool reduceMotion,
-    required double width,
-    required double height,
-    required double slotBarHeight,
-    required double uiScale,
-    required double narrativeOracleW,
-    required Color Function(int colorId) neonColor,
-    required double luxBoardTop,
-    required double boardSpawnMinY,
-    required double itemSize,
-  }) {
+  List<Widget> buildFxOverlayLayersBetweenNarrativeAndHud(
+    _GameOverlayLayoutBundle overlays,
+  ) {
     return <Widget>[
       if (_comboFloater != null)
         Positioned.fill(
@@ -26,23 +15,23 @@ extension _GameScreenStateOverlayFx on _GameScreenState {
               key: ValueKey(_comboFloater!.id),
               chainMult: _comboFloater!.chainMult,
               position: _comboFloater!.position,
-              accent: neonColor(2),
+              accent: overlays.neonColor(2),
             ),
           ),
         ),
-      if (!reduceMotion && _matchParticle != null)
+      if (!overlays.reduceMotion && _matchParticle != null)
         Positioned.fill(
           child: IgnorePointer(
             child: RepaintBoundary(
               child: CustomPaint(
                 painter: LuxDustPainter(
                   center: _matchParticle!.center,
-                  primary: gameState.currentSkin.primaryColor,
-                  secondary: gameState.currentSkin.secondaryColor,
+                  primary: overlays.gameState.currentSkin.primaryColor,
+                  secondary: overlays.gameState.currentSkin.secondaryColor,
                   t: _matchParticleController.value,
                   seeds: _luxDustSeeds,
                   perfectBurst: _matchParticle!.perfectLuxBurst,
-                  flashRadius: itemSize * 0.95,
+                  flashRadius: overlays.itemSize * 0.95,
                 ),
               ),
             ),
@@ -50,16 +39,17 @@ extension _GameScreenStateOverlayFx on _GameScreenState {
         ),
       // Flash palier 5 : uniquement au-dessus de la zone de spawn des gemmes
       // (évite de voiler le plateau sous stress).
-      if (!reduceMotion && gameState.perfectHeatMechanicsActive)
+      if (!overlays.reduceMotion &&
+          overlays.gameState.perfectHeatMechanicsActive)
         Positioned(
           top: 0,
           left: 0,
           right: 0,
-          height: boardSpawnMinY,
+          height: overlays.boardSpawnMinY,
           child: IgnorePointer(
             child: ClipRect(
               child: _PerfectHeatGhostFlash(
-                tick: gameState.perfectHeatGhostFlashTick,
+                tick: overlays.gameState.perfectHeatGhostFlashTick,
               ),
             ),
           ),
@@ -67,51 +57,41 @@ extension _GameScreenStateOverlayFx on _GameScreenState {
     ];
   }
 
-  List<Widget> buildFxOverlayLayersAboveHud({
-    required BuildContext context,
-    required GameState gameState,
-    required bool reduceMotion,
-    required double width,
-    required double height,
-    required double slotBarHeight,
-    required double uiScale,
-    required double narrativeOracleW,
-    required Color Function(int colorId) neonColor,
-    required double luxBoardTop,
-    required double boardSpawnMinY,
-    required double itemSize,
-  }) {
+  List<Widget> buildFxOverlayLayersAboveHud(_GameOverlayLayoutBundle overlays) {
     return <Widget>[
-      if (!reduceMotion && gameState.perfectHeatSurgeTierDisplay > 0)
+      if (!overlays.reduceMotion &&
+          overlays.gameState.perfectHeatSurgeTierDisplay > 0)
         Positioned.fill(
           child: IgnorePointer(
             child: _PerfectHeatSurgeFlash(
-              tick: gameState.perfectHeatSurgeFlashTick,
-              tier: gameState.perfectHeatSurgeTierDisplay,
+              tick: overlays.gameState.perfectHeatSurgeFlashTick,
+              tier: overlays.gameState.perfectHeatSurgeTierDisplay,
             ),
           ),
         ),
-      if (!reduceMotion && gameState.isLevelTransitionInProgress)
+      if (!overlays.reduceMotion &&
+          overlays.gameState.isLevelTransitionInProgress)
         Positioned.fill(
           child: IgnorePointer(
             child: _LevelUpFlash(
-              tick: gameState.levelUpFlashTick,
-              level: gameState.gameLevel,
+              tick: overlays.gameState.levelUpFlashTick,
+              level: overlays.gameState.gameLevel,
             ),
           ),
         ),
-      if (!reduceMotion && gameState.isLevelTransitionInProgress)
+      if (!overlays.reduceMotion &&
+          overlays.gameState.isLevelTransitionInProgress)
         const Positioned.fill(child: IgnorePointer(child: _LevelUpLuxBurst())),
-      if (gameState.criticalFailure)
+      if (overlays.gameState.criticalFailure)
         Positioned.fill(
           child: Stack(
             fit: StackFit.expand,
             children: [
-              if (!reduceMotion)
-                _GameOverRedFlash(tick: gameState.gameOverFlashTick),
+              if (!overlays.reduceMotion)
+                _GameOverRedFlash(tick: overlays.gameState.gameOverFlashTick),
               Builder(
                 builder: (context) {
-                  final GameState gs = gameState;
+                  final GameState gs = overlays.gameState;
                   final ThemeEngine te = context.watch<ThemeEngine>();
                   final SessionStakeKind ended = gs.lastEndedRunStakeKind;
                   final double? prestigeMult =
@@ -163,15 +143,17 @@ extension _GameScreenStateOverlayFx on _GameScreenState {
             ],
           ),
         ),
-      if (!reduceMotion &&
-          !gameState.isTrinityTutorialComplete &&
-          gameState.sequenceTick > 0)
+      if (!overlays.reduceMotion &&
+          !overlays.gameState.isTrinityTutorialComplete &&
+          overlays.gameState.sequenceTick > 0)
         Positioned.fill(
           child: IgnorePointer(
-            child: _SequenceCompletedFlash(tick: gameState.sequenceTick),
+            child: _SequenceCompletedFlash(
+              tick: overlays.gameState.sequenceTick,
+            ),
           ),
         ),
-      if (!reduceMotion)
+      if (!overlays.reduceMotion)
         Positioned.fill(
           child: IgnorePointer(
             ignoring: _flashController.value == 0,

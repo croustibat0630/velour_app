@@ -416,7 +416,7 @@ extension _GameScreenStateLayout on _GameScreenState {
                           ),
                         ),
                       ),
-                      ...buildScreenLayoutOverlayLayers(
+                      ...buildScreenLayoutOverlayLayers((
                         context: context,
                         gameState: gameState,
                         reduceMotion: reduceMotion,
@@ -429,7 +429,7 @@ extension _GameScreenStateLayout on _GameScreenState {
                         luxBoardTop: luxBoardTop,
                         boardSpawnMinY: boardSpawnMinY,
                         itemSize: itemSize,
-                      ),
+                      )),
                     ],
                   );
                 },

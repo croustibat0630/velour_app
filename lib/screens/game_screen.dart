@@ -43,6 +43,22 @@ part 'game_screen_state_layout_overlays_fx.dart';
 part 'game_screen_state_layout_overlays_hud.dart';
 part 'game_screen_state_layout_overlays.dart';
 
+/// Données partagées par les sous-listes du `Stack` overlays du jeu.
+typedef _GameOverlayLayoutBundle = ({
+  BuildContext context,
+  GameState gameState,
+  bool reduceMotion,
+  double width,
+  double height,
+  double slotBarHeight,
+  double uiScale,
+  double narrativeOracleW,
+  Color Function(int colorId) neonColor,
+  double luxBoardTop,
+  double boardSpawnMinY,
+  double itemSize,
+});
+
 /// Empreinte du rendu « plateau + chrome » de [GameScreen].
 ///
 /// Les listes board/slot sont mutées en place : une simple égalité par référence

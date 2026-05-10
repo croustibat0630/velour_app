@@ -1,17 +1,26 @@
-# velour_app
+# Velour (`velour_app`)
 
-A new Flutter project.
+Puzzle néon Flutter (Firebase : auth, Firestore, Remote Config, App Check, Crashlytics, Functions).
 
-## Getting Started
+## Documentation projet
 
-This project is a starting point for a Flutter application.
+- **Soumission stores** : [`docs/STORE_RELEASE_CHECKLIST.md`](docs/STORE_RELEASE_CHECKLIST.md) (parcours iOS/Android, VoiceOver/TalkBack, Réduire les mouvements, RC, App Check, `VELOUR_PRIVACY_POLICY_URL`).
+- **Durcissement prod** : [`docs/PRODUCTION_HARDENING.md`](docs/PRODUCTION_HARDENING.md).
+- **Observabilité J1–J7** : [`docs/OBSERVABILITY_J1.md`](docs/OBSERVABILITY_J1.md) (filtres Crashlytics `[VEL_OBS]`, clés custom, boucle RC).
 
-A few resources to get you started if this is your first Flutter project:
+## Développement
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+```bash
+flutter pub get
+dart analyze
+flutter test
+```
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Build store (exemple Android) :
+
+```bash
+flutter build appbundle --release \
+  --dart-define=VELOUR_PRIVACY_POLICY_URL=https://VOTRE_DOMAINE/politique-confidentialite
+```
+
+Ressources Flutter : [documentation](https://docs.flutter.dev/).

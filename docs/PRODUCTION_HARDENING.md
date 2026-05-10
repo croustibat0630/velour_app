@@ -113,9 +113,10 @@ flutter build appbundle --release
 
 - **`VelourObservability`** : en **release / profile** (hors debug), erreurs Firestore / IAP / client envoyées à **Firebase Crashlytics** (`recordError` non fatal ou `log` pour signaux économie).
 - **Codes client stables** (`lib/services/velour_obs_codes.dart`, préfixe `VEL_CLI_*`) : filtres dans Crashlytics (reason / logs préfixés `[VEL_OBS]`).
+- **Post-lancement J1–J7** : guide opérationnel **`docs/OBSERVABILITY_J1.md`** (filtres Crashlytics, clés `velour_*`, boucle RC / DDA, option Analytics).
 - **Codes Cloud Functions** (préfixe `VEL_CF_*`, `VEL_IAP_*`, `VEL_LB_*`) : champs `code` dans les logs Cloud Logging pour IAP grant, apply LUX (clamp, cap journalier, rate limit), trigger classement.
 - **Anti-abus callable** : `velourApplyLuxDelta` applique aussi une limite **d’appels par minute** (`luxApplyMinuteEpoch` / `luxApplyMinuteCount` sur `players/{uid}`) en plus du plafond journalier des crédits positifs.
-- **Analytics** : événements agrégés selon besoin produit (hors périmètre minimal du dépôt).
+- **Analytics** : événements agrégés selon besoin produit — recommandations d’événements dans `OBSERVABILITY_J1.md` ; implémentation volontaire (GDPR / privacy policy).
 
 ### Exemples de codes
 

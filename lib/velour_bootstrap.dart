@@ -13,6 +13,7 @@ import 'firebase_options.dart';
 import 'services/audio_handler.dart';
 import 'services/remote_config_service.dart';
 import 'services/velour_audio_platform.dart';
+import 'services/velour_observability.dart';
 import 'utils/velour_release_links.dart';
 import 'utils/velour_session_trace.dart';
 
@@ -174,6 +175,7 @@ Future<void> velourRunAppStartup() async {
   await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(
     !kDebugMode,
   );
+  VelourObservability.tagReleaseSessionForCrashlyticsJ1();
 
   // Erreurs synchrones / asynchrones : handlers globaux réservés aux runs « app ».
   // Voir [velourAppRunningUnderFlutterTestBinding] (integration_test / widget tests).

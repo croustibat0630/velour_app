@@ -8,6 +8,7 @@ import 'package:velour_app/l10n/app_localizations.dart';
 
 import '../providers/game_state.dart';
 import '../services/audio_handler.dart';
+import '../services/velour_analytics.dart';
 import '../theme/theme_engine.dart';
 import '../utils/responsive.dart';
 import '../utils/velour_accessibility.dart';
@@ -70,6 +71,7 @@ class _PreparationViewState extends State<PreparationView> with RouteAware {
       if (!mounted) return;
       _syncPendingLuxJuiceIfAny();
     });
+    VelourAnalytics.logPrepOpen(stakeKind: _selectedStake?.name ?? 'unset');
   }
 
   @override

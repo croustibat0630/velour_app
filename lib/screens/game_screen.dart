@@ -25,6 +25,7 @@ import 'package:velour_app/models/game_item.dart';
 import 'package:velour_app/widgets/ui/pause_overlay.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:velour_app/services/audio_handler.dart';
+import 'package:velour_app/services/velour_analytics.dart';
 import 'package:velour_app/services/haptics_handler.dart';
 import 'package:velour_app/widgets/items/gem_shape_paths.dart';
 import 'package:velour_app/game/particle_system.dart';
@@ -233,7 +234,9 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
       if (!mounted) return;
       unawaited(AudioHandler.instance.preloadGameSfx());
       if (!mounted) return;
-      context.read<GameState>().startGame();
+      final GameState gs = context.read<GameState>();
+      gs.startGame();
+      VelourAnalytics.logRunStart(stakeKind: gs.sessionStake.name);
     });
     _shakeController = AnimationController(
       vsync: this,

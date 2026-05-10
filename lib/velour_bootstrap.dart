@@ -12,6 +12,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'firebase_options.dart';
 import 'services/audio_handler.dart';
 import 'services/remote_config_service.dart';
+import 'services/velour_analytics.dart';
 import 'services/velour_audio_platform.dart';
 import 'services/velour_observability.dart';
 import 'utils/velour_release_links.dart';
@@ -168,6 +169,7 @@ Future<void> velourRunAppStartup() async {
   // iOS / Android : AVAudioSession + contexte audioplayers (respectSilence: false).
   await configureVelourAudioPipeline(activateSession: true);
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await VelourAnalytics.configureAfterFirebaseInit();
   await velourActivateAppCheck();
   unawaited(VelourRemoteConfig.instance.init());
 

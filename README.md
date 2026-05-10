@@ -1,6 +1,6 @@
 # Velour (`velour_app`)
 
-Puzzle néon Flutter (Firebase : auth, Firestore, Remote Config, App Check, Crashlytics, Functions).
+Puzzle néon Flutter (Firebase : auth, Firestore, Remote Config, App Check, Crashlytics, Analytics optionnel, Functions).
 
 ## Documentation projet
 
@@ -21,6 +21,7 @@ Build store (exemple Android) :
 ```bash
 flutter build appbundle --release \
   --dart-define=VELOUR_PRIVACY_POLICY_URL=https://VOTRE_DOMAINE/politique-confidentialite
+# Funnel (opt-in légal) : ajouter --dart-define=VELOUR_ANALYTICS=true
 ```
 
 Ressources Flutter : [documentation](https://docs.flutter.dev/).

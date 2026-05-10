@@ -9,6 +9,7 @@ import 'package:velour_app/l10n/app_localizations.dart';
 
 import '../providers/game_state.dart';
 import '../services/audio_handler.dart';
+import '../services/velour_analytics.dart';
 import '../services/stats_service.dart';
 import '../theme/theme_engine.dart';
 import '../utils/responsive.dart';
@@ -135,6 +136,7 @@ class _MainMenuViewState extends State<MainMenuView>
       gs.loadEconomyWelcome();
       unawaited(_refreshStreak());
     });
+    VelourAnalytics.logMenuView();
   }
 
   void _onFirstPointerDown() {

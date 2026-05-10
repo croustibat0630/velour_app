@@ -28,6 +28,7 @@ Au bootstrap (hors debug), l’app pose des **custom keys** Crashlytics :
 |-----|----------------|
 | `velour_privacy_url_configured` | `true` si `VELOUR_PRIVACY_POLICY_URL` non vide à la compilation. |
 | `velour_release_bootstrap` | `1` — session passée par le chemin release observabilité J1. |
+| `velour_analytics` | `1` si build avec `--dart-define=VELOUR_ANALYTICS=true`, sinon `0` (hors debug). |
 
 **Usage** : dans Crashlytics → *Issues* → filtres avancés / BigQuery export, segmenter les crashs où `velour_release_bootstrap == 1` pour exclure les builds dev ad hoc.
 
@@ -60,14 +61,20 @@ Les défauts embarqués (`meta_dda_permille`, `meta_ema_alpha_permille`, etc.) s
 2. Comparer **niveau médian** / **temps de partie** si vous avez déjà un pipeline (BigQuery, export manuel, etc.).
 3. Ajuster RC **par petits pas** (un paramètre à la fois) avec date de publication notée.
 
-**Quand ajouter Firebase Analytics (ou autre)** : dès que vous voulez corréler **RC** ↔ **funnel** (menu → prep → run start → run end) sans deviner. Événements recommandés (noms indicatifs) :
+### 3.1 Funnel embarqué (opt-in build)
 
-- `velour_menu_view`
-- `velour_prep_open` (+ param `stake_kind`)
-- `velour_run_start`
-- `velour_run_end` (+ param `level`, `stake`, `ended_reason`)
+Avec `--dart-define=VELOUR_ANALYTICS=true`, le client envoie à Firebase Analytics :
 
-Ce dépôt ne les implémente pas par défaut pour limiter surface GDPR / review ; à ajouter volontairement avec la politique de confidentialité mise à jour.
+- `velour_menu_view` — ouverture [MainMenuView](lib/screens/main_menu_view.dart).
+- `velour_prep_open` — param `stake_kind` (`casual` / `highStakes` / `royal` / `unset`).
+- `velour_run_start` — param `stake_kind` au démarrage effectif de la partie ([GameScreen](lib/screens/game_screen.dart)).
+- `app_open` (API standard) — au bootstrap si Analytics est activé.
+
+**Console** : Analytics → *DebugView* (appareil debug / build avec debug) ou rapports *Realtime* / *Events* après propagation.
+
+**À prévoir** : `velour_run_end` (niveau, raison de fin) n’est pas encore instrumenté ; l’ajouter si vous corrélez RC avec **taux d’abandon en cours de run**.
+
+Sans `VELOUR_ANALYTICS`, la collecte Analytics est coupée côté client (`setAnalyticsCollectionEnabled(false)`) — la politique de confidentialité et la fiche store doivent quand même refléter tout autre traitement (auth, IAP, etc.).
 
 ---
 

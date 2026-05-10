@@ -4,6 +4,23 @@ Document **exécutable** : chaque case doit être cochée par une personne (ou n
 
 ---
 
+## 0. Ordre recommandé (avant la section 1)
+
+À faire **dans cet ordre** réduit les allers-retours console / binaires :
+
+1. **RC prod publié** + **App Check** enregistré pour les builds release (§4) — sinon les callables / fetch peuvent diverger du binaire que vous testez.
+2. **URL privacy** figée + **builds** AAB/IPA avec `--dart-define=VELOUR_PRIVACY_POLICY_URL=…` (§1) — gate store et clé Crashlytics `velour_privacy_url_configured`.
+3. **Passe appareils réels** iOS + Android : parcours froid, cash/prep/gemmes, Réduire les mouvements, VoiceOver, TalkBack (§3).
+4. **Observabilité J1** : filtres / alertes Crashlytics + Logging ; funnel Analytics **seulement** si `VELOUR_ANALYTICS=true` et politique à jour (§5–6, `docs/OBSERVABILITY_J1.md`).
+
+**Script** (affiche les commandes types avec votre URL) :
+
+```bash
+./scripts/echo_store_release_build.sh 'https://votre-domaine.example/politique-confidentialite'
+```
+
+---
+
 ## 1. Version & builds
 
 - [ ] Incrémenter `version: x.y.z+N` dans `pubspec.yaml` (le `+N` est obligatoire pour Play / App Store — voir règle équipe dans `.cursor/rules/git-workflow.mdc`).
@@ -27,6 +44,15 @@ flutter build appbundle --release \
 flutter build ipa --release \
   --dart-define=VELOUR_PRIVACY_POLICY_URL=https://VOTRE_DOMAINE/politique-confidentialite
 ```
+
+**Funnel Firebase Analytics (optionnel, pas par défaut)** — mettre à jour la politique de confidentialité et activer explicitement au build :
+
+```bash
+# À ajouter aux lignes ci-dessus (même commande) :
+#   --dart-define=VELOUR_ANALYTICS=true
+```
+
+Implémentation : `lib/services/velour_analytics.dart` (`velour_menu_view`, `velour_prep_open`, `velour_run_start` + `logAppOpen`).
 
 **Web RC / debug App Check (hors store)** : voir `lib/velour_bootstrap.dart` (`VELOUR_APP_CHECK_WEB_SITE_KEY` si besoin).
 

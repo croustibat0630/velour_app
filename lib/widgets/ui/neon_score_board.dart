@@ -12,7 +12,7 @@ import '../../utils/responsive.dart';
 import '../../utils/velour_accessibility.dart';
 import 'neon_timer_bar.dart';
 
-/// Ligne « XXXX LUX » (animations + SFX sur delta), utilisée dans le bandeau HUD.
+/// Ligne montant LUX du HUD (animations + SFX sur delta).
 class NeonLuxCaption extends StatefulWidget {
   const NeonLuxCaption({
     super.key,

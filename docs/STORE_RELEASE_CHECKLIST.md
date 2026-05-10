@@ -182,7 +182,7 @@ Activer TalkBack (selon appareil). Répéter la section **3.3** sur **un télép
 
 ## Annexe B — Artefacts prêts envoi store (build `+13`, AAB + IPA alignés, sans `AD_ID`)
 
-Chemins locaux (non versionnés dans git) :
+Chemins locaux (non versionnés dans git) — **régénérés ensemble** avec `./scripts/build_store_artifacts.sh` pour **`1.0.0+13`** :
 
 | Plateforme | Fichier |
 |------------|---------|
@@ -193,7 +193,7 @@ Chemins locaux (non versionnés dans git) :
 
 **Android / identifiant publicitaire** : le manifest principal retire les permissions `AD_ID` fusionnées par les SDK Google (voir `android/app/src/main/AndroidManifest.xml`) pour rester cohérent avec la déclaration Play « non ».
 
-**Si `flutter build ipa` échoue** : `cd ios && rm -rf Pods Podfile.lock && pod install --repo-update` puis relancer ; erreur *SDKStatCaches* → ouvrir une fois **Xcode** ou vider `~/Library/Developer/Xcode/DerivedData`, puis relancer.
+**Si `flutter build ipa` échoue** : `cd ios && rm -rf Pods Podfile.lock && pod install --repo-update` puis relancer ; erreur *SDKStatCaches* → ouvrir une fois **Xcode** ou vider `~/Library/Developer/Xcode/DerivedData`, puis relancer. Erreur **`NativeAssetsManifest.json` / `objective_c`** après suppression de `build/ios` seule → lancer d’abord `flutter build ios --release` (avec les mêmes `--dart-define`) ; le script `build_store_artifacts.sh` le fait automatiquement.
 
 ---
 

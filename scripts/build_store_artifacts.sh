@@ -30,6 +30,10 @@ flutter pub get
 echo "==> Android appbundle (release)"
 flutter build appbundle --release "${DART_DEFINES[@]}"
 
+# Prépare build/native_assets/ios (sinon l’archive IPA peut échouer après un clean partiel).
+echo "==> iOS device build (release, pré-archive)"
+flutter build ios --release "${DART_DEFINES[@]}"
+
 echo "==> iOS IPA (release, export App Store)"
 flutter build ipa --release "${DART_DEFINES[@]}" --export-method app-store
 

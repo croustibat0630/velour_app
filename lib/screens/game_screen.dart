@@ -38,6 +38,9 @@ part 'game_screen_widgets_combo_rack.dart';
 part 'game_screen_widgets_overlays.dart';
 part 'game_screen_widgets_overlays_flashes.dart';
 part 'game_screen_state_layout.dart';
+part 'game_screen_state_layout_overlays_narrative.dart';
+part 'game_screen_state_layout_overlays_fx.dart';
+part 'game_screen_state_layout_overlays_hud.dart';
 part 'game_screen_state_layout_overlays.dart';
 
 /// Empreinte du rendu « plateau + chrome » de [GameScreen].

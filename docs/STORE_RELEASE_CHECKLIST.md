@@ -19,15 +19,20 @@ Document **exécutable** : chaque case doit être cochée par une personne (ou n
 ./scripts/echo_store_release_build.sh 'https://votre-domaine.example/politique-confidentialite'
 ```
 
+### Livrables dépôt (hors gate store / humain)
+
+- [x] Script `scripts/echo_store_release_build.sh` + checklist §0–§1 maintenues.
+- [x] `docs/OBSERVABILITY_J1.md` (filtres `[VEL_OBS]`, clés custom, funnel Analytics opt-in `VELOUR_ANALYTICS`).
+
 ---
 
 ## 1. Version & builds
 
 - [ ] Incrémenter `version: x.y.z+N` dans `pubspec.yaml` (le `+N` est obligatoire pour Play / App Store — voir règle équipe dans `.cursor/rules/git-workflow.mdc`).
-- [ ] `flutter pub get`
+- [x] `flutter pub get`
 - [ ] Builds release signés / uploadables :
-  - [ ] **Android** : `flutter build appbundle --release` avec les `--dart-define` ci-dessous.
-  - [ ] **iOS** : `flutter build ipa` ou archive Xcode avec les mêmes `--dart-define`.
+  - [x] **Android** : `flutter build appbundle --release` avec les `--dart-define` ci-dessous — **compile OK** (voir annexe A ; signature Play / upload à valider sur la machine de release).
+  - [ ] **iOS** : `flutter build ipa` ou archive Xcode avec les mêmes `--dart-define` — **non rejoué ici** (annexe A : `pod install` / espace disque).
 
 ### Commandes types (copier-coller puis adapter l’URL privacy)
 
@@ -105,6 +110,10 @@ Référence technique : `velourReduceMotion` (`lib/utils/velour_accessibility.da
 
 Noter tout libellé vide, doublon ou incohérence dans le ticket release.
 
+**Automatisé (complément, ne remplace pas VoiceOver sur appareil)** :
+
+- [x] Tests `test/gem_accessibility_test.dart` : `gemAccessibilityLabel` annonce **forme + couleur** (EN).
+
 ### 3.4 TalkBack (Android) — même parcours (gate)
 
 Activer TalkBack (selon appareil). Répéter la section **3.3** sur **un téléphone Android réel**.
@@ -122,7 +131,7 @@ Activer TalkBack (selon appareil). Répéter la section **3.3** sur **un télép
 ### 4.2 App Check (release)
 
 - [ ] Console → App Check : **Play Integrity** (Android) et **App Attest / Device Check** (iOS) enregistrés pour l’app **release**.
-- [ ] Confirmer qu’aucune build **store** n’est compilée avec besoin de **debug provider** (le client utilise `AndroidPlayIntegrityProvider` / `AppleAppAttestWithDeviceCheckFallbackProvider` uniquement quand `kReleaseMode` — voir `velourActivateAppCheck` dans `lib/velour_bootstrap.dart`).
+- [x] Confirmer qu’aucune build **store** n’est compilée avec besoin de **debug provider** (le client utilise `AndroidPlayIntegrityProvider` / `AppleAppAttestWithDeviceCheckFallbackProvider` uniquement quand `kReleaseMode` — voir `velourActivateAppCheck` dans `lib/velour_bootstrap.dart`). *(Revue code statique ; le bon jeton App Check en prod reste une vérif console + binaire signé.)*
 - [ ] Si les Cloud Functions **appliquent** App Check : vérifier métriques / rejets dans la console après déploiement.
 
 ### 4.3 Règles & Functions
@@ -142,8 +151,23 @@ Activer TalkBack (selon appareil). Répéter la section **3.3** sur **un télép
 
 ## 6. Post-soumission (non bloquant jour J mais à planifier)
 
-- [ ] Suivi des métriques de rétention / funnel (Analytics ou équivalent — voir `OBSERVABILITY_J1.md` section Analytics).
+- [x] Suivi des métriques de rétention / funnel (Analytics ou équivalent — voir `OBSERVABILITY_J1.md` section Analytics). *(Côté client : événements opt-in `VELOUR_ANALYTICS` + doc ; tableaux de bord / consentement légal / activation console restent humains.)*
 - [ ] Itération RC (DDA, timer clutch, board flow) guidée par données, pas par intuition seule.
+
+---
+
+## Annexe A — Dernière passe agent / CI locale (2026-05-09)
+
+À recopier dans le ticket release si utile. **Ne remplace pas** les cases §2–§4 console, §3 appareils réels, ni le sign-off.
+
+| Vérification | Résultat |
+|--------------|----------|
+| `flutter pub get` | OK |
+| `dart analyze` | 0 issue |
+| `flutter test` | Toute la suite OK |
+| `flutter build appbundle --release` + `--dart-define=VELOUR_PRIVACY_POLICY_URL=https://example.org/velour-privacy` | OK → `build/app/outputs/bundle/release/app-release.aab` |
+| `flutter build ios --release --no-codesign` + même `dart-define` | **Échec** : `pod install` / checkout CocoaPods — *No space left on device* sur l’agent ; relancer sur une machine avec espace disque suffisant. |
+| `./scripts/echo_store_release_build.sh` | OK (affiche les commandes) |
 
 ---
 

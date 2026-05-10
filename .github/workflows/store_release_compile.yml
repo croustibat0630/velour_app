@@ -1,0 +1,29 @@
+# Vérifie que la chaîne de build store (AAB) compile avec les dart-defines attendus.
+# Déclenchement manuel uniquement (évite de rallonger chaque PR).
+name: Store release compile check
+
+on:
+  workflow_dispatch:
+
+jobs:
+  android_aab_release:
+    name: Android appbundle (release + privacy dart-define)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Dependencies
+        run: flutter pub get
+
+      - name: Build AAB (same URL as App Store Connect listing)
+        run: |
+          flutter build appbundle --release \
+            --dart-define=VELOUR_PRIVACY_POLICY_URL=https://elite-bumper-96a.notion.site/Politique-de-confidentialit-Velour-358a47fe395240689082ec65c556a1f2

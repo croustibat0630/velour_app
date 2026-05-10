@@ -25,12 +25,13 @@ Document **exécutable** : chaque case doit être cochée par une personne (ou n
 
 - [x] Script `scripts/echo_store_release_build.sh` + checklist §0–§1 maintenues.
 - [x] `docs/OBSERVABILITY_J1.md` (filtres `[VEL_OBS]`, clés custom, funnel Analytics opt-in `VELOUR_ANALYTICS`).
+- [x] Workflow GitHub **manuel** `.github/workflows/store_release_compile.yml` (AAB release + dart-define privacy) — onglet *Actions* → *Store release compile check* → *Run workflow*.
 
 ---
 
 ## 1. Version & builds
 
-- [ ] Incrémenter `version: x.y.z+N` dans `pubspec.yaml` (le `+N` est obligatoire pour Play / App Store — voir règle équipe dans `.cursor/rules/git-workflow.mdc`).
+- [x] Incrémenter `version: x.y.z+N` dans `pubspec.yaml` (le `+N` est obligatoire pour Play / App Store — voir règle équipe dans `.cursor/rules/git-workflow.mdc`). *(Dépôt : `+11` au 2026-05-10 — **re-incrémenter** avant chaque nouvel upload store si ce numéro est déjà publié.)*
 - [x] `flutter pub get`
 - [ ] Builds release signés / uploadables :
   - [x] **Android** : `flutter build appbundle --release` avec les `--dart-define` ci-dessous — **compile OK** (voir annexe A ; signature Play / upload à valider sur la machine de release).
@@ -69,7 +70,7 @@ Référence code : `lib/utils/velour_release_links.dart` — en **release**, une
 
 ## 2. Légal & métadonnées (gates)
 
-- [ ] **Politique de confidentialité** : URL réelle, contenu à jour, accessible sans compte.
+- [x] **Politique de confidentialité** : URL réelle alignée App Store Connect + builds (`VelourReleaseLinks.appStoreListingPrivacyPolicyUrl` / `--dart-define`). *(Contenu Notion à jour, accessible sans compte, cohérent avec la déclaration « données collectées » — revue humaine.)*
 - [ ] **CGU** (si séparées) : lien présent dans la fiche store / l’app si requis par la juridiction.
 - [ ] **Âge / contenu** : cohérents avec le questionnaire store (PEGI / etc.).
 - [ ] **Achats intégrés** : produits actifs en **sandbox iOS** / **licence test Google Play** ; prix et libellés alignés sur les consoles ; parcours d’achat testé sur **vrai appareil** (pas seulement simulateur).
@@ -145,7 +146,8 @@ Activer TalkBack (selon appareil). Répéter la section **3.3** sur **un télép
 
 ## 5. Observabilité post-soumission (J1–J7)
 
-- [ ] Tableaux de bord : voir **`docs/OBSERVABILITY_J1.md`** (filtres Crashlytics `[VEL_OBS]`, clés custom, boucle RC).
+- [x] Runbook / filtres documentés : **`docs/OBSERVABILITY_J1.md`** (Crashlytics `[VEL_OBS]`, clés custom, boucle RC, Analytics opt-in).
+- [ ] **Tableaux de bord** : créer ou importer dans Firebase / Cloud Logging les vues décrites dans le runbook (console).
 - [ ] Crashlytics : **alertes** email/Slack sur nouveaux issues ou taux d’erreur.
 - [ ] **Avis store** : processus quotidien J1–J7 pour tickets critiques.
 
@@ -167,9 +169,9 @@ Activer TalkBack (selon appareil). Répéter la section **3.3** sur **un télép
 | Vérification | Résultat |
 |--------------|----------|
 | `flutter pub get` | OK |
-| `dart analyze` | 0 issue (2026-05-09) |
-| `flutter test` | Toute la suite OK (2026-05-09) |
-| `flutter build appbundle --release` + dart-define privacy | OK (2026-05-09) → `app-release.aab` (URL de test `example.org` ; **soumissions** : URL Notion / `appStoreListingPrivacyPolicyUrl`). |
+| `dart analyze` | 0 issue (2026-05-10) |
+| `flutter test` | Toute la suite OK (2026-05-10) |
+| `flutter build appbundle --release` + dart-define (URL Notion) | OK (2026-05-10) → `app-release.aab` (aligné `appStoreListingPrivacyPolicyUrl`). |
 | `flutter build ios --release --no-codesign` + dart-define privacy | OK (2026-05-10) → `Runner.app` (`pod install` ~174 s, Xcode ~493 s ; même remarque URL prod). |
 | `./scripts/echo_store_release_build.sh` | OK (affiche les commandes) |
 

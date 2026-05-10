@@ -103,13 +103,16 @@ Future<void> _reachClassicPlayZone(WidgetTester tester) async {
   await tester.tap(find.text(l10nMenu.menuSettings));
   await _pumpUntil(tester, find.byType(SettingsView), maxSteps: 120);
   expect(find.byType(SettingsView), findsOneWidget);
-
-  await tester.tap(
-    find.descendant(
-      of: find.byType(SettingsView),
-      matching: find.byIcon(Icons.arrow_back_rounded),
-    ),
+  // Laisse finir la transition de route ; macOS CI peut être plus lent.
+  await _pumpFrames(tester, 24, 50);
+  // Ne pas taper l’Icon interne : avec matchTextDirection / Transform (hit tests
+  // découplés), getCenter peut sortir du viewport étroit (ex. 390×844).
+  final Finder settingsBack = find.descendant(
+    of: find.byType(SettingsView),
+    matching: find.byType(UniversalBackButton),
   );
+  await tester.ensureVisible(settingsBack);
+  await tester.tap(settingsBack);
   await _pumpUntil(tester, find.byType(MainMenuView), maxSteps: 120);
   // macOS / transitions : la route peut rester une frame dans l’arbre après pop.
   await _pumpUntilAbsent(tester, find.byType(SettingsView), maxSteps: 120);

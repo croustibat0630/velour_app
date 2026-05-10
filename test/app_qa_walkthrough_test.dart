@@ -19,6 +19,7 @@ import 'package:velour_app/screens/settings_view.dart';
 import 'package:velour_app/screens/shop_view.dart';
 import 'package:velour_app/screens/stats_view.dart';
 import 'package:velour_app/theme/theme_engine.dart';
+import 'package:velour_app/widgets/ui/universal_back_button.dart';
 
 void _qa(String message) {
   // ignore: avoid_print
@@ -106,7 +107,7 @@ void main() {
     await tester.tap(
       find.descendant(
         of: find.byType(SettingsView),
-        matching: find.byIcon(Icons.arrow_back_rounded),
+        matching: find.byType(UniversalBackButton),
       ),
     );
     await _pumpFrames(tester, 50);
@@ -123,7 +124,7 @@ void main() {
     await tester.tap(
       find.descendant(
         of: find.byType(PreparationView),
-        matching: find.byIcon(Icons.arrow_back_rounded),
+        matching: find.byType(UniversalBackButton),
       ),
     );
     await _pumpFrames(tester, 50);
@@ -154,7 +155,7 @@ void main() {
     await tester.tap(
       find.descendant(
         of: find.byType(StatsView),
-        matching: find.byIcon(Icons.arrow_back_rounded),
+        matching: find.byType(UniversalBackButton),
       ),
     );
     await _pumpFrames(tester, 50);

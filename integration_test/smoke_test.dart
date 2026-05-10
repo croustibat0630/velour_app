@@ -9,6 +9,7 @@ import 'package:velour_app/screens/main_menu_view.dart';
 import 'package:velour_app/screens/preparation_view.dart';
 import 'package:velour_app/screens/settings_view.dart';
 import 'package:velour_app/screens/shop_view.dart';
+import 'package:velour_app/services/audio_handler.dart';
 import 'package:velour_app/widgets/ui/pause_overlay.dart';
 import 'package:velour_app/widgets/ui/universal_back_button.dart';
 
@@ -70,6 +71,14 @@ void main() {
     expect(find.byType(MainMenuView), findsWidgets);
 
     await _drainDeferredPlatformWork(tester);
+    // Évite l’échec CI : `FramePositionUpdater` (audioplayers) après disposal du binding.
+    await AudioHandler.instance.stopMusic();
+    try {
+      await AudioHandler.instance.dispose();
+    } catch (_) {}
+    for (int i = 0; i < 24; i++) {
+      await tester.pump(const Duration(milliseconds: 50));
+    }
     expect(tester.takeException(), isNull);
   });
 }

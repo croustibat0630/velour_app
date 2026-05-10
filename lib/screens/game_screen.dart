@@ -34,6 +34,8 @@ import 'package:velour_app/utils/velour_accessibility.dart';
 import 'dart:math' as math;
 
 part 'game_screen_widgets.dart';
+part 'game_screen_widgets_item_fx.dart';
+part 'game_screen_widgets_floaters.dart';
 part 'game_screen_widgets_combo_rack.dart';
 part 'game_screen_widgets_overlays.dart';
 part 'game_screen_widgets_overlays_flashes.dart';

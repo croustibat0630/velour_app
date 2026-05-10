@@ -32,7 +32,7 @@ Document **exécutable** : chaque case doit être cochée par une personne (ou n
 - [x] `flutter pub get`
 - [ ] Builds release signés / uploadables :
   - [x] **Android** : `flutter build appbundle --release` avec les `--dart-define` ci-dessous — **compile OK** (voir annexe A ; signature Play / upload à valider sur la machine de release).
-  - [ ] **iOS** : `flutter build ipa` ou archive Xcode avec les mêmes `--dart-define` — **non rejoué ici** (annexe A : `pod install` / espace disque).
+  - [x] **iOS** : chaîne **compile release** OK (`flutter build ios --release --no-codesign` + mêmes `--dart-define`, annexe A) — **IPA / archive Xcode + codesign distribution** restent à faire pour l’upload App Store.
 
 ### Commandes types (copier-coller puis adapter l’URL privacy)
 
@@ -156,17 +156,19 @@ Activer TalkBack (selon appareil). Répéter la section **3.3** sur **un télép
 
 ---
 
-## Annexe A — Dernière passe agent / CI locale (2026-05-09)
+## Annexe A — Passes agent / CI locale
 
 À recopier dans le ticket release si utile. **Ne remplace pas** les cases §2–§4 console, §3 appareils réels, ni le sign-off.
+
+**Nettoyage espace (2026-05-10)** : suppression de `velour_app/build/` (sauf un sous-arbre `macos/.../_MASReceipt` en *permission denied* — supprimer avec `sudo rm -rf build` si besoin), cache global `~/.gradle/caches` (~6 Go), `flutter clean` + `.dart_tool` ; espace Data passé d’~300 Mo à plusieurs Go libres avant `pod install`.
 
 | Vérification | Résultat |
 |--------------|----------|
 | `flutter pub get` | OK |
-| `dart analyze` | 0 issue |
-| `flutter test` | Toute la suite OK |
-| `flutter build appbundle --release` + `--dart-define=VELOUR_PRIVACY_POLICY_URL=https://example.org/velour-privacy` | OK → `build/app/outputs/bundle/release/app-release.aab` |
-| `flutter build ios --release --no-codesign` + même `dart-define` | **Échec** : `pod install` / checkout CocoaPods — *No space left on device* sur l’agent ; relancer sur une machine avec espace disque suffisant. |
+| `dart analyze` | 0 issue (2026-05-09) |
+| `flutter test` | Toute la suite OK (2026-05-09) |
+| `flutter build appbundle --release` + `--dart-define=VELOUR_PRIVACY_POLICY_URL=https://example.org/velour-privacy` | OK (2026-05-09) → `build/app/outputs/bundle/release/app-release.aab` |
+| `flutter build ios --release --no-codesign` + même `dart-define` | OK (2026-05-10) → `build/ios/iphoneos/Runner.app` ; `pod install` ~174 s puis Xcode build ~493 s. |
 | `./scripts/echo_store_release_build.sh` | OK (affiche les commandes) |
 
 ---

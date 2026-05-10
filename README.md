@@ -17,7 +17,13 @@ dart analyze
 flutter test
 ```
 
-Build store (exemple Android) :
+Build store **Android + iOS** (AAB + IPA, mêmes dart-defines) :
+
+```bash
+./scripts/build_store_artifacts.sh
+```
+
+Équivalent manuel (Android seul) :
 
 ```bash
 flutter build appbundle --release \

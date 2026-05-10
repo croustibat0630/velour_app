@@ -15,15 +15,18 @@ Document **exécutable** : chaque case doit être cochée par une personne (ou n
 
 **URL politique (App Store Connect)** : même chaîne que la fiche Notion — constante `VelourReleaseLinks.appStoreListingPrivacyPolicyUrl` dans `lib/utils/velour_release_links.dart` (à recopier dans `--dart-define`).
 
-**Script** (affiche les commandes ; sans argument, URL = constante ci-dessus) :
+**Scripts** :
+
+- `./scripts/echo_store_release_build.sh` — affiche les commandes (sans argument : URL Notion par défaut).
+- `./scripts/build_store_artifacts.sh` — **AAB + IPA** release avec `VELOUR_PRIVACY_POLICY_URL` (et option `VELOUR_ANALYTICS=1` pour le funnel).
 
 ```bash
-./scripts/echo_store_release_build.sh
+./scripts/build_store_artifacts.sh
 ```
 
 ### Livrables dépôt (hors gate store / humain)
 
-- [x] Script `scripts/echo_store_release_build.sh` + checklist §0–§1 maintenues.
+- [x] Scripts `scripts/echo_store_release_build.sh`, `scripts/build_store_artifacts.sh` + checklist §0–§1 maintenues.
 - [x] `docs/OBSERVABILITY_J1.md` (filtres `[VEL_OBS]`, clés custom, funnel Analytics opt-in `VELOUR_ANALYTICS`).
 - [x] Workflow GitHub **manuel** `.github/workflows/store_release_compile.yml` (AAB release + dart-define privacy) — onglet *Actions* → *Store release compile check* → *Run workflow*.
 
@@ -31,11 +34,11 @@ Document **exécutable** : chaque case doit être cochée par une personne (ou n
 
 ## 1. Version & builds
 
-- [x] Incrémenter `version: x.y.z+N` dans `pubspec.yaml` (le `+N` est obligatoire pour Play / App Store — voir règle équipe dans `.cursor/rules/git-workflow.mdc`). *(Dépôt : `+11` au 2026-05-10 — **re-incrémenter** avant chaque nouvel upload store si ce numéro est déjà publié.)*
+- [x] Incrémenter `version: x.y.z+N` dans `pubspec.yaml` (le `+N` est obligatoire pour Play / App Store — voir règle équipe dans `.cursor/rules/git-workflow.mdc`). *(Dépôt : **`+12`** au 2026-05-10 — **re-incrémenter** avant le prochain upload si ce build est déjà accepté en store.)*
 - [x] `flutter pub get`
-- [ ] Builds release signés / uploadables :
-  - [x] **Android** : `flutter build appbundle --release` avec les `--dart-define` ci-dessous — **compile OK** (voir annexe A ; signature Play / upload à valider sur la machine de release).
-  - [x] **iOS** : chaîne **compile release** OK (`flutter build ios --release --no-codesign` + mêmes `--dart-define`, annexe A) — **IPA / archive Xcode + codesign distribution** restent à faire pour l’upload App Store.
+- [x] Builds release signés / uploadables :
+  - [x] **Android** : `app-release.aab` avec `android/key.properties` + dart-define privacy (voir annexe B).
+  - [x] **iOS** : `Velour.ipa` (export App Store) + dart-define privacy — upload via Transporter ou `altool` (annexe B).
 
 ### Commandes types (URL = politique Notion / App Store Connect)
 
@@ -174,6 +177,21 @@ Activer TalkBack (selon appareil). Répéter la section **3.3** sur **un télép
 | `flutter build appbundle --release` + dart-define (URL Notion) | OK (2026-05-10) → `app-release.aab` (aligné `appStoreListingPrivacyPolicyUrl`). |
 | `flutter build ios --release --no-codesign` + dart-define privacy | OK (2026-05-10) → `Runner.app` (`pod install` ~174 s, Xcode ~493 s ; même remarque URL prod). |
 | `./scripts/echo_store_release_build.sh` | OK (affiche les commandes) |
+
+---
+
+## Annexe B — Artefacts prêts envoi store (2026-05-10, build `+12`)
+
+Chemins locaux (non versionnés dans git) :
+
+| Plateforme | Fichier |
+|------------|---------|
+| **Google Play** | `build/app/outputs/bundle/release/app-release.aab` |
+| **App Store** | `build/ios/ipa/Velour.ipa` (+ `build/ios/archive/Runner.xcarchive` si besoin) |
+
+**Commande unique** (reproductible) : `./scripts/build_store_artifacts.sh` — même `VELOUR_PRIVACY_POLICY_URL` que la fiche Notion / App Store Connect. Option funnel : `VELOUR_ANALYTICS=1 ./scripts/build_store_artifacts.sh`.
+
+**Si `flutter build ipa` échoue** : `cd ios && rm -rf Pods Podfile.lock && pod install --repo-update` puis relancer ; erreur *SDKStatCaches* → ouvrir une fois **Xcode** ou vider `~/Library/Developer/Xcode/DerivedData`, puis relancer.
 
 ---
 

@@ -13,10 +13,12 @@ Document **exécutable** : chaque case doit être cochée par une personne (ou n
 3. **Passe appareils réels** iOS + Android : parcours froid, cash/prep/gemmes, Réduire les mouvements, VoiceOver, TalkBack (§3).
 4. **Observabilité J1** : filtres / alertes Crashlytics + Logging ; funnel Analytics **seulement** si `VELOUR_ANALYTICS=true` et politique à jour (§5–6, `docs/OBSERVABILITY_J1.md`).
 
-**Script** (affiche les commandes types avec votre URL) :
+**URL politique (App Store Connect)** : même chaîne que la fiche Notion — constante `VelourReleaseLinks.appStoreListingPrivacyPolicyUrl` dans `lib/utils/velour_release_links.dart` (à recopier dans `--dart-define`).
+
+**Script** (affiche les commandes ; sans argument, URL = constante ci-dessus) :
 
 ```bash
-./scripts/echo_store_release_build.sh 'https://votre-domaine.example/politique-confidentialite'
+./scripts/echo_store_release_build.sh
 ```
 
 ### Livrables dépôt (hors gate store / humain)
@@ -34,20 +36,20 @@ Document **exécutable** : chaque case doit être cochée par une personne (ou n
   - [x] **Android** : `flutter build appbundle --release` avec les `--dart-define` ci-dessous — **compile OK** (voir annexe A ; signature Play / upload à valider sur la machine de release).
   - [x] **iOS** : chaîne **compile release** OK (`flutter build ios --release --no-codesign` + mêmes `--dart-define`, annexe A) — **IPA / archive Xcode + codesign distribution** restent à faire pour l’upload App Store.
 
-### Commandes types (copier-coller puis adapter l’URL privacy)
+### Commandes types (URL = politique Notion / App Store Connect)
 
 **Android (AAB)**
 
 ```bash
 flutter build appbundle --release \
-  --dart-define=VELOUR_PRIVACY_POLICY_URL=https://VOTRE_DOMAINE/politique-confidentialite
+  --dart-define=VELOUR_PRIVACY_POLICY_URL=https://elite-bumper-96a.notion.site/Politique-de-confidentialit-Velour-358a47fe395240689082ec65c556a1f2
 ```
 
 **iOS (IPA / archive)**
 
 ```bash
 flutter build ipa --release \
-  --dart-define=VELOUR_PRIVACY_POLICY_URL=https://VOTRE_DOMAINE/politique-confidentialite
+  --dart-define=VELOUR_PRIVACY_POLICY_URL=https://elite-bumper-96a.notion.site/Politique-de-confidentialit-Velour-358a47fe395240689082ec65c556a1f2
 ```
 
 **Funnel Firebase Analytics (optionnel, pas par défaut)** — mettre à jour la politique de confidentialité et activer explicitement au build :
@@ -167,8 +169,8 @@ Activer TalkBack (selon appareil). Répéter la section **3.3** sur **un télép
 | `flutter pub get` | OK |
 | `dart analyze` | 0 issue (2026-05-09) |
 | `flutter test` | Toute la suite OK (2026-05-09) |
-| `flutter build appbundle --release` + `--dart-define=VELOUR_PRIVACY_POLICY_URL=https://example.org/velour-privacy` | OK (2026-05-09) → `build/app/outputs/bundle/release/app-release.aab` |
-| `flutter build ios --release --no-codesign` + même `dart-define` | OK (2026-05-10) → `build/ios/iphoneos/Runner.app` ; `pod install` ~174 s puis Xcode build ~493 s. |
+| `flutter build appbundle --release` + dart-define privacy | OK (2026-05-09) → `app-release.aab` (URL de test `example.org` ; **soumissions** : URL Notion / `appStoreListingPrivacyPolicyUrl`). |
+| `flutter build ios --release --no-codesign` + dart-define privacy | OK (2026-05-10) → `Runner.app` (`pod install` ~174 s, Xcode ~493 s ; même remarque URL prod). |
 | `./scripts/echo_store_release_build.sh` | OK (affiche les commandes) |
 
 ---

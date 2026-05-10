@@ -174,6 +174,13 @@ void main() {
       }
       expect(VelourReleaseLinks.hasPrivacyPolicyUrl, u.isNotEmpty);
     });
+
+    test('appStoreListingPrivacyPolicyUrl is stable https Notion URL', () {
+      final String listing = VelourReleaseLinks.appStoreListingPrivacyPolicyUrl;
+      expect(listing.startsWith('https://'), isTrue);
+      expect(Uri.tryParse(listing)?.hasAbsolutePath, isTrue);
+      expect(listing.contains('notion.site'), isTrue);
+    });
   });
 
   group('NeonColors', () {

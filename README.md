@@ -20,8 +20,9 @@ Build store (exemple Android) :
 
 ```bash
 flutter build appbundle --release \
-  --dart-define=VELOUR_PRIVACY_POLICY_URL=https://VOTRE_DOMAINE/politique-confidentialite
+  --dart-define=VELOUR_PRIVACY_POLICY_URL=https://elite-bumper-96a.notion.site/Politique-de-confidentialit-Velour-358a47fe395240689082ec65c556a1f2
 # Funnel (opt-in légal) : ajouter --dart-define=VELOUR_ANALYTICS=true
+# URL canonique : VelourReleaseLinks.appStoreListingPrivacyPolicyUrl (velour_release_links.dart)
 ```
 
 Ressources Flutter : [documentation](https://docs.flutter.dev/).

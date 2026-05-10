@@ -34,7 +34,7 @@ Document **exécutable** : chaque case doit être cochée par une personne (ou n
 
 ## 1. Version & builds
 
-- [x] Incrémenter `version: x.y.z+N` dans `pubspec.yaml` (le `+N` est obligatoire pour Play / App Store — voir règle équipe dans `.cursor/rules/git-workflow.mdc`). *(Dépôt : **`+12`** au 2026-05-10 — **re-incrémenter** avant le prochain upload si ce build est déjà accepté en store.)*
+- [x] Incrémenter `version: x.y.z+N` dans `pubspec.yaml` (le `+N` est obligatoire pour Play / App Store — voir règle équipe dans `.cursor/rules/git-workflow.mdc`). *(Dépôt : **`+13`** — aligné AAB + IPA, manifest sans `AD_ID` ; **re-incrémenter** avant le prochain upload store.)*
 - [x] `flutter pub get`
 - [x] Builds release signés / uploadables :
   - [x] **Android** : `app-release.aab` avec `android/key.properties` + dart-define privacy (voir annexe B).
@@ -180,7 +180,7 @@ Activer TalkBack (selon appareil). Répéter la section **3.3** sur **un télép
 
 ---
 
-## Annexe B — Artefacts prêts envoi store (2026-05-10, build `+12`)
+## Annexe B — Artefacts prêts envoi store (build `+13`, AAB + IPA alignés, sans `AD_ID`)
 
 Chemins locaux (non versionnés dans git) :
 
@@ -190,6 +190,8 @@ Chemins locaux (non versionnés dans git) :
 | **App Store** | `build/ios/ipa/Velour.ipa` (+ `build/ios/archive/Runner.xcarchive` si besoin) |
 
 **Commande unique** (reproductible) : `./scripts/build_store_artifacts.sh` — même `VELOUR_PRIVACY_POLICY_URL` que la fiche Notion / App Store Connect. Option funnel : `VELOUR_ANALYTICS=1 ./scripts/build_store_artifacts.sh`.
+
+**Android / identifiant publicitaire** : le manifest principal retire les permissions `AD_ID` fusionnées par les SDK Google (voir `android/app/src/main/AndroidManifest.xml`) pour rester cohérent avec la déclaration Play « non ».
 
 **Si `flutter build ipa` échoue** : `cd ios && rm -rf Pods Podfile.lock && pod install --repo-update` puis relancer ; erreur *SDKStatCaches* → ouvrir une fois **Xcode** ou vider `~/Library/Developer/Xcode/DerivedData`, puis relancer.
 

@@ -1,12 +1,26 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
     <!-- Réseau (Firebase, IAP, classement). Les manifests debug/profile le répètent ; explicite ici pour release. -->
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- Google Play Billing (IAP). Fusionné aussi via la dépendance billing, mais explicite pour la console. -->
     <uses-permission android:name="com.android.vending.BILLING" />
+    <!--
+      Les SDK Google (ex. mesure Analytics) fusionnent AD_ID. Velour ne fait pas de pub :
+      retrait pour coller à la déclaration Play « n'utilise pas l'identifiant publicitaire ».
+    -->
+    <uses-permission
+        android:name="com.google.android.gms.permission.AD_ID"
+        tools:node="remove" />
+    <uses-permission
+        android:name="android.permission.ACCESS_ADSERVICES_AD_ID"
+        tools:node="remove" />
     <application
         android:label="Velour"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+        <meta-data
+            android:name="google_analytics_adid_collection_enabled"
+            android:value="false" />
         <activity
             android:name=".MainActivity"
             android:exported="true"

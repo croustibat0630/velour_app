@@ -14,6 +14,9 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
+echo "==> pubspec (versionCode Android / CFBundleVersion iOS = nombre après « + »)"
+grep '^version:' pubspec.yaml || true
+
 PRIVACY="${VELOUR_PRIVACY_POLICY_URL:-https://elite-bumper-96a.notion.site/Politique-de-confidentialit-Velour-358a47fe395240689082ec65c556a1f2}"
 
 DART_DEFINES=(--dart-define="VELOUR_PRIVACY_POLICY_URL=${PRIVACY}")

@@ -20,6 +20,17 @@ import '../widgets/ui/lux_score_displayer.dart';
 import '../widgets/ui/velour_snackbar.dart';
 import 'preparation_view.dart';
 
+String _dailyLuxBonusOutcomeAnalytics(DailyLuxClaimOutcome o) {
+  return switch (o) {
+    DailyLuxClaimOutcome.successServerApplied => 'success_server',
+    DailyLuxClaimOutcome.successQueuedOffline => 'success_queued',
+    DailyLuxClaimOutcome.alreadySyncedServerSide => 'already_synced',
+    DailyLuxClaimOutcome.alreadyClaimedToday => 'already_claimed',
+    DailyLuxClaimOutcome.networkUnavailable => 'network_unavailable',
+    DailyLuxClaimOutcome.callableFailed => 'callable_failed',
+  };
+}
+
 class MainMenuView extends StatefulWidget {
   const MainMenuView({super.key});
 
@@ -72,6 +83,10 @@ class _MainMenuViewState extends State<MainMenuView>
     setState(() => _dailyLuxClaimBusy = true);
     try {
       final DailyLuxClaimOutcome outcome = await gs.claimDailyLuxBonus();
+      VelourAnalytics.logDailyLuxBonusOutcome(
+        outcome: _dailyLuxBonusOutcomeAnalytics(outcome),
+        runInstanceId: gs.analyticsRunInstanceId,
+      );
       if (!mounted) return;
       switch (outcome) {
         case DailyLuxClaimOutcome.successServerApplied:

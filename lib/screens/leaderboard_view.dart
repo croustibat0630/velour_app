@@ -8,6 +8,7 @@ import 'package:velour_app/l10n/app_localizations.dart';
 import '../game/oracle_pseudo.dart';
 import '../providers/game_state.dart';
 import '../services/firestore_service.dart';
+import '../services/velour_analytics.dart';
 import '../theme/theme_engine.dart';
 import '../utils/responsive.dart';
 import '../widgets/ui/dark_matte_overlay.dart';
@@ -105,6 +106,12 @@ class _LeaderboardViewState extends State<LeaderboardView> {
   void initState() {
     super.initState();
     _top10Stream = FirestoreService.instance.leaderboardTopTenStream;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      VelourAnalytics.logLeaderboardView(
+        runInstanceId: context.read<GameState>().analyticsRunInstanceId,
+      );
+    });
   }
 
   @override

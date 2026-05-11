@@ -147,6 +147,10 @@ class _PreparationViewState extends State<PreparationView> with RouteAware {
     await AudioHandler.instance.stopMusic();
     if (!mounted) return;
     gs.startNewRun();
+    VelourAnalytics.logPrepLaunchConfirmed(
+      stakeKind: stake.name,
+      runInstanceId: gs.analyticsRunInstanceId,
+    );
     if (!mounted) return;
     Navigator.of(context).pushReplacement(fadeRoute(const GameScreen()));
   }

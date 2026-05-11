@@ -59,6 +59,74 @@ abstract final class VelourAnalytics {
     );
   }
 
+  /// Mise consommée + nouvelle run mintée ; même `run_instance_id` que le prochain `velour_run_start`.
+  static void logPrepLaunchConfirmed({
+    required String stakeKind,
+    String? runInstanceId,
+  }) {
+    if (!enabled) return;
+    unawaited(
+      _safeLog(() async {
+        await FirebaseAnalytics.instance.logEvent(
+          name: 'velour_prep_launch_confirmed',
+          parameters: _withRunInstanceId(<String, Object>{
+            'stake_kind': stakeKind,
+          }, runInstanceId),
+        );
+      }),
+    );
+  }
+
+  static void logLeaderboardView({String? runInstanceId}) {
+    if (!enabled) return;
+    unawaited(
+      _safeLog(() async {
+        final String? id = runInstanceId;
+        final Map<String, Object>? params = (id != null && id.isNotEmpty)
+            ? <String, Object>{'run_instance_id': id}
+            : null;
+        await FirebaseAnalytics.instance.logEvent(
+          name: 'velour_leaderboard_view',
+          parameters: params,
+        );
+      }),
+    );
+  }
+
+  static void logStatsView({String? runInstanceId}) {
+    if (!enabled) return;
+    unawaited(
+      _safeLog(() async {
+        final String? id = runInstanceId;
+        final Map<String, Object>? params = (id != null && id.isNotEmpty)
+            ? <String, Object>{'run_instance_id': id}
+            : null;
+        await FirebaseAnalytics.instance.logEvent(
+          name: 'velour_stats_view',
+          parameters: params,
+        );
+      }),
+    );
+  }
+
+  /// Résultat d’une tentative de réclamation du bonus LUX quotidien (menu).
+  static void logDailyLuxBonusOutcome({
+    required String outcome,
+    String? runInstanceId,
+  }) {
+    if (!enabled) return;
+    unawaited(
+      _safeLog(() async {
+        await FirebaseAnalytics.instance.logEvent(
+          name: 'velour_daily_lux_bonus_outcome',
+          parameters: _withRunInstanceId(<String, Object>{
+            'outcome': outcome,
+          }, runInstanceId),
+        );
+      }),
+    );
+  }
+
   static Map<String, Object> _withRunInstanceId(
     Map<String, Object> parameters,
     String? runInstanceId,

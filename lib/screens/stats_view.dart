@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:velour_app/l10n/app_localizations.dart';
 
+import '../providers/game_state.dart';
 import '../services/stats_service.dart';
+import '../services/velour_analytics.dart';
 import '../utils/responsive.dart';
 import '../widgets/ui/dark_matte_overlay.dart';
 import '../widgets/ui/universal_back_button.dart';
@@ -26,6 +29,12 @@ class _StatsViewState extends State<StatsView> {
     StatsService.instance.load().then((_) {
       if (!mounted) return;
       setState(() => _stats = StatsService.instance.snapshot());
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      VelourAnalytics.logStatsView(
+        runInstanceId: context.read<GameState>().analyticsRunInstanceId,
+      );
     });
   }
 

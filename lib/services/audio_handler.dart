@@ -352,77 +352,89 @@ class AudioHandler {
 
   Future<void> _preloadGameSfxOnce() async {
     try {
-      await _withNativeSourceLoadLock(() async {
-        if (_disabled) return;
-        if (!kIsWeb &&
-            (defaultTargetPlatform == TargetPlatform.iOS ||
-                defaultTargetPlatform == TargetPlatform.macOS)) {
-          _darwinDisposableSfxMode = false;
-        }
-        // Même séquence que le menu (micro one-shots) : sans çi, iOS simulateur
-        // peut laisser `setSource` sur le pool pendre après navigation / réglages
-        // alors que [configureVelourAudioPipeline] seul ne suffit pas.
-        if (!kIsWeb) {
-          // Ne pas appeler [_ensureTapReadyCore] ici : le pool tap est chargé juste
-          // après sous le même verrou — un double `setSource` sur [_sfxTap] faisait
-          // souvent expirer la pile iOS (simulateur) après réglages / replace route.
+      if (_disabled) return;
+      if (!kIsWeb &&
+          (defaultTargetPlatform == TargetPlatform.iOS ||
+              defaultTargetPlatform == TargetPlatform.macOS)) {
+        _darwinDisposableSfxMode = false;
+      }
+
+      // Ne **pas** tenir un seul verrou sur tout le préchargement : les
+      // `_playDisposableOneShot` (menu, premier tap) s’y retrouvaient en file
+      // derrière unlock + délai + N×`setSource` → latence audible vs l’action.
+      // On enchaîne des sections courtes ; le délai iOS reste **hors** verrou.
+      if (!kIsWeb) {
+        await _withNativeSourceLoadLock(() async {
           await _unlockAudioCore(preloadPooledTapChannel: false);
-          // Laisse iOS finir de relâcher les lecteurs one-shot + le moteur AVAudioPlayer
-          // avant les `setSource` pool (160ms insuffisait sur device : timeouts en chaîne).
-          await Future<void>.delayed(const Duration(milliseconds: 420));
-        } else {
-          await configure();
-        }
-        if (_disabled) return;
+        });
+        await Future<void>.delayed(const Duration(milliseconds: 420));
+      } else {
+        await _withNativeSourceLoadLock(() => configure());
+      }
 
-        // Darwin : charger le tap **avant** le pool match — sur simulateur, plusieurs
-        // `setSource` match d’affilée peuvent faire échouer le tap si l’ordre est inversé.
-        if (!kIsWeb) {
+      if (_disabled) return;
+
+      if (!kIsWeb) {
+        await _withNativeSourceLoadLock(() async {
           _tapReady = await _loadTapPooledWithDarwinRebuildIfNeeded();
-        }
-
-        try {
-          await _populateMatchPoolIfNeeded();
-        } catch (_) {
-          _matchPoolReady = false;
-        }
-
-        if (kIsWeb) {
+        });
+        await _withNativeSourceLoadLock(() async {
+          try {
+            await _populateMatchPoolIfNeeded();
+          } catch (_) {
+            _matchPoolReady = false;
+          }
+        });
+      } else {
+        await _withNativeSourceLoadLock(() async {
+          try {
+            await _populateMatchPoolIfNeeded();
+          } catch (_) {
+            _matchPoolReady = false;
+          }
+        });
+        await _withNativeSourceLoadLock(() async {
           _tapReady = await _loadTapPooledWithDarwinRebuildIfNeeded();
-        }
+        });
+      }
 
+      await _withNativeSourceLoadLock(() async {
         _perfectPoolReady = await _setupPooledSfxCore(
           player: _sfxPerfect,
           fileName: _perfectFile,
         );
+      });
 
+      await _withNativeSourceLoadLock(() async {
         _levelUpReady = await _setupPooledSfxCore(
           player: _sfxLevelUp,
           fileName: _levelUpFile,
         );
+      });
 
+      await _withNativeSourceLoadLock(() async {
         _creditReady = await _setupPooledSfxCore(
           player: _sfxCredit,
           fileName: _creditFile,
         );
-
-        if (!kIsWeb && _darwinPooledSfx) {
-          final bool pooledIncomplete =
-              !_tapReady ||
-              !_matchPoolReady ||
-              !_perfectPoolReady ||
-              !_levelUpReady ||
-              !_creditReady;
-          if (pooledIncomplete) {
-            _darwinDisposableSfxMode = true;
-            velourAudioTrace(
-              'AudioHandler: Darwin disposable SFX mode (pooled load incomplete: '
-              'tap=$_tapReady match=$_matchPoolReady perfect=$_perfectPoolReady '
-              'levelUp=$_levelUpReady credit=$_creditReady)',
-            );
-          }
-        }
       });
+
+      if (!kIsWeb && _darwinPooledSfx) {
+        final bool pooledIncomplete =
+            !_tapReady ||
+            !_matchPoolReady ||
+            !_perfectPoolReady ||
+            !_levelUpReady ||
+            !_creditReady;
+        if (pooledIncomplete) {
+          _darwinDisposableSfxMode = true;
+          velourAudioTrace(
+            'AudioHandler: Darwin disposable SFX mode (pooled load incomplete: '
+            'tap=$_tapReady match=$_matchPoolReady perfect=$_perfectPoolReady '
+            'levelUp=$_levelUpReady credit=$_creditReady)',
+          );
+        }
+      }
     } catch (_) {
       if (!kIsWeb &&
           (defaultTargetPlatform == TargetPlatform.iOS ||
@@ -877,7 +889,18 @@ class AudioHandler {
         return;
       }
       await _ensureMatchPool();
-      if (_disabled || !_matchPoolReady) return;
+      if (_disabled) return;
+      if (!_matchPoolReady) {
+        unawaited(_interruptMatchAndPerfect());
+        unawaited(
+          _playDisposableOneShot(
+            _matchFile,
+            volume: volume.clamp(0.0, 1.0),
+            holdMs: 280,
+          ),
+        );
+        return;
+      }
       // Ne pas attendre : la coupure des sons précédents ne doit pas retarder celui-ci.
       unawaited(_interruptMatchAndPerfect());
       final AudioPlayer p =
@@ -900,7 +923,14 @@ class AudioHandler {
         return;
       }
       await _ensurePerfectPool();
-      if (_disabled || !_perfectPoolReady) return;
+      if (_disabled) return;
+      if (!_perfectPoolReady) {
+        unawaited(_interruptMatchAndPerfect());
+        unawaited(
+          _playDisposableOneShot(_perfectFile, volume: 1.0, holdMs: 320),
+        );
+        return;
+      }
       // Ne pas attendre : la coupure des sons précédents ne doit pas retarder celui-ci.
       unawaited(_interruptMatchAndPerfect());
       await _sfxPerfect.seek(Duration.zero);
@@ -920,7 +950,13 @@ class AudioHandler {
         return;
       }
       await _ensurePerfectPool();
-      if (_disabled || !_perfectPoolReady) return;
+      if (_disabled) return;
+      if (!_perfectPoolReady) {
+        unawaited(
+          _playDisposableOneShot(_perfectFile, volume: 0.28, holdMs: 220),
+        );
+        return;
+      }
       await _sfxPerfect.seek(Duration.zero);
       await _sfxPerfect.setVolume(0.28);
       await _sfxPerfect.resume();
@@ -941,7 +977,13 @@ class AudioHandler {
         return;
       }
       await _ensureCreditReady();
-      if (_disabled || !_creditReady) return;
+      if (_disabled) return;
+      if (!_creditReady) {
+        unawaited(
+          _playDisposableOneShot(_creditFile, volume: 1.0, holdMs: 450),
+        );
+        return;
+      }
       await _sfxCredit.seek(Duration.zero);
       await _sfxCredit.setVolume(1.0);
       await _sfxCredit.resume();
@@ -982,7 +1024,13 @@ class AudioHandler {
         return;
       }
       await _ensureLevelUpReady();
-      if (_disabled || !_levelUpReady) return;
+      if (_disabled) return;
+      if (!_levelUpReady) {
+        unawaited(
+          _playDisposableOneShot(_levelUpFile, volume: 1.0, holdMs: 3200),
+        );
+        return;
+      }
 
       await _sfxLevelUp.seek(Duration.zero);
       await _sfxLevelUp.setVolume(1.0);

@@ -38,5 +38,13 @@ end
 post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_macos_build_settings(target)
+    # GitHub / Xcode récents : pods Firebase/gRPC héritent parfois de 10.11–10.12 → warnings
+    # « supported deployment target versions is 10.13 to … ». Aligner sur le Podfile.
+    target.build_configurations.each do |config|
+      min = config.build_settings['MACOSX_DEPLOYMENT_TARGET']
+      if min.nil? || min.to_s.empty? || min.to_f < 10.15
+        config.build_settings['MACOSX_DEPLOYMENT_TARGET'] = '10.15'
+      end
+    end
   end
 end

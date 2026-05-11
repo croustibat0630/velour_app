@@ -62,21 +62,24 @@ jobs:
       - name: Build web (release)
         run: flutter build web --release --no-wasm-dry-run -O2
 
-  integration_smoke_macos:
-    name: Integration smoke (macOS)
+  # macOS desktop (`-d macos`) lance l’app via `open` : sur les runners GitHub ça échoue
+  # souvent (« Failed to foreground app; open returned 1 », flutter/flutter#176850).
+  # L’iOS Simulator reste le mode supporté en CI pour ce smoke.
+  integration_smoke_ios_simulator:
+    name: Integration smoke (iOS Simulator)
     runs-on: macos-latest
     timeout-minutes: 45
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Cache macOS CocoaPods
+      - name: Cache iOS CocoaPods
         uses: actions/cache@v4
         with:
-          path: macos/Pods
-          key: macos-pods-${{ hashFiles('macos/Podfile', 'pubspec.lock', 'ios/Podfile.lock') }}
+          path: ios/Pods
+          key: ios-pods-${{ hashFiles('ios/Podfile', 'ios/Podfile.lock', 'pubspec.lock') }}
           restore-keys: |
-            macos-pods-
+            ios-pods-
 
       - name: Flutter SDK
         uses: subosito/flutter-action@v2
@@ -87,5 +90,18 @@ jobs:
       - name: Dependencies
         run: flutter pub get
 
-      - name: Integration smoke (-d macos)
-        run: flutter test integration_test/smoke_test.dart -d macos
+      - name: Boot Simulator & integration smoke
+        run: |
+          set -euo pipefail
+          UDID="$(xcrun simctl list devices available | grep -m1 -i 'iphone' | grep -oE '[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}' | head -1)"
+          if [[ -z "${UDID}" ]]; then
+            echo 'No iPhone simulator UDID found.'
+            xcrun simctl list devices available
+            exit 1
+          fi
+          echo "Using simulator UDID=${UDID}"
+          xcrun simctl boot "${UDID}" || true
+          xcrun simctl bootstatus "${UDID}" -b
+          open -a Simulator || true
+          flutter devices
+          flutter test integration_test/smoke_test.dart -d "${UDID}"

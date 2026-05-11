@@ -15,8 +15,12 @@ import 'package:velour_app/widgets/ui/universal_back_button.dart';
 
 /// Smoke `integration_test` (app réelle : Firebase, audio, polices).
 ///
-/// **Simulateur iOS** : si Xcode plante (`SDKStatCaches` manquant, etc.), lancer
-/// explicitement sur desktop : `flutter test integration_test/smoke_test.dart -d macos`.
+/// **CI GitHub** : `.github/workflows/flutter_ci.yml` utilise un **simulateur iOS**
+/// (`-d <UDID>`) — le desktop macOS (`-d macos`) échoue souvent sur le runner
+/// (`open` / foreground, voir flutter/flutter#176850).
+///
+/// **Local** : `flutter test integration_test/smoke_test.dart -d macos` si tu
+/// préfères le binaire desktop ; ou `-d <UDID>` comme en CI pour coller à App Store.
 ///
 /// **Nettoyage Xcode** (à l’occasion) : `flutter clean`, puis supprimer le dossier
 /// DerivedData du projet dans Xcode (ou `~/Library/Developer/Xcode/DerivedData`)

@@ -63,7 +63,7 @@ flutter build ipa --release \
 #   --dart-define=VELOUR_ANALYTICS=true
 ```
 
-Implémentation : `lib/services/velour_analytics.dart` (`velour_menu_view`, `velour_prep_open`, `velour_run_start` + `logAppOpen`).
+Implémentation : `lib/services/velour_analytics.dart` (`velour_menu_view`, `velour_prep_open`, `velour_run_start`, funnel boutique `velour_shop_view` / `velour_shop_vault_buy_*` + `logAppOpen`).
 
 **Web RC / debug App Check (hors store)** : voir `lib/velour_bootstrap.dart` (`VELOUR_APP_CHECK_WEB_SITE_KEY` si besoin).
 

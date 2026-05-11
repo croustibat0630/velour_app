@@ -10,10 +10,22 @@ import '../providers/game_state.dart';
 import '../services/audio_handler.dart';
 import '../services/lux_apply_motifs.dart';
 import '../services/lux_iap_service.dart';
+import '../services/velour_analytics.dart';
 import '../utils/responsive.dart';
 import '../utils/velour_accessibility.dart';
 import '../widgets/ui/dark_matte_overlay.dart';
 import '../widgets/ui/velour_snackbar.dart';
+
+String _vaultBuyOutcomeAnalytics(LuxIapBuyKind kind) {
+  return switch (kind) {
+    LuxIapBuyKind.success => 'success',
+    LuxIapBuyKind.cancelled => 'cancelled',
+    LuxIapBuyKind.unavailable => 'unavailable',
+    LuxIapBuyKind.productsUnavailable => 'products_unavailable',
+    LuxIapBuyKind.busy => 'busy',
+    LuxIapBuyKind.error => 'error',
+  };
+}
 
 String _luxIapErrorSnack(AppLocalizations l10n, LuxIapBuyOutcome r) {
   switch (r.kind) {
@@ -86,6 +98,7 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
       vsync: this,
       duration: const Duration(milliseconds: 420),
     );
+    VelourAnalytics.logShopView();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       unawaited(LuxIapService.instance.reloadStoreProductDetails());
     });
@@ -168,8 +181,17 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
       context,
     );
     try {
+      VelourAnalytics.logShopVaultBuyStart(
+        productId: productId,
+        luxAmount: luxAmount,
+      );
       final LuxIapBuyOutcome r = await LuxIapService.instance
           .buyVaultConsumable(productId);
+      VelourAnalytics.logShopVaultBuyOutcome(
+        productId: productId,
+        outcome: _vaultBuyOutcomeAnalytics(r.kind),
+        errorCode: r.kind == LuxIapBuyKind.error ? r.errorDetail : null,
+      );
       if (!context.mounted) return;
       switch (r.kind) {
         case LuxIapBuyKind.success:

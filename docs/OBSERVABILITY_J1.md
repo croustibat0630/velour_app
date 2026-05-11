@@ -68,6 +68,9 @@ Avec `--dart-define=VELOUR_ANALYTICS=true`, le client envoie à Firebase Analyti
 - `velour_menu_view` — ouverture [MainMenuView](lib/screens/main_menu_view.dart).
 - `velour_prep_open` — param `stake_kind` (`casual` / `highStakes` / `royal` / `unset`).
 - `velour_run_start` — param `stake_kind` au démarrage effectif de la partie ([GameScreen](lib/screens/game_screen.dart)).
+- `velour_shop_view` — ouverture [ShopView](lib/screens/shop_view.dart) (Coffre-Fort + Forge).
+- `velour_shop_vault_buy_start` — params `product_id` (SKU), `lux_amount` (grant attendu côté client).
+- `velour_shop_vault_buy_outcome` — params `product_id`, `outcome` (`success` / `cancelled` / `unavailable` / `products_unavailable` / `busy` / `error`), optionnel `error_code` si `outcome == error`.
 - `app_open` (API standard) — au bootstrap si Analytics est activé.
 
 **Console** : Analytics → *DebugView* (appareil debug / build avec debug) ou rapports *Realtime* / *Events* après propagation.

@@ -68,7 +68,11 @@ jobs:
   integration_smoke_ios_simulator:
     name: Integration smoke (iOS Simulator)
     runs-on: macos-latest
-    timeout-minutes: 45
+    # Premier run / cache Pods vide : boot simulateur + pod + 1er build iOS peut
+    # dépasser 30–40 min sur les runners GitHub ; 60 min évite un timeout « faux négatif ».
+    timeout-minutes: 60
+    env:
+      COCOAPODS_DISABLE_STATS: 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -89,6 +93,11 @@ jobs:
 
       - name: Dependencies
         run: flutter pub get
+
+      # Remplit `ios/Pods` pendant que le cache Actions est chaud ; `flutter test` refait
+      # un pod léger ensuite au lieu d’un cold start de 15–25 min seul dans la foulée.
+      - name: CocoaPods install (iOS)
+        run: cd ios && pod install
 
       - name: Boot Simulator & integration smoke
         run: |

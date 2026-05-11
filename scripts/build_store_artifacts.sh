@@ -7,8 +7,8 @@
 #   ./scripts/build_store_artifacts.sh
 # Surcharger l’URL (rare) :
 #   VELOUR_PRIVACY_POLICY_URL='https://…' ./scripts/build_store_artifacts.sh
-# Activer aussi Firebase Analytics (opt-in légal) :
-#   VELOUR_ANALYTICS=1 ./scripts/build_store_artifacts.sh
+# Analytics : **activé par défaut** sur les builds store (funnel GA4 + Crashlytics).
+# Désactiver explicitement : VELOUR_ANALYTICS=0 ./scripts/build_store_artifacts.sh
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -20,8 +20,13 @@ grep '^version:' pubspec.yaml || true
 PRIVACY="${VELOUR_PRIVACY_POLICY_URL:-https://elite-bumper-96a.notion.site/Politique-de-confidentialit-Velour-358a47fe395240689082ec65c556a1f2}"
 
 DART_DEFINES=(--dart-define="VELOUR_PRIVACY_POLICY_URL=${PRIVACY}")
-if [[ "${VELOUR_ANALYTICS:-}" == "1" || "${VELOUR_ANALYTICS:-}" == "true" ]]; then
+# Défaut = analytics ON (aligné politique + dimensions GA4). 0 / false pour exclure.
+VELOUR_ANALYTICS_FLAG="${VELOUR_ANALYTICS:-1}"
+if [[ "${VELOUR_ANALYTICS_FLAG}" != "0" && "${VELOUR_ANALYTICS_FLAG}" != "false" ]]; then
   DART_DEFINES+=(--dart-define=VELOUR_ANALYTICS=true)
+  echo "==> dart-defines: privacy URL + VELOUR_ANALYTICS=true (désactiver: VELOUR_ANALYTICS=0)"
+else
+  echo "==> dart-defines: privacy URL only (VELOUR_ANALYTICS désactivé)"
 fi
 
 echo "==> flutter pub get"

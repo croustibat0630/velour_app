@@ -20,3 +20,10 @@ Ne pas demander à l’utilisateur de « faire le git » à la place de l’agen
 ## Builds store (Android AAB / iOS IPA)
 
 Avant **chaque** nouvelle livraison Play ou App Store / TestFlight : **incrémenter** dans `pubspec.yaml` le numéro après `+` (ex. `1.0.0+7` → `+8`). Ce chiffre est à la fois le **versionCode** Android et le **CFBundleVersion** iOS — il doit **toujours monter** ; sinon Play refuse l’upload. Après changement : `flutter pub get`, puis builds ; **commit** le bump de version avec le lot ou juste avant le push des artefacts.
+
+**Dart-defines obligatoires** pour un binaire **store** aligné prod Velour (ne pas oublier quand l’utilisateur demande les builds) :
+
+1. `--dart-define=VELOUR_PRIVACY_POLICY_URL=<URL HTTPS réelle>` (même URL que la fiche store / Notion).
+2. `--dart-define=VELOUR_ANALYTICS=true` — active Firebase Analytics + clé Crashlytics `velour_analytics` ; la **politique de confidentialité** doit décrire cette collecte. Désactiver uniquement si demande explicite : `VELOUR_ANALYTICS=0 ./scripts/build_store_artifacts.sh`.
+
+Référence : `./scripts/build_store_artifacts.sh` (AAB + IPA), `./scripts/echo_store_release_build.sh`, `docs/STORE_RELEASE_CHECKLIST.md` §1.

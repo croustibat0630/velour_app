@@ -23,7 +23,8 @@ jobs:
       - name: Dependencies
         run: flutter pub get
 
-      - name: Build AAB (same URL as App Store Connect listing)
+      - name: Build AAB (privacy + Analytics, aligné builds store Velour)
         run: |
           flutter build appbundle --release \
-            --dart-define=VELOUR_PRIVACY_POLICY_URL=https://elite-bumper-96a.notion.site/Politique-de-confidentialit-Velour-358a47fe395240689082ec65c556a1f2
+            --dart-define=VELOUR_PRIVACY_POLICY_URL=https://elite-bumper-96a.notion.site/Politique-de-confidentialit-Velour-358a47fe395240689082ec65c556a1f2 \
+            --dart-define=VELOUR_ANALYTICS=true

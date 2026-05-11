@@ -11,14 +11,14 @@ Document **exécutable** : chaque case doit être cochée par une personne (ou n
 1. **RC prod publié** + **App Check** enregistré pour les builds release (§4) — sinon les callables / fetch peuvent diverger du binaire que vous testez.
 2. **URL privacy** figée + **builds** AAB/IPA avec `--dart-define=VELOUR_PRIVACY_POLICY_URL=…` (§1) — gate store et clé Crashlytics `velour_privacy_url_configured`.
 3. **Passe appareils réels** iOS + Android : parcours froid, cash/prep/gemmes, Réduire les mouvements, VoiceOver, TalkBack (§3).
-4. **Observabilité J1** : filtres / alertes Crashlytics + Logging ; funnel Analytics **seulement** si `VELOUR_ANALYTICS=true` et politique à jour (§5–6, `docs/OBSERVABILITY_J1.md`).
+4. **Observabilité J1** : filtres / alertes Crashlytics + Logging ; les **builds store** incluent `VELOUR_ANALYTICS=true` par défaut (§1) — politique à jour + dimensions GA4 (§5–6, `docs/OBSERVABILITY_J1.md`).
 
 **URL politique (App Store Connect)** : même chaîne que la fiche Notion — constante `VelourReleaseLinks.appStoreListingPrivacyPolicyUrl` dans `lib/utils/velour_release_links.dart` (à recopier dans `--dart-define`).
 
 **Scripts** :
 
 - `./scripts/echo_store_release_build.sh` — affiche les commandes (sans argument : URL Notion par défaut).
-- `./scripts/build_store_artifacts.sh` — **AAB + IPA** release avec `VELOUR_PRIVACY_POLICY_URL` (et option `VELOUR_ANALYTICS=1` pour le funnel).
+- `./scripts/build_store_artifacts.sh` — **AAB + IPA** release avec `VELOUR_PRIVACY_POLICY_URL` + **`VELOUR_ANALYTICS=true` par défaut** (désactiver : `VELOUR_ANALYTICS=0 ./scripts/build_store_artifacts.sh`).
 
 ```bash
 ./scripts/build_store_artifacts.sh
@@ -46,22 +46,19 @@ Document **exécutable** : chaque case doit être cochée par une personne (ou n
 
 ```bash
 flutter build appbundle --release \
-  --dart-define=VELOUR_PRIVACY_POLICY_URL=https://elite-bumper-96a.notion.site/Politique-de-confidentialit-Velour-358a47fe395240689082ec65c556a1f2
+  --dart-define=VELOUR_PRIVACY_POLICY_URL=https://elite-bumper-96a.notion.site/Politique-de-confidentialit-Velour-358a47fe395240689082ec65c556a1f2 \
+  --dart-define=VELOUR_ANALYTICS=true
 ```
 
 **iOS (IPA / archive)**
 
 ```bash
 flutter build ipa --release \
-  --dart-define=VELOUR_PRIVACY_POLICY_URL=https://elite-bumper-96a.notion.site/Politique-de-confidentialit-Velour-358a47fe395240689082ec65c556a1f2
+  --dart-define=VELOUR_PRIVACY_POLICY_URL=https://elite-bumper-96a.notion.site/Politique-de-confidentialit-Velour-358a47fe395240689082ec65c556a1f2 \
+  --dart-define=VELOUR_ANALYTICS=true
 ```
 
-**Funnel Firebase Analytics (optionnel, pas par défaut)** — mettre à jour la politique de confidentialité et activer explicitement au build :
-
-```bash
-# À ajouter aux lignes ci-dessus (même commande) :
-#   --dart-define=VELOUR_ANALYTICS=true
-```
+**Sans Analytics** (exception, ex. build interne) : omettre `--dart-define=VELOUR_ANALYTICS=true` ou `VELOUR_ANALYTICS=0 ./scripts/build_store_artifacts.sh`. La politique de confidentialité doit couvrir Analytics sur les builds qui l’incluent.
 
 Implémentation : `lib/services/velour_analytics.dart` (`velour_menu_view`, `velour_prep_open`, `velour_prep_launch_confirmed`, `velour_run_start`, `velour_run_end`, `velour_leaderboard_view`, `velour_stats_view`, `velour_settings_view`, `velour_daily_lux_bonus_outcome`, `velour_forge_purchase_outcome`, funnel boutique `velour_shop_view` / `velour_shop_vault_buy_*` + `logAppOpen`).
 

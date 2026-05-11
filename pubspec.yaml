@@ -128,8 +128,7 @@ flutter:
 # iOS / App Store (Apple) : image **carrée** ; le système applique le masque « squircle »
 # (ne pas pré-arrondir les coins). L’icône marketing 1024×1024 ne doit pas comporter de
 # transparence — voir « Configuring your app icon » + HIG App icons sur developer.apple.com.
-# Variantes Dark / Tinted (iOS 18+) : optionnelles ; Apple peut appliquer un traitement auto
-# si on ne fournit pas d’assets dédiés (image_path_ios_dark_transparent / …_tinted_grayscale).
+# Variantes iOS 18+ (Dark / Tinted) : assets dérivés de `app_icon.png` (voir scripts si besoin).
 flutter_launcher_icons:
   android: true
   ios: true
@@ -141,8 +140,7 @@ flutter_launcher_icons:
   # App Store : pas de canal alpha sur les PNG d’icône — fusion sur fond proche du gold Velour.
   remove_alpha_ios: true
   background_color_ios: "#C9A03A"
-  # --- iOS 18+ (optionnel) : décommenter quand les PNG existent, puis `dart run flutter_launcher_icons`.
-  # Dark : fond **transparent** pour que le système applique son arrière-plan (doc Apple).
-  # Tinted : image **niveaux de gris** (le package peut désaturer avec desaturate_tinted_to_grayscale_ios).
-  # image_path_ios_dark_transparent: assets/icons/app_icon_ios_dark.png
-  # image_path_ios_tinted_grayscale: assets/icons/app_icon_ios_tinted.png
+  # Dark : fond transparent (système fournit le fond). Tinted : niveaux de gris.
+  image_path_ios_dark_transparent: assets/icons/app_icon_ios_dark.png
+  image_path_ios_tinted_grayscale: assets/icons/app_icon_ios_tinted.png
+  desaturate_tinted_to_grayscale_ios: true

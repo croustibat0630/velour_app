@@ -80,6 +80,7 @@ class _MenuTextButtonState extends State<MenuTextButton>
 
   @override
   Widget build(BuildContext context) {
+    final bool keyboardNav = velourTraditionalKeyboardNavigation(context);
     return Semantics(
       button: true,
       label: widget.label,
@@ -88,66 +89,84 @@ class _MenuTextButtonState extends State<MenuTextButton>
         onEnter: (_) => setState(() => _hover = true),
         onExit: (_) => setState(() => _hover = false),
         cursor: SystemMouseCursors.click,
-        child: GestureDetector(
-          onTapDown: (_) {
-            setState(() => _down = true);
-            // Immediate feedback on press (not release).
-            AudioHandler.instance.playMenuClick();
-          },
-          onTapCancel: () => setState(() => _down = false),
-          onTapUp: (_) => setState(() => _down = false),
-          onTap: widget.onPressed,
-          behavior: HitTestBehavior.opaque,
-          child: AnimatedBuilder(
-            animation: _c,
-            builder: (context, _) {
-              final bool reduce = velourReduceMotion(context);
-              final double s = (sin01(_c.value));
-              final double pulse = _hover
-                  ? (0.10 + 0.10 * s)
-                  : (0.05 + 0.05 * s);
-              final double a = _hover ? 0.98 : widget.baseAlpha.clamp(0.0, 1.0);
-              final double scale =
-                  (reduce ? 1.0 : (_down ? 1.05 : 1.0)) * widget.scale;
-              return ConstrainedBox(
-                constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
-                child: Center(
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(vertical: 10 * widget.scale),
-                    child: Transform.scale(
-                      scale: scale,
-                      filterQuality: widget.transformFilterQuality,
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Text(
-                          widget.label,
-                          textAlign: TextAlign.center,
-                          maxLines: 1,
-                          softWrap: false,
-                          overflow: TextOverflow.visible,
-                          style: GoogleFonts.montserrat(
-                            fontSize: (widget.fontSize ?? 16) * widget.scale,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: widget.letterSpacing ?? 4.6,
-                            color: widget.neon.withValues(alpha: a),
-                            shadows: widget.neonShadowBlur <= 0.5
-                                ? const <Shadow>[]
-                                : <Shadow>[
-                                    Shadow(
-                                      color: widget.neon.withValues(
-                                        alpha: pulse,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTapDown: (_) {
+              setState(() => _down = true);
+              // Immediate feedback on press (not release).
+              AudioHandler.instance.playMenuClick();
+            },
+            onTapCancel: () => setState(() => _down = false),
+            onTapUp: (_) => setState(() => _down = false),
+            onTap: widget.onPressed,
+            borderRadius: BorderRadius.circular(10),
+            splashFactory: NoSplash.splashFactory,
+            splashColor: Colors.transparent,
+            highlightColor: Colors.transparent,
+            hoverColor: Colors.transparent,
+            focusColor: keyboardNav
+                ? widget.neon.withValues(alpha: 0.32)
+                : Colors.transparent,
+            canRequestFocus: true,
+            child: AnimatedBuilder(
+              animation: _c,
+              builder: (context, _) {
+                final bool reduce = velourReduceMotion(context);
+                final double s = (sin01(_c.value));
+                final double pulse = _hover
+                    ? (0.10 + 0.10 * s)
+                    : (0.05 + 0.05 * s);
+                final double a = _hover
+                    ? 0.98
+                    : widget.baseAlpha.clamp(0.0, 1.0);
+                final double scale =
+                    (reduce ? 1.0 : (_down ? 1.05 : 1.0)) * widget.scale;
+                return ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    minWidth: 48,
+                    minHeight: 48,
+                  ),
+                  child: Center(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        vertical: 10 * widget.scale,
+                      ),
+                      child: Transform.scale(
+                        scale: scale,
+                        filterQuality: widget.transformFilterQuality,
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            widget.label,
+                            textAlign: TextAlign.center,
+                            maxLines: 1,
+                            softWrap: false,
+                            overflow: TextOverflow.visible,
+                            style: GoogleFonts.montserrat(
+                              fontSize: (widget.fontSize ?? 16) * widget.scale,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: widget.letterSpacing ?? 4.6,
+                              color: widget.neon.withValues(alpha: a),
+                              shadows: widget.neonShadowBlur <= 0.5
+                                  ? const <Shadow>[]
+                                  : <Shadow>[
+                                      Shadow(
+                                        color: widget.neon.withValues(
+                                          alpha: pulse,
+                                        ),
+                                        blurRadius: widget.neonShadowBlur,
                                       ),
-                                      blurRadius: widget.neonShadowBlur,
-                                    ),
-                                  ],
+                                    ],
+                            ),
                           ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
         ),
       ),

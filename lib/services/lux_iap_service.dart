@@ -239,7 +239,8 @@ class LuxIapService {
   }
 
   /// Recharge les métadonnées produit (utile si le réseau était indisponible au premier bind).
-  Future<void> reloadProductsForDebug() => _reloadProductDetails();
+  /// Recharge titres / prix store (ex. à l’ouverture boutique). Nom neutre (pas « debug » en prod).
+  Future<void> reloadStoreProductDetails() => _reloadProductDetails();
 
   Future<void> _reloadProductDetails() async {
     if (!_storeAvailable) return;

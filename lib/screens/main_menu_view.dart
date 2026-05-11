@@ -264,243 +264,252 @@ class _MainMenuViewState extends State<MainMenuView>
                         padding: EdgeInsets.symmetric(
                           vertical: tightHeight ? 10 : 0,
                         ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            AnimatedBuilder(
-                              animation: _pulse,
-                              builder: (context, _) {
-                                final double s =
-                                    (math.sin(_pulse.value * math.pi * 2) *
-                                        0.5 +
-                                    0.5);
-                                final double glow = 0.18 + 0.12 * s;
-                                final Color skinGlow =
-                                    gs.currentSkin.primaryColor;
-                                return FittedBox(
-                                  fit: BoxFit.scaleDown,
-                                  child: Text(
-                                    l10n.brandTitleDisplay,
-                                    textAlign: TextAlign.center,
-                                    maxLines: 1,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .displaySmall
-                                        ?.copyWith(
-                                          fontSize: 68 * scaleH,
-                                          fontWeight: FontWeight.w200,
-                                          letterSpacing: 8,
-                                          color: te
-                                              .colorForId(1)
-                                              .withValues(alpha: 0.96),
-                                          shadows: [
-                                            Shadow(
-                                              color: skinGlow.withValues(
-                                                alpha: 0.55 * glow,
-                                              ),
-                                              blurRadius: 42,
-                                            ),
-                                            Shadow(
-                                              color: skinGlow.withValues(
-                                                alpha: 0.35 + 0.25 * s,
-                                              ),
-                                              blurRadius: 18,
-                                            ),
-                                            Shadow(
-                                              color: skinGlow.withValues(
-                                                alpha: glow,
-                                              ),
-                                              blurRadius: 8,
-                                            ),
-                                          ],
-                                        ),
-                                  ),
-                                );
-                              },
-                            ),
-                            SizedBox(height: 22 * scaleH),
-                            Text(
-                              l10n.menuEditionSubtitle,
-                              textAlign: TextAlign.center,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context).textTheme.bodySmall
-                                  ?.copyWith(
-                                    fontSize: 12 * scaleH,
-                                    fontWeight: FontWeight.w500,
-                                    letterSpacing: 4,
-                                    color: Colors.white.withValues(alpha: 0.52),
-                                  ),
-                            ),
-                            SizedBox(height: 14 * scaleH),
-                            Padding(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 28 * scaleH,
-                              ),
-                              child: DecoratedBox(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(999),
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      Colors.transparent,
-                                      gold.withValues(alpha: 0.22),
-                                      gold.withValues(alpha: 0.38),
-                                      gold.withValues(alpha: 0.22),
-                                      Colors.transparent,
-                                    ],
-                                    stops: const [0.0, 0.22, 0.5, 0.78, 1.0],
-                                  ),
-                                ),
-                                child: const SizedBox(
-                                  height: 1,
-                                  width: double.infinity,
-                                ),
-                              ),
-                            ),
-                            SizedBox(height: 30 * scaleH),
-                            if (_streakDays > 0) ...[
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.local_fire_department_rounded,
-                                    size: 18 * scaleH,
-                                    color: gold.withValues(alpha: 0.88),
-                                  ),
-                                  SizedBox(width: 8 * scaleH),
-                                  Flexible(
+                        child: FocusTraversalGroup(
+                          policy: ReadingOrderTraversalPolicy(),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              AnimatedBuilder(
+                                animation: _pulse,
+                                builder: (context, _) {
+                                  final double s =
+                                      (math.sin(_pulse.value * math.pi * 2) *
+                                          0.5 +
+                                      0.5);
+                                  final double glow = 0.18 + 0.12 * s;
+                                  final Color skinGlow =
+                                      gs.currentSkin.primaryColor;
+                                  return FittedBox(
+                                    fit: BoxFit.scaleDown,
                                     child: Text(
-                                      l10n.menuStreakDays(_streakDays),
+                                      l10n.brandTitleDisplay,
                                       textAlign: TextAlign.center,
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 1,
                                       style: Theme.of(context)
                                           .textTheme
-                                          .labelLarge
+                                          .displaySmall
                                           ?.copyWith(
-                                            letterSpacing: 2.4,
-                                            fontWeight: FontWeight.w700,
-                                            fontSize: (11 * scaleH).clamp(
-                                              10.0,
-                                              13.0,
-                                            ),
-                                            color: gold.withValues(alpha: 0.86),
+                                            fontSize: 68 * scaleH,
+                                            fontWeight: FontWeight.w200,
+                                            letterSpacing: 8,
+                                            color: te
+                                                .colorForId(1)
+                                                .withValues(alpha: 0.96),
+                                            shadows: [
+                                              Shadow(
+                                                color: skinGlow.withValues(
+                                                  alpha: 0.55 * glow,
+                                                ),
+                                                blurRadius: 42,
+                                              ),
+                                              Shadow(
+                                                color: skinGlow.withValues(
+                                                  alpha: 0.35 + 0.25 * s,
+                                                ),
+                                                blurRadius: 18,
+                                              ),
+                                              Shadow(
+                                                color: skinGlow.withValues(
+                                                  alpha: glow,
+                                                ),
+                                                blurRadius: 8,
+                                              ),
+                                            ],
                                           ),
                                     ),
-                                  ),
-                                ],
+                                  );
+                                },
                               ),
-                              SizedBox(height: 16 * scaleH),
-                            ],
-                            if (gs.canClaimDailyLuxBonus ||
-                                _dailyLuxClaimBusy) ...[
-                              MenuTextButton(
-                                label: l10n.menuDailyLuxBonus(
-                                  GameState.dailyLuxBonusAmount,
+                              SizedBox(height: 22 * scaleH),
+                              Text(
+                                l10n.menuEditionSubtitle,
+                                textAlign: TextAlign.center,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(
+                                      fontSize: 12 * scaleH,
+                                      fontWeight: FontWeight.w500,
+                                      letterSpacing: 4,
+                                      color: Colors.white.withValues(
+                                        alpha: 0.52,
+                                      ),
+                                    ),
+                              ),
+                              SizedBox(height: 14 * scaleH),
+                              Padding(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 28 * scaleH,
                                 ),
-                                neon: gold.withValues(alpha: 0.94),
-                                scale: scaleH * 0.92,
-                                baseAlpha: 0.9,
-                                neonShadowBlur: 16,
-                                fontSize: 13.5,
-                                letterSpacing: 3.8,
+                                child: DecoratedBox(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(999),
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        Colors.transparent,
+                                        gold.withValues(alpha: 0.22),
+                                        gold.withValues(alpha: 0.38),
+                                        gold.withValues(alpha: 0.22),
+                                        Colors.transparent,
+                                      ],
+                                      stops: const [0.0, 0.22, 0.5, 0.78, 1.0],
+                                    ),
+                                  ),
+                                  child: const SizedBox(
+                                    height: 1,
+                                    width: double.infinity,
+                                  ),
+                                ),
+                              ),
+                              SizedBox(height: 30 * scaleH),
+                              if (_streakDays > 0) ...[
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.local_fire_department_rounded,
+                                      size: 18 * scaleH,
+                                      color: gold.withValues(alpha: 0.88),
+                                    ),
+                                    SizedBox(width: 8 * scaleH),
+                                    Flexible(
+                                      child: Text(
+                                        l10n.menuStreakDays(_streakDays),
+                                        textAlign: TextAlign.center,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .labelLarge
+                                            ?.copyWith(
+                                              letterSpacing: 2.4,
+                                              fontWeight: FontWeight.w700,
+                                              fontSize: (11 * scaleH).clamp(
+                                                10.0,
+                                                13.0,
+                                              ),
+                                              color: gold.withValues(
+                                                alpha: 0.86,
+                                              ),
+                                            ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: 16 * scaleH),
+                              ],
+                              if (gs.canClaimDailyLuxBonus ||
+                                  _dailyLuxClaimBusy) ...[
+                                MenuTextButton(
+                                  label: l10n.menuDailyLuxBonus(
+                                    GameState.dailyLuxBonusAmount,
+                                  ),
+                                  neon: gold.withValues(alpha: 0.94),
+                                  scale: scaleH * 0.92,
+                                  baseAlpha: 0.9,
+                                  neonShadowBlur: 16,
+                                  fontSize: 13.5,
+                                  letterSpacing: 3.8,
+                                  onPressed: () => _primeMenuInteraction(() {
+                                    unawaited(_claimDailyLuxBonus(gs, l10n));
+                                  }),
+                                ),
+                                SizedBox(height: 14 * scaleH),
+                              ],
+                              MenuTextButton(
+                                label: l10n.menuPlay,
+                                neon: te.colorForId(1),
+                                scale: scaleH * 1.04,
+                                baseAlpha: 0.96,
+                                neonShadowBlur: 22,
+                                fontSize: 17,
+                                letterSpacing: 5.2,
                                 onPressed: () => _primeMenuInteraction(() {
-                                  unawaited(_claimDailyLuxBonus(gs, l10n));
+                                  Navigator.of(
+                                    context,
+                                  ).push(fadeRoute(const PreparationView()));
+                                }),
+                              ),
+                              SizedBox(height: 12 * scaleH),
+                              MenuTextButton(
+                                label: l10n.menuGuidedTutorial,
+                                neon: te.colorForId(3),
+                                scale: scaleH,
+                                baseAlpha: 0.72,
+                                onPressed: () => _primeMenuInteraction(() {
+                                  gs.requestGuidedTutorialReplay();
+                                  Navigator.of(context).push(
+                                    fadeRoute(
+                                      const PreparationView(
+                                        initialStake: SessionStakeKind.casual,
+                                        casualStakeOnly: true,
+                                      ),
+                                    ),
+                                  );
                                 }),
                               ),
                               SizedBox(height: 14 * scaleH),
-                            ],
-                            MenuTextButton(
-                              label: l10n.menuPlay,
-                              neon: te.colorForId(1),
-                              scale: scaleH * 1.04,
-                              baseAlpha: 0.96,
-                              neonShadowBlur: 22,
-                              fontSize: 17,
-                              letterSpacing: 5.2,
-                              onPressed: () => _primeMenuInteraction(() {
-                                Navigator.of(
-                                  context,
-                                ).push(fadeRoute(const PreparationView()));
-                              }),
-                            ),
-                            SizedBox(height: 12 * scaleH),
-                            MenuTextButton(
-                              label: l10n.menuGuidedTutorial,
-                              neon: te.colorForId(3),
-                              scale: scaleH,
-                              baseAlpha: 0.72,
-                              onPressed: () => _primeMenuInteraction(() {
-                                gs.requestGuidedTutorialReplay();
-                                Navigator.of(context).push(
-                                  fadeRoute(
-                                    const PreparationView(
-                                      initialStake: SessionStakeKind.casual,
-                                      casualStakeOnly: true,
+                              MenuTextButton(
+                                label: l10n.menuLeaderboard,
+                                neon: te.colorForId(5),
+                                scale: scaleH,
+                                baseAlpha: 0.72,
+                                onPressed: () => _primeMenuInteraction(
+                                  () => Navigator.of(
+                                    context,
+                                  ).pushNamed('/leaderboard'),
+                                ),
+                              ),
+                              SizedBox(height: 14 * scaleH),
+                              MenuTextButton(
+                                label: l10n.menuShop,
+                                neon: te.colorForId(2),
+                                scale: scaleH,
+                                baseAlpha: 0.72,
+                                onPressed: () => _primeMenuInteraction(
+                                  () =>
+                                      Navigator.of(context).pushNamed('/shop'),
+                                ),
+                              ),
+                              SizedBox(height: 14 * scaleH),
+                              MenuTextButton(
+                                label: l10n.menuCareer,
+                                neon: const Color(0xFFFFD700),
+                                scale: scaleH,
+                                baseAlpha: 0.72,
+                                onPressed: () => _primeMenuInteraction(
+                                  () =>
+                                      Navigator.of(context).pushNamed('/stats'),
+                                ),
+                              ),
+                              SizedBox(height: 14 * scaleH),
+                              MenuTextButton(
+                                label: l10n.menuSettings,
+                                neon: te.colorForId(4),
+                                scale: scaleH,
+                                baseAlpha: 0.72,
+                                onPressed: () => _primeMenuInteraction(
+                                  () => Navigator.of(
+                                    context,
+                                  ).pushNamed('/settings'),
+                                ),
+                              ),
+                              SizedBox(height: 28 * scaleH),
+                              Consumer<GameState>(
+                                builder: (context, gs, _) {
+                                  // Une seule ligne, rendue par `LuxScoreDisplayer` (pas de doublon).
+                                  return Center(
+                                    child: LuxScoreDisplayer(
+                                      lux: gs.luxCoins,
+                                      initialValue: _overrideInitialValue,
+                                      color: gold,
+                                      prefix: l10n.luxHudPrefix(gs.highScore),
                                     ),
-                                  ),
-                                );
-                              }),
-                            ),
-                            SizedBox(height: 14 * scaleH),
-                            MenuTextButton(
-                              label: l10n.menuLeaderboard,
-                              neon: te.colorForId(5),
-                              scale: scaleH,
-                              baseAlpha: 0.72,
-                              onPressed: () => _primeMenuInteraction(
-                                () => Navigator.of(
-                                  context,
-                                ).pushNamed('/leaderboard'),
+                                  );
+                                },
                               ),
-                            ),
-                            SizedBox(height: 14 * scaleH),
-                            MenuTextButton(
-                              label: l10n.menuShop,
-                              neon: te.colorForId(2),
-                              scale: scaleH,
-                              baseAlpha: 0.72,
-                              onPressed: () => _primeMenuInteraction(
-                                () => Navigator.of(context).pushNamed('/shop'),
-                              ),
-                            ),
-                            SizedBox(height: 14 * scaleH),
-                            MenuTextButton(
-                              label: l10n.menuCareer,
-                              neon: const Color(0xFFFFD700),
-                              scale: scaleH,
-                              baseAlpha: 0.72,
-                              onPressed: () => _primeMenuInteraction(
-                                () => Navigator.of(context).pushNamed('/stats'),
-                              ),
-                            ),
-                            SizedBox(height: 14 * scaleH),
-                            MenuTextButton(
-                              label: l10n.menuSettings,
-                              neon: te.colorForId(4),
-                              scale: scaleH,
-                              baseAlpha: 0.72,
-                              onPressed: () => _primeMenuInteraction(
-                                () => Navigator.of(
-                                  context,
-                                ).pushNamed('/settings'),
-                              ),
-                            ),
-                            SizedBox(height: 28 * scaleH),
-                            Consumer<GameState>(
-                              builder: (context, gs, _) {
-                                // Une seule ligne, rendue par `LuxScoreDisplayer` (pas de doublon).
-                                return Center(
-                                  child: LuxScoreDisplayer(
-                                    lux: gs.luxCoins,
-                                    initialValue: _overrideInitialValue,
-                                    color: gold,
-                                    prefix: l10n.luxHudPrefix(gs.highScore),
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),

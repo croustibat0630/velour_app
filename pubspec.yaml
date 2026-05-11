@@ -141,3 +141,8 @@ flutter_launcher_icons:
   # App Store : pas de canal alpha sur les PNG d’icône — fusion sur fond proche du gold Velour.
   remove_alpha_ios: true
   background_color_ios: "#C9A03A"
+  # --- iOS 18+ (optionnel) : décommenter quand les PNG existent, puis `dart run flutter_launcher_icons`.
+  # Dark : fond **transparent** pour que le système applique son arrière-plan (doc Apple).
+  # Tinted : image **niveaux de gris** (le package peut désaturer avec desaturate_tinted_to_grayscale_ios).
+  # image_path_ios_dark_transparent: assets/icons/app_icon_ios_dark.png
+  # image_path_ios_tinted_grayscale: assets/icons/app_icon_ios_tinted.png

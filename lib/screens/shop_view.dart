@@ -11,6 +11,7 @@ import '../services/audio_handler.dart';
 import '../services/lux_apply_motifs.dart';
 import '../services/lux_iap_service.dart';
 import '../utils/responsive.dart';
+import '../utils/velour_accessibility.dart';
 import '../widgets/ui/dark_matte_overlay.dart';
 import '../widgets/ui/velour_snackbar.dart';
 
@@ -86,7 +87,7 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
       duration: const Duration(milliseconds: 420),
     );
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      unawaited(LuxIapService.instance.reloadProductsForDebug());
+      unawaited(LuxIapService.instance.reloadStoreProductDetails());
     });
   }
 
@@ -902,6 +903,9 @@ class _ShopProductCard extends StatelessWidget {
         onTapDown: onTapDown,
         onTap: onTap,
         borderRadius: BorderRadius.circular(28),
+        focusColor: velourTraditionalKeyboardNavigation(context)
+            ? neon.withValues(alpha: 0.30)
+            : Colors.transparent,
         child: ConstrainedBox(
           constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
           child: Container(
@@ -1140,6 +1144,9 @@ class _ForgeBoostCard extends StatelessWidget {
         child: InkWell(
           onTap: enabled ? onTap : null,
           borderRadius: BorderRadius.circular(16),
+          focusColor: velourTraditionalKeyboardNavigation(context)
+              ? accent.withValues(alpha: enabled ? 0.30 : 0.12)
+              : Colors.transparent,
           child: ConstrainedBox(
             constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
             child: Stack(

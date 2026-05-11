@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -33,6 +35,17 @@ import 'package:velour_app/widgets/ui/universal_back_button.dart';
 /// **Harness** : `velourRunAppStartup()` (`lib/velour_bootstrap.dart`, appelé depuis
 /// `lib/main.dart`) n’installe pas les handlers Crashlytics globaux sous un binding de
 /// test (`integration_test` / `flutter test`), pour ne pas écraser celui du framework.
+bool get _velourGithubCi {
+  try {
+    return Platform.environment['CI'] == 'true' ||
+        Platform.environment['GITHUB_ACTIONS'] == 'true';
+  } catch (_) {
+    return false;
+  }
+}
+
+int _ciSteps(int local, int github) => _velourGithubCi ? github : local;
+
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
@@ -51,6 +64,13 @@ void main() {
     await tester.binding.setSurfaceSize(const Size(390, 844));
     await app.main();
     await tester.pump();
+    // Splash + `bootstrapCloudAfterLocalLoad` / prefs : le runner GitHub est souvent
+    // plus lent qu’une machine locale (budget QA widget ~22 s insuffisant).
+    await _pumpUntil(
+      tester,
+      find.byType(MainMenuView),
+      maxSteps: _ciSteps(220, 700),
+    );
 
     await _reachClassicPlayZone(tester);
     expect(find.byType(GameScreen), findsOneWidget);
@@ -60,17 +80,40 @@ void main() {
       tester.element(find.byType(GameScreen).first),
     )!;
 
-    await tester.tap(find.byTooltip(l10nGame.gameHudMenuTooltip));
-    await _pumpUntil(tester, find.byType(PauseOverlay), maxSteps: 120);
+    final Finder hudMenuBtn = find.byTooltip(l10nGame.gameHudMenuTooltip);
+    await tester.ensureVisible(hudMenuBtn);
+    await tester.tap(hudMenuBtn);
+    await _pumpUntil(
+      tester,
+      find.byType(PauseOverlay),
+      maxSteps: _ciSteps(120, 320),
+    );
 
-    await tester.tap(find.text(l10nGame.pauseResume));
-    await _pumpUntilAbsent(tester, find.byType(PauseOverlay), maxSteps: 120);
+    final Finder pauseResume = find.text(l10nGame.pauseResume);
+    await tester.ensureVisible(pauseResume);
+    await tester.tap(pauseResume);
+    await _pumpUntilAbsent(
+      tester,
+      find.byType(PauseOverlay),
+      maxSteps: _ciSteps(120, 320),
+    );
 
-    await tester.tap(find.byTooltip(l10nGame.gameHudMenuTooltip));
-    await _pumpUntil(tester, find.byType(PauseOverlay), maxSteps: 120);
+    await tester.ensureVisible(hudMenuBtn);
+    await tester.tap(hudMenuBtn);
+    await _pumpUntil(
+      tester,
+      find.byType(PauseOverlay),
+      maxSteps: _ciSteps(120, 320),
+    );
 
-    await tester.tap(find.text(l10nGame.pauseBackToMenu));
-    await _pumpUntil(tester, find.byType(MainMenuView), maxSteps: 220);
+    final Finder pauseToMenu = find.text(l10nGame.pauseBackToMenu);
+    await tester.ensureVisible(pauseToMenu);
+    await tester.tap(pauseToMenu);
+    await _pumpUntil(
+      tester,
+      find.byType(MainMenuView),
+      maxSteps: _ciSteps(220, 420),
+    );
 
     expect(find.byType(MainMenuView), findsWidgets);
 
@@ -80,24 +123,34 @@ void main() {
     try {
       await AudioHandler.instance.dispose();
     } catch (_) {}
-    for (int i = 0; i < 24; i++) {
+    final int settleFrames = _ciSteps(24, 96);
+    for (int i = 0; i < settleFrames; i++) {
       await tester.pump(const Duration(milliseconds: 50));
     }
-    expect(tester.takeException(), isNull);
+    final Object? pending = tester.takeException();
+    if (pending != null) {
+      // ignore: avoid_print
+      print('[VelourSmoke] takeException: $pending');
+    }
+    expect(
+      pending,
+      isNull,
+      reason: 'Async exceptions after game teardown (CI?)',
+    );
   });
 }
 
 /// Laisse partir timers / micro-tâches (IAP, Firestore) avant [takeException].
 Future<void> _drainDeferredPlatformWork(WidgetTester tester) async {
   const Duration step = Duration(milliseconds: 100);
-  const int steps = 40;
+  final int steps = _ciSteps(40, 90);
   for (int i = 0; i < steps; i++) {
     await tester.pump(step);
   }
 }
 
 Future<void> _reachClassicPlayZone(WidgetTester tester) async {
-  await _pumpUntil(tester, find.byType(MainMenuView));
+  await _pumpUntil(tester, find.byType(MainMenuView), maxSteps: 100);
   expect(find.byType(MainMenuView), findsWidgets);
 
   final AppLocalizations l10nMenu = AppLocalizations.of(
@@ -105,7 +158,11 @@ Future<void> _reachClassicPlayZone(WidgetTester tester) async {
   )!;
 
   await tester.tap(find.text(l10nMenu.menuSettings));
-  await _pumpUntil(tester, find.byType(SettingsView), maxSteps: 120);
+  await _pumpUntil(
+    tester,
+    find.byType(SettingsView),
+    maxSteps: _ciSteps(120, 300),
+  );
   expect(find.byType(SettingsView), findsOneWidget);
   // Laisse finir la transition de route ; macOS CI peut être plus lent.
   await _pumpFrames(tester, 24, 50);
@@ -117,9 +174,17 @@ Future<void> _reachClassicPlayZone(WidgetTester tester) async {
   );
   await tester.ensureVisible(settingsBack);
   await tester.tap(settingsBack);
-  await _pumpUntil(tester, find.byType(MainMenuView), maxSteps: 120);
+  await _pumpUntil(
+    tester,
+    find.byType(MainMenuView),
+    maxSteps: _ciSteps(120, 280),
+  );
   // macOS / transitions : la route peut rester une frame dans l’arbre après pop.
-  await _pumpUntilAbsent(tester, find.byType(SettingsView), maxSteps: 120);
+  await _pumpUntilAbsent(
+    tester,
+    find.byType(SettingsView),
+    maxSteps: _ciSteps(120, 220),
+  );
   expect(find.byType(MainMenuView), findsWidgets);
 
   final AppLocalizations l10nMenu2 = AppLocalizations.of(
@@ -127,30 +192,52 @@ Future<void> _reachClassicPlayZone(WidgetTester tester) async {
   )!;
 
   await tester.tap(find.text(l10nMenu2.menuShop));
-  await _pumpUntil(tester, find.byType(ShopView), maxSteps: 120);
+  await _pumpUntil(tester, find.byType(ShopView), maxSteps: _ciSteps(120, 300));
   expect(find.byType(ShopView), findsOneWidget);
   final AppLocalizations l10nShopFromMenu = AppLocalizations.of(
     tester.element(find.byType(ShopView).first),
   )!;
-  await tester.tap(find.byTooltip(l10nShopFromMenu.shopBackTooltip));
-  await _pumpUntil(tester, find.byType(MainMenuView), maxSteps: 120);
-  await _pumpUntilAbsent(tester, find.byType(ShopView), maxSteps: 80);
+  final Finder shopBack = find.byTooltip(l10nShopFromMenu.shopBackTooltip);
+  await tester.ensureVisible(shopBack);
+  await tester.tap(shopBack);
+  await _pumpUntil(
+    tester,
+    find.byType(MainMenuView),
+    maxSteps: _ciSteps(120, 280),
+  );
+  await _pumpUntilAbsent(
+    tester,
+    find.byType(ShopView),
+    maxSteps: _ciSteps(80, 180),
+  );
   expect(find.byType(MainMenuView), findsWidgets);
 
   final AppLocalizations l10nMenuLb = AppLocalizations.of(
     tester.element(find.byType(MainMenuView).first),
   )!;
   await tester.tap(find.text(l10nMenuLb.menuLeaderboard));
-  await _pumpUntil(tester, find.byType(LeaderboardView), maxSteps: 220);
-  expect(find.byType(LeaderboardView), findsOneWidget);
-  await tester.tap(
-    find.descendant(
-      of: find.byType(LeaderboardView),
-      matching: find.byType(UniversalBackButton),
-    ),
+  await _pumpUntil(
+    tester,
+    find.byType(LeaderboardView),
+    maxSteps: _ciSteps(220, 400),
   );
-  await _pumpUntil(tester, find.byType(MainMenuView), maxSteps: 120);
-  await _pumpUntilAbsent(tester, find.byType(LeaderboardView), maxSteps: 80);
+  expect(find.byType(LeaderboardView), findsOneWidget);
+  final Finder lbBack = find.descendant(
+    of: find.byType(LeaderboardView),
+    matching: find.byType(UniversalBackButton),
+  );
+  await tester.ensureVisible(lbBack);
+  await tester.tap(lbBack);
+  await _pumpUntil(
+    tester,
+    find.byType(MainMenuView),
+    maxSteps: _ciSteps(120, 280),
+  );
+  await _pumpUntilAbsent(
+    tester,
+    find.byType(LeaderboardView),
+    maxSteps: _ciSteps(80, 180),
+  );
   expect(find.byType(MainMenuView), findsWidgets);
 
   final AppLocalizations l10nMenu3 = AppLocalizations.of(
@@ -158,7 +245,11 @@ Future<void> _reachClassicPlayZone(WidgetTester tester) async {
   )!;
 
   await tester.tap(find.text(l10nMenu3.menuPlay));
-  await _pumpUntil(tester, find.byType(PreparationView), maxSteps: 120);
+  await _pumpUntil(
+    tester,
+    find.byType(PreparationView),
+    maxSteps: _ciSteps(120, 260),
+  );
   expect(find.byType(PreparationView), findsOneWidget);
 
   final AppLocalizations l10nPrep = AppLocalizations.of(
@@ -172,7 +263,7 @@ Future<void> _reachClassicPlayZone(WidgetTester tester) async {
   await _pumpUntil(
     tester,
     find.byKey(const ValueKey<String>('PlayZone')),
-    maxSteps: 200,
+    maxSteps: _ciSteps(200, 520),
   );
 }
 

@@ -236,7 +236,10 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
       if (!mounted) return;
       final GameState gs = context.read<GameState>();
       gs.startGame();
-      VelourAnalytics.logRunStart(stakeKind: gs.sessionStake.name);
+      VelourAnalytics.logRunStart(
+        stakeKind: gs.sessionStake.name,
+        runInstanceId: gs.analyticsRunInstanceId,
+      );
     });
     _shakeController = AnimationController(
       vsync: this,

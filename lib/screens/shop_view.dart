@@ -98,8 +98,11 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
       vsync: this,
       duration: const Duration(milliseconds: 420),
     );
-    VelourAnalytics.logShopView();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      VelourAnalytics.logShopView(
+        runInstanceId: context.read<GameState>().analyticsRunInstanceId,
+      );
       unawaited(LuxIapService.instance.reloadStoreProductDetails());
     });
   }
@@ -181,9 +184,11 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
       context,
     );
     try {
+      final String? runId = context.read<GameState>().analyticsRunInstanceId;
       VelourAnalytics.logShopVaultBuyStart(
         productId: productId,
         luxAmount: luxAmount,
+        runInstanceId: runId,
       );
       final LuxIapBuyOutcome r = await LuxIapService.instance
           .buyVaultConsumable(productId);
@@ -191,6 +196,7 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
         productId: productId,
         outcome: _vaultBuyOutcomeAnalytics(r.kind),
         errorCode: r.kind == LuxIapBuyKind.error ? r.errorDetail : null,
+        runInstanceId: runId,
       );
       if (!context.mounted) return;
       switch (r.kind) {

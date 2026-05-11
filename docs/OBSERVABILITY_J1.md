@@ -67,16 +67,18 @@ Avec `--dart-define=VELOUR_ANALYTICS=true`, le client envoie à Firebase Analyti
 
 - `velour_menu_view` — ouverture [MainMenuView](lib/screens/main_menu_view.dart).
 - `velour_prep_open` — param `stake_kind` (`casual` / `highStakes` / `royal` / `unset`).
-- `velour_run_start` — param `stake_kind` au démarrage effectif de la partie ([GameScreen](lib/screens/game_screen.dart)).
-- `velour_shop_view` — ouverture [ShopView](lib/screens/shop_view.dart) (Coffre-Fort + Forge).
-- `velour_shop_vault_buy_start` — params `product_id` (SKU), `lux_amount` (grant attendu côté client).
-- `velour_shop_vault_buy_outcome` — params `product_id`, `outcome` (`success` / `cancelled` / `unavailable` / `products_unavailable` / `busy` / `error`), optionnel `error_code` si `outcome == error`.
-- `velour_run_end` — fin de run après résolution de la mise : `stake_kind`, `level`, `end_reason` (`timer` / `deadlock`), `stake_footer` (`none` / `high_stakes_fail` / `high_stakes_win` / `royal_fail` / `royal_win`), `personal_best` (0/1), `run_lux` (score session, plafonné côté client). Voir [GameState](lib/providers/game_state.dart) (`_resolveSessionStakeOnGameOver` puis `_logRunEndAnalytics`).
+- `velour_run_start` — params `stake_kind`, optionnel `run_instance_id` (jeton non-PII minté dans [GameState.startNewRun](lib/providers/game_state.dart)).
+- `velour_shop_view` — ouverture [ShopView](lib/screens/shop_view.dart) ; param optionnel `run_instance_id` si le joueur n’a pas encore relancé une run (ex. menu après game over → boutique).
+- `velour_shop_vault_buy_start` — params `product_id` (SKU), `lux_amount`, optionnel `run_instance_id`.
+- `velour_shop_vault_buy_outcome` — params `product_id`, `outcome` (`success` / `cancelled` / `unavailable` / `products_unavailable` / `busy` / `error`), optionnel `error_code` si `outcome == error`, optionnel `run_instance_id`.
+- `velour_run_end` — fin de run après résolution de la mise : `stake_kind`, `level`, `end_reason` (`timer` / `deadlock`), `stake_footer` (`none` / `high_stakes_fail` / `high_stakes_win` / `royal_fail` / `royal_win`), `personal_best` (0/1), `run_lux` (score session, plafonné côté client), optionnel `run_instance_id`. Voir [GameState](lib/providers/game_state.dart) (`_resolveSessionStakeOnGameOver` puis `_logRunEndAnalytics`).
 - `app_open` (API standard) — au bootstrap si Analytics est activé.
 
 **Console** : Analytics → *DebugView* (appareil debug / build avec debug) ou rapports *Realtime* / *Events* après propagation.
 
 **Usage** : corréler `velour_run_end.level` × `stake_kind` × `end_reason` avec Remote Config (difficulté, objectifs premium) et avec le funnel boutique (`velour_shop_*`).
+
+**Funnel run → boutique (même `run_instance_id`)** : le jeton est stable du `velour_run_start` jusqu’au retour menu (`resetGame` ne l’efface pas) et est remplacé au prochain `startNewRun`. En **BigQuery** (export GA4) : filtrer les événements par `event_name` et `run_instance_id` égal, ordonner par `event_timestamp`, pour mesurer ex. `velour_run_end` (`stake_footer` = échec premium) puis `velour_shop_view` / `velour_shop_vault_buy_*`. En **Explorations** GA4 UI, le funnel standard est surtout par utilisateur ; le paramètre sert surtout aux requêtes SQL / Looker.
 
 Sans `VELOUR_ANALYTICS`, la collecte Analytics est coupée côté client (`setAnalyticsCollectionEnabled(false)`) — la politique de confidentialité et la fiche store doivent quand même refléter tout autre traitement (auth, IAP, etc.).
 

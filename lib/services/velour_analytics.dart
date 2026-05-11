@@ -59,24 +59,42 @@ abstract final class VelourAnalytics {
     );
   }
 
-  static void logRunStart({required String stakeKind}) {
+  static Map<String, Object> _withRunInstanceId(
+    Map<String, Object> parameters,
+    String? runInstanceId,
+  ) {
+    final String? id = runInstanceId;
+    if (id == null || id.isEmpty) return parameters;
+    return <String, Object>{...parameters, 'run_instance_id': id};
+  }
+
+  static void logRunStart({required String stakeKind, String? runInstanceId}) {
     if (!enabled) return;
     unawaited(
       _safeLog(() async {
         await FirebaseAnalytics.instance.logEvent(
           name: 'velour_run_start',
-          parameters: <String, Object>{'stake_kind': stakeKind},
+          parameters: _withRunInstanceId(<String, Object>{
+            'stake_kind': stakeKind,
+          }, runInstanceId),
         );
       }),
     );
   }
 
   /// Ouverture de l’écran boutique (Coffre-Fort + Forge).
-  static void logShopView() {
+  static void logShopView({String? runInstanceId}) {
     if (!enabled) return;
     unawaited(
       _safeLog(() async {
-        await FirebaseAnalytics.instance.logEvent(name: 'velour_shop_view');
+        final String? id = runInstanceId;
+        final Map<String, Object>? params = (id != null && id.isNotEmpty)
+            ? <String, Object>{'run_instance_id': id}
+            : null;
+        await FirebaseAnalytics.instance.logEvent(
+          name: 'velour_shop_view',
+          parameters: params,
+        );
       }),
     );
   }
@@ -85,16 +103,50 @@ abstract final class VelourAnalytics {
   static void logShopVaultBuyStart({
     required String productId,
     required int luxAmount,
+    String? runInstanceId,
   }) {
     if (!enabled) return;
     unawaited(
       _safeLog(() async {
         await FirebaseAnalytics.instance.logEvent(
           name: 'velour_shop_vault_buy_start',
-          parameters: <String, Object>{
+          parameters: _withRunInstanceId(<String, Object>{
             'product_id': productId,
             'lux_amount': luxAmount,
-          },
+          }, runInstanceId),
+        );
+      }),
+    );
+  }
+
+  /// Fin de run (chrono épuisé ou impasse plateau) — une fois la mise résolue.
+  ///
+  /// [stake_kind] : `casual` / `highStakes` / `royal` (même vocabulaire que `velour_run_start`).
+  /// [end_reason] : `timer` | `deadlock`.
+  /// [stake_footer] : résultat mise premium (`none`, `high_stakes_fail`, …).
+  /// [runInstanceId] : corrélation boutique / funnels (voir [GameState.analyticsRunInstanceId]).
+  static void logRunEnd({
+    required String stakeKind,
+    required int level,
+    required String endReason,
+    required String stakeFooter,
+    required int personalBest,
+    required int runLux,
+    String? runInstanceId,
+  }) {
+    if (!enabled) return;
+    unawaited(
+      _safeLog(() async {
+        await FirebaseAnalytics.instance.logEvent(
+          name: 'velour_run_end',
+          parameters: _withRunInstanceId(<String, Object>{
+            'stake_kind': stakeKind,
+            'level': level,
+            'end_reason': endReason,
+            'stake_footer': stakeFooter,
+            'personal_best': personalBest,
+            'run_lux': runLux,
+          }, runInstanceId),
         );
       }),
     );
@@ -104,41 +156,11 @@ abstract final class VelourAnalytics {
   ///
   /// [outcome] : valeurs stables pour requêtes (`success`, `cancelled`, …).
   /// [errorCode] : uniquement pour `outcome == error` (ex. `offline`) — tronqué.
-  /// Fin de run (chrono épuisé ou impasse plateau) — une fois la mise résolue.
-  ///
-  /// [stake_kind] : `casual` / `highStakes` / `royal` (même vocabulaire que `velour_run_start`).
-  /// [end_reason] : `timer` | `deadlock`.
-  /// [stake_footer] : résultat mise premium (`none`, `high_stakes_fail`, …).
-  static void logRunEnd({
-    required String stakeKind,
-    required int level,
-    required String endReason,
-    required String stakeFooter,
-    required int personalBest,
-    required int runLux,
-  }) {
-    if (!enabled) return;
-    unawaited(
-      _safeLog(() async {
-        await FirebaseAnalytics.instance.logEvent(
-          name: 'velour_run_end',
-          parameters: <String, Object>{
-            'stake_kind': stakeKind,
-            'level': level,
-            'end_reason': endReason,
-            'stake_footer': stakeFooter,
-            'personal_best': personalBest,
-            'run_lux': runLux,
-          },
-        );
-      }),
-    );
-  }
-
   static void logShopVaultBuyOutcome({
     required String productId,
     required String outcome,
     String? errorCode,
+    String? runInstanceId,
   }) {
     if (!enabled) return;
     unawaited(
@@ -155,7 +177,7 @@ abstract final class VelourAnalytics {
         }
         await FirebaseAnalytics.instance.logEvent(
           name: 'velour_shop_vault_buy_outcome',
-          parameters: parameters,
+          parameters: _withRunInstanceId(parameters, runInstanceId),
         );
       }),
     );

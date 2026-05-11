@@ -886,6 +886,15 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
   SessionStakeKind _sessionStake = SessionStakeKind.casual;
   SessionStakeKind get sessionStake => _sessionStake;
 
+  /// Jeton Analytics opt-in : corréler `velour_run_*` / boutique sans PII.
+  /// Remplacé à chaque [startNewRun] ; **non** effacé par [resetGame] (menu après game over).
+  int _analyticsRunMintSeq = 0;
+  String _analyticsRunInstanceId = '';
+
+  /// Même identifiant que sur `velour_run_start` / `velour_run_end` jusqu’à la prochaine run.
+  String? get analyticsRunInstanceId =>
+      _analyticsRunInstanceId.isEmpty ? null : _analyticsRunInstanceId;
+
   /// Consommables Forge (persistés).
   int _oracleInsuranceCharges = 0;
   bool _royalVictoryBountyPending = false;
@@ -1170,6 +1179,8 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     _narrativeReplayThisRun = false;
 
     resetGame();
+    _analyticsRunInstanceId = '';
+    _analyticsRunMintSeq = 0;
     notifyListeners();
   }
 
@@ -1484,6 +1495,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
       stakeFooter: _stakeFooterAnalytics(_sessionStakeFooterLine),
       personalBest: _lastGameWasPersonalBest ? 1 : 0,
       runLux: _lux.clamp(0, 10000000),
+      runInstanceId: analyticsRunInstanceId,
     );
   }
 
@@ -1673,6 +1685,13 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
 
   void startNewRun() {
     resetGame();
+    _analyticsRunInstanceId = _mintAnalyticsRunInstanceId();
+  }
+
+  String _mintAnalyticsRunInstanceId() {
+    _analyticsRunMintSeq = (_analyticsRunMintSeq + 1) & 0x7fffffff;
+    final int ms = DateTime.now().millisecondsSinceEpoch & 0xffffff;
+    return 'run_${ms.toRadixString(16)}_${_analyticsRunMintSeq.toRadixString(16)}';
   }
 
   /// Called by the game screen to guarantee the timer is running once rendered.

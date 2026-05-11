@@ -27,3 +27,19 @@ Avant **chaque** nouvelle livraison Play ou App Store / TestFlight : **incrémen
 2. `--dart-define=VELOUR_ANALYTICS=true` — active Firebase Analytics + clé Crashlytics `velour_analytics` ; la **politique de confidentialité** doit décrire cette collecte. Désactiver uniquement si demande explicite : `VELOUR_ANALYTICS=0 ./scripts/build_store_artifacts.sh`.
 
 Référence : `./scripts/build_store_artifacts.sh` (AAB + IPA), `./scripts/echo_store_release_build.sh`, `docs/STORE_RELEASE_CHECKLIST.md` §1.
+
+### Avant de dire à l’utilisateur que les builds sont « store ready »
+
+**Toujours exécuter** (ou confirmer que la CI équivalente vient de passer au vert sur le même `main`) :
+
+1. `dart format --set-exit-if-changed .`
+2. `dart analyze --fatal-infos`
+3. `flutter test`
+4. `flutter build web --release --no-wasm-dry-run -O2`
+5. `cd functions && npm ci && npm run build`
+
+**Si le lot touche l’audio** (`lib/services/audio_handler.dart`, session, bootstrap audio) : relire le flux **verrou natif / préload / one-shots** ; ne pas supposer que la CI entend le timing.
+
+**Si le lot touche les icônes iOS** (`ios/Runner/Assets.xcassets/AppIcon.appiconset`) : vérifier que les variantes **Dark** (et au besoin **Tinted**) restent **lisibles** sur fond Springboard (iOS 18 : thèmes d’icônes sombre / teinté) — idéalement aperçu Xcode ou build installée ; on peut vérifier en dépôt que les PNG **Dark** sont au moins identiques aux universels si on réutilise le même visuel.
+
+**Limite honnête** : « store ready » côté agent = **zéro dette connue dans le dépôt ci-dessus** + checklist humaine (`docs/STORE_RELEASE_CHECKLIST.md`, appareils réels, son, icône). **Ne pas** présenter cela comme un audit sensoriel complet sans au moins une **build release** sur device ou la validation explicite du contributeur.

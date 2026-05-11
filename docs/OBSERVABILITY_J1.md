@@ -71,11 +71,12 @@ Avec `--dart-define=VELOUR_ANALYTICS=true`, le client envoie à Firebase Analyti
 - `velour_shop_view` — ouverture [ShopView](lib/screens/shop_view.dart) (Coffre-Fort + Forge).
 - `velour_shop_vault_buy_start` — params `product_id` (SKU), `lux_amount` (grant attendu côté client).
 - `velour_shop_vault_buy_outcome` — params `product_id`, `outcome` (`success` / `cancelled` / `unavailable` / `products_unavailable` / `busy` / `error`), optionnel `error_code` si `outcome == error`.
+- `velour_run_end` — fin de run après résolution de la mise : `stake_kind`, `level`, `end_reason` (`timer` / `deadlock`), `stake_footer` (`none` / `high_stakes_fail` / `high_stakes_win` / `royal_fail` / `royal_win`), `personal_best` (0/1), `run_lux` (score session, plafonné côté client). Voir [GameState](lib/providers/game_state.dart) (`_resolveSessionStakeOnGameOver` puis `_logRunEndAnalytics`).
 - `app_open` (API standard) — au bootstrap si Analytics est activé.
 
 **Console** : Analytics → *DebugView* (appareil debug / build avec debug) ou rapports *Realtime* / *Events* après propagation.
 
-**À prévoir** : `velour_run_end` (niveau, raison de fin) n’est pas encore instrumenté ; l’ajouter si vous corrélez RC avec **taux d’abandon en cours de run**.
+**Usage** : corréler `velour_run_end.level` × `stake_kind` × `end_reason` avec Remote Config (difficulté, objectifs premium) et avec le funnel boutique (`velour_shop_*`).
 
 Sans `VELOUR_ANALYTICS`, la collecte Analytics est coupée côté client (`setAnalyticsCollectionEnabled(false)`) — la politique de confidentialité et la fiche store doivent quand même refléter tout autre traitement (auth, IAP, etc.).
 

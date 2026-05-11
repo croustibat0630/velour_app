@@ -36,6 +36,7 @@ import '../services/narrative_tutorial_service.dart';
 import '../services/oracle_naming_service.dart';
 import '../services/trinity_tutorial_service.dart';
 import '../services/stats_service.dart';
+import '../services/velour_analytics.dart';
 import '../services/velour_observability.dart';
 import '../utils/velour_audit_log.dart';
 import '../utils/velour_debug_log.dart';
@@ -1382,9 +1383,10 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     );
   }
 
-  void _resolveSessionStakeOnGameOver() {
+  /// Retourne `false` si la résolution avait déjà été consommée (anti-doublon).
+  bool _resolveSessionStakeOnGameOver() {
     if (_sessionStakeResolveConsumed) {
-      return;
+      return false;
     }
     _sessionStakeResolveConsumed = true;
 
@@ -1461,6 +1463,28 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     }
     _replaySuggestedStake = r.replaySuggestedStake;
     _sessionStake = SessionStakeKind.casual;
+    return true;
+  }
+
+  static String _stakeFooterAnalytics(SessionStakeFooterLine line) {
+    return switch (line) {
+      SessionStakeFooterLine.none => 'none',
+      SessionStakeFooterLine.highStakesFail => 'high_stakes_fail',
+      SessionStakeFooterLine.highStakesWin150Lux => 'high_stakes_win',
+      SessionStakeFooterLine.royalFail => 'royal_fail',
+      SessionStakeFooterLine.royalWin1250Lux => 'royal_win',
+    };
+  }
+
+  void _logRunEndAnalytics({required String endReason}) {
+    VelourAnalytics.logRunEnd(
+      stakeKind: _lastEndedRunStakeKind.name,
+      level: _gameLevel,
+      endReason: endReason,
+      stakeFooter: _stakeFooterAnalytics(_sessionStakeFooterLine),
+      personalBest: _lastGameWasPersonalBest ? 1 : 0,
+      runLux: _lux.clamp(0, 10000000),
+    );
   }
 
   /// Retour menu / abandon : réinitialise l’état de session **sans rembourser** l’ante
@@ -1993,8 +2017,11 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     );
     try {
       unawaited(_recordRunStatsIfNeeded());
-      _resolveSessionStakeOnGameOver();
+      final bool stakeResolved = _resolveSessionStakeOnGameOver();
       _lastGameWasPersonalBest = _lux > _economy.highScore;
+      if (stakeResolved) {
+        _logRunEndAnalytics(endReason: 'timer');
+      }
       unawaited(
         _persistHighScoreIfNeeded().catchError((Object e, StackTrace st) {
           velourDebug('[Velour][GameOver] persistHighScore failed: $e');
@@ -2742,8 +2769,11 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     if (!wasCritical) {
       _breakPerfectHeatDeadlockInternal();
       unawaited(_recordRunStatsIfNeeded());
-      _resolveSessionStakeOnGameOver();
+      final bool stakeResolved = _resolveSessionStakeOnGameOver();
       _lastGameWasPersonalBest = _lux > _economy.highScore;
+      if (stakeResolved) {
+        _logRunEndAnalytics(endReason: 'deadlock');
+      }
       _playGameOverSound();
       AudioHandler.instance.cutAllAudio();
       unawaited(

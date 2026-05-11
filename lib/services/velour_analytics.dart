@@ -104,6 +104,37 @@ abstract final class VelourAnalytics {
   ///
   /// [outcome] : valeurs stables pour requêtes (`success`, `cancelled`, …).
   /// [errorCode] : uniquement pour `outcome == error` (ex. `offline`) — tronqué.
+  /// Fin de run (chrono épuisé ou impasse plateau) — une fois la mise résolue.
+  ///
+  /// [stake_kind] : `casual` / `highStakes` / `royal` (même vocabulaire que `velour_run_start`).
+  /// [end_reason] : `timer` | `deadlock`.
+  /// [stake_footer] : résultat mise premium (`none`, `high_stakes_fail`, …).
+  static void logRunEnd({
+    required String stakeKind,
+    required int level,
+    required String endReason,
+    required String stakeFooter,
+    required int personalBest,
+    required int runLux,
+  }) {
+    if (!enabled) return;
+    unawaited(
+      _safeLog(() async {
+        await FirebaseAnalytics.instance.logEvent(
+          name: 'velour_run_end',
+          parameters: <String, Object>{
+            'stake_kind': stakeKind,
+            'level': level,
+            'end_reason': endReason,
+            'stake_footer': stakeFooter,
+            'personal_best': personalBest,
+            'run_lux': runLux,
+          },
+        );
+      }),
+    );
+  }
+
   static void logShopVaultBuyOutcome({
     required String productId,
     required String outcome,

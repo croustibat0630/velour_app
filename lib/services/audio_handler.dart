@@ -1106,14 +1106,31 @@ class AudioHandler {
     double? playbackRate,
   }) async {
     try {
-      await _withNativeSourceLoadLock(
-        () => _playDisposableOneShotCore(
+      // Apple : chaque one-shot crée un [AudioPlayer] dédié — ne pas le mettre
+      // derrière [_withNativeSourceLoadLock] : le préload pool enchaîne des
+      // `setSource` longs et retardait menu / premier tap sans partager le même
+      // lecteur. Web / Android : garder la sérialisation (timeouts / hot restart).
+      final bool appleDisposableOutsideLock =
+          !kIsWeb &&
+          (defaultTargetPlatform == TargetPlatform.iOS ||
+              defaultTargetPlatform == TargetPlatform.macOS);
+      if (appleDisposableOutsideLock) {
+        await _playDisposableOneShotCore(
           fileName,
           volume: volume,
           holdMs: holdMs,
           playbackRate: playbackRate,
-        ),
-      );
+        );
+      } else {
+        await _withNativeSourceLoadLock(
+          () => _playDisposableOneShotCore(
+            fileName,
+            volume: volume,
+            holdMs: holdMs,
+            playbackRate: playbackRate,
+          ),
+        );
+      }
     } catch (_) {
       // Intentionally silent.
     }

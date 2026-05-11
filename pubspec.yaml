@@ -121,7 +121,14 @@ flutter:
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
 
+# Icônes Android : activer le mode **adaptive** (cercle / squircle / carré arrondi).
+# Sans foreground+background, seuls des PNG mipmaps « plein cadre » masquent mal sur
+# certains launchers — critère fort pour les vitrines type « Choix de l’équipe » Play.
 flutter_launcher_icons:
   android: true
   ios: true
   image_path: assets/icons/app_icon.png
+  adaptive_icon_foreground: assets/icons/app_icon.png
+  # Couleur de fond derrière le foreground (coins visibles sous masque circulaire).
+  # Or chaud proche du fond texturé de l’icône Velour pour limiter l’effet de découpe.
+  adaptive_icon_background: "#C9A03A"

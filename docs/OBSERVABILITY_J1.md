@@ -72,6 +72,8 @@ Avec `--dart-define=VELOUR_ANALYTICS=true`, le client envoie à Firebase Analyti
 - `velour_leaderboard_view` — ouverture [LeaderboardView](lib/screens/leaderboard_view.dart) ; optionnel `run_instance_id`.
 - `velour_stats_view` — ouverture [StatsView](lib/screens/stats_view.dart) ; optionnel `run_instance_id`.
 - `velour_daily_lux_bonus_outcome` — résultat réclamation bonus menu : `outcome` (`success_server` / `success_queued` / `already_synced` / `already_claimed` / `network_unavailable` / `callable_failed`), optionnel `run_instance_id`.
+- `velour_settings_view` — ouverture [SettingsView](lib/screens/settings_view.dart) ; optionnel `run_instance_id`.
+- `velour_forge_purchase_outcome` — achat Forge LUX depuis la boutique : `forge_item` (`chrono_pulse` / `mercy_salvage` / `oracle_insurance` / `royal_bounty`), `outcome` (ex. `purchased_chrono_pulse`, `insufficient_lux`, `chrono_pulse_stack_full`, …), optionnel `run_instance_id`.
 - `velour_shop_view` — ouverture [ShopView](lib/screens/shop_view.dart) ; param optionnel `run_instance_id` si le joueur n’a pas encore relancé une run (ex. menu après game over → boutique).
 - `velour_shop_vault_buy_start` — params `product_id` (SKU), `lux_amount`, optionnel `run_instance_id`.
 - `velour_shop_vault_buy_outcome` — params `product_id`, `outcome` (`success` / `cancelled` / `unavailable` / `products_unavailable` / `busy` / `error`), optionnel `error_code` si `outcome == error`, optionnel `run_instance_id`.

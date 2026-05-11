@@ -10,6 +10,7 @@ import 'package:velour_app/l10n/app_localizations.dart';
 
 import '../services/audio_handler.dart';
 import '../services/app_settings.dart';
+import '../services/velour_analytics.dart';
 import '../services/firestore_service.dart';
 import '../services/haptics_handler.dart';
 import '../providers/game_state.dart';
@@ -47,18 +48,34 @@ Future<void> _openPrivacyPolicyUrl(
   }
 }
 
-class SettingsView extends StatelessWidget {
+class SettingsView extends StatefulWidget {
   const SettingsView({super.key});
 
   static const Color _gold = Color(0xFFFFD700);
   static const Color _panel = Color(0xFF0A0C12);
 
   @override
+  State<SettingsView> createState() => _SettingsViewState();
+}
+
+class _SettingsViewState extends State<SettingsView> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      VelourAnalytics.logSettingsView(
+        runInstanceId: context.read<GameState>().analyticsRunInstanceId,
+      );
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final AppLocalizations l10n = AppLocalizations.of(context)!;
     final double sH = Responsive.heightScale(context);
     final double sT = Responsive.textScale(context);
-    final Color accent = _gold;
+    final Color accent = SettingsView._gold;
     return Scaffold(
       body: Stack(
         fit: StackFit.expand,
@@ -442,7 +459,7 @@ class SettingsView extends StatelessWidget {
       builder: (BuildContext dialogContext) {
         final AppLocalizations dl10n = AppLocalizations.of(dialogContext)!;
         return AlertDialog(
-          backgroundColor: _panel.withValues(alpha: 0.96),
+          backgroundColor: SettingsView._panel.withValues(alpha: 0.96),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
           ),

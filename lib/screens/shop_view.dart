@@ -16,6 +16,21 @@ import '../utils/velour_accessibility.dart';
 import '../widgets/ui/dark_matte_overlay.dart';
 import '../widgets/ui/velour_snackbar.dart';
 
+String _forgePurchaseOutcomeAnalytics(ForgePurchaseOutcome o) {
+  return switch (o) {
+    ForgePurchaseOutcome.insufficientLux => 'insufficient_lux',
+    ForgePurchaseOutcome.purchasedInsurance => 'purchased_insurance',
+    ForgePurchaseOutcome.purchasedRoyalBounty => 'purchased_royal_bounty',
+    ForgePurchaseOutcome.insuranceStackFull => 'insurance_stack_full',
+    ForgePurchaseOutcome.royalBountyAlreadyActive =>
+      'royal_bounty_already_active',
+    ForgePurchaseOutcome.purchasedChronoPulse => 'purchased_chrono_pulse',
+    ForgePurchaseOutcome.chronoPulseStackFull => 'chrono_pulse_stack_full',
+    ForgePurchaseOutcome.purchasedMercySalvage => 'purchased_mercy_salvage',
+    ForgePurchaseOutcome.mercySalvageStackFull => 'mercy_salvage_stack_full',
+  };
+}
+
 String _vaultBuyOutcomeAnalytics(LuxIapBuyKind kind) {
   return switch (kind) {
     LuxIapBuyKind.success => 'success',
@@ -641,6 +656,14 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
                                       AudioHandler.instance.playMenuClick();
                                       final ForgePurchaseOutcome r = await gs
                                           .purchaseForgeChronoPulse();
+                                      VelourAnalytics.logForgePurchaseOutcome(
+                                        forgeItem: 'chrono_pulse',
+                                        outcome: _forgePurchaseOutcomeAnalytics(
+                                          r,
+                                        ),
+                                        runInstanceId:
+                                            gs.analyticsRunInstanceId,
+                                      );
                                       if (!context.mounted) return;
                                       final AppLocalizations sl10n =
                                           AppLocalizations.of(context)!;
@@ -691,6 +714,14 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
                                       AudioHandler.instance.playMenuClick();
                                       final ForgePurchaseOutcome r = await gs
                                           .purchaseForgeMercySalvage();
+                                      VelourAnalytics.logForgePurchaseOutcome(
+                                        forgeItem: 'mercy_salvage',
+                                        outcome: _forgePurchaseOutcomeAnalytics(
+                                          r,
+                                        ),
+                                        runInstanceId:
+                                            gs.analyticsRunInstanceId,
+                                      );
                                       if (!context.mounted) return;
                                       final AppLocalizations sl10n =
                                           AppLocalizations.of(context)!;
@@ -752,6 +783,14 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
                                       AudioHandler.instance.playMenuClick();
                                       final ForgePurchaseOutcome r = await gs
                                           .purchaseForgeOracleInsurance();
+                                      VelourAnalytics.logForgePurchaseOutcome(
+                                        forgeItem: 'oracle_insurance',
+                                        outcome: _forgePurchaseOutcomeAnalytics(
+                                          r,
+                                        ),
+                                        runInstanceId:
+                                            gs.analyticsRunInstanceId,
+                                      );
                                       if (!context.mounted) return;
                                       final AppLocalizations sl10n =
                                           AppLocalizations.of(context)!;
@@ -800,6 +839,14 @@ class _ShopViewState extends State<ShopView> with TickerProviderStateMixin {
                                       AudioHandler.instance.playMenuClick();
                                       final ForgePurchaseOutcome r = await gs
                                           .purchaseForgeRoyalVictoryBounty();
+                                      VelourAnalytics.logForgePurchaseOutcome(
+                                        forgeItem: 'royal_bounty',
+                                        outcome: _forgePurchaseOutcomeAnalytics(
+                                          r,
+                                        ),
+                                        runInstanceId:
+                                            gs.analyticsRunInstanceId,
+                                      );
                                       if (!context.mounted) return;
                                       final AppLocalizations sl10n =
                                           AppLocalizations.of(context)!;

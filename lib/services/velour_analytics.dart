@@ -110,6 +110,45 @@ abstract final class VelourAnalytics {
   }
 
   /// Résultat d’une tentative de réclamation du bonus LUX quotidien (menu).
+  /// Ouverture des paramètres ([SettingsView]).
+  static void logSettingsView({String? runInstanceId}) {
+    if (!enabled) return;
+    unawaited(
+      _safeLog(() async {
+        final String? id = runInstanceId;
+        final Map<String, Object>? params = (id != null && id.isNotEmpty)
+            ? <String, Object>{'run_instance_id': id}
+            : null;
+        await FirebaseAnalytics.instance.logEvent(
+          name: 'velour_settings_view',
+          parameters: params,
+        );
+      }),
+    );
+  }
+
+  /// Résultat d’un achat Forge (LUX) depuis la boutique.
+  ///
+  /// [forge_item] : `chrono_pulse` / `mercy_salvage` / `oracle_insurance` / `royal_bounty`.
+  static void logForgePurchaseOutcome({
+    required String forgeItem,
+    required String outcome,
+    String? runInstanceId,
+  }) {
+    if (!enabled) return;
+    unawaited(
+      _safeLog(() async {
+        await FirebaseAnalytics.instance.logEvent(
+          name: 'velour_forge_purchase_outcome',
+          parameters: _withRunInstanceId(<String, Object>{
+            'forge_item': forgeItem,
+            'outcome': outcome,
+          }, runInstanceId),
+        );
+      }),
+    );
+  }
+
   static void logDailyLuxBonusOutcome({
     required String outcome,
     String? runInstanceId,

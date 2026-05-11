@@ -2,8 +2,8 @@ import 'package:flutter/foundation.dart' show debugPrint, kReleaseMode;
 
 /// Liens injectés au **build** pour les releases (stores / testeurs).
 ///
-/// Exemple :
-/// `flutter build appbundle --release --dart-define=VELOUR_PRIVACY_POLICY_URL=https://example.com/privacy`
+/// Exemple (store : privacy + Analytics) :
+/// `flutter build appbundle --release --dart-define=VELOUR_PRIVACY_POLICY_URL=… --dart-define=VELOUR_ANALYTICS=true`
 ///
 /// URL **production** (App Store Connect, page Notion) — recopier telle quelle
 /// dans `--dart-define=VELOUR_PRIVACY_POLICY_URL` pour les binaires store :

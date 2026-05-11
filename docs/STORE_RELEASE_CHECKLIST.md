@@ -9,7 +9,7 @@ Document **exécutable** : chaque case doit être cochée par une personne (ou n
 À faire **dans cet ordre** réduit les allers-retours console / binaires :
 
 1. **RC prod publié** + **App Check** enregistré pour les builds release (§4) — sinon les callables / fetch peuvent diverger du binaire que vous testez.
-2. **URL privacy** figée + **builds** AAB/IPA avec `--dart-define=VELOUR_PRIVACY_POLICY_URL=…` (§1) — gate store et clé Crashlytics `velour_privacy_url_configured`.
+2. **URL privacy** figée + **builds** AAB/IPA avec `--dart-define=VELOUR_PRIVACY_POLICY_URL=…` **et** `VELOUR_ANALYTICS=true` (sauf exception documentée) (§1) — gate store, clés Crashlytics `velour_privacy_url_configured` / `velour_analytics`.
 3. **Passe appareils réels** iOS + Android : parcours froid, cash/prep/gemmes, Réduire les mouvements, VoiceOver, TalkBack (§3).
 4. **Observabilité J1** : filtres / alertes Crashlytics + Logging ; les **builds store** incluent `VELOUR_ANALYTICS=true` par défaut (§1) — politique à jour + dimensions GA4 (§5–6, `docs/OBSERVABILITY_J1.md`).
 
@@ -28,7 +28,7 @@ Document **exécutable** : chaque case doit être cochée par une personne (ou n
 
 - [x] Scripts `scripts/echo_store_release_build.sh`, `scripts/build_store_artifacts.sh` + checklist §0–§1 maintenues.
 - [x] `docs/OBSERVABILITY_J1.md` (filtres `[VEL_OBS]`, clés custom, funnel Analytics opt-in `VELOUR_ANALYTICS`).
-- [x] Workflow GitHub **manuel** `.github/workflows/store_release_compile.yml` (AAB release + dart-define privacy) — onglet *Actions* → *Store release compile check* → *Run workflow*.
+- [x] Workflow GitHub **manuel** `.github/workflows/store_release_compile.yml` (AAB release + privacy + Analytics) — onglet *Actions* → *Store release compile check* → *Run workflow*.
 
 ---
 
@@ -37,8 +37,8 @@ Document **exécutable** : chaque case doit être cochée par une personne (ou n
 - [x] Incrémenter `version: x.y.z+N` dans `pubspec.yaml` (le `+N` est obligatoire pour Play / App Store — voir règle équipe dans `.cursor/rules/git-workflow.mdc`). *(Dépôt : **`+13`** — aligné AAB + IPA, manifest sans `AD_ID` ; **re-incrémenter** avant le prochain upload store.)*
 - [x] `flutter pub get`
 - [x] Builds release signés / uploadables :
-  - [x] **Android** : `app-release.aab` avec `android/key.properties` + dart-define privacy (voir annexe B).
-  - [x] **iOS** : `Velour.ipa` (export App Store) + dart-define privacy — upload via Transporter ou `altool` (annexe B).
+  - [x] **Android** : `app-release.aab` avec `android/key.properties` + dart-defines privacy + Analytics (voir annexe B).
+  - [x] **iOS** : `Velour.ipa` (export App Store) + mêmes dart-defines — upload via Transporter ou `altool` (annexe B).
 
 ### Commandes types (URL = politique Notion / App Store Connect)
 
@@ -186,7 +186,7 @@ Chemins locaux (non versionnés dans git) — **régénérés ensemble** avec `.
 | **Google Play** | `build/app/outputs/bundle/release/app-release.aab` |
 | **App Store** | `build/ios/ipa/Velour.ipa` (+ `build/ios/archive/Runner.xcarchive` si besoin) |
 
-**Commande unique** (reproductible) : `./scripts/build_store_artifacts.sh` — même `VELOUR_PRIVACY_POLICY_URL` que la fiche Notion / App Store Connect. Option funnel : `VELOUR_ANALYTICS=1 ./scripts/build_store_artifacts.sh`.
+**Commande unique** (reproductible) : `./scripts/build_store_artifacts.sh` — même `VELOUR_PRIVACY_POLICY_URL` que la fiche Notion / App Store Connect + **`VELOUR_ANALYTICS=true` par défaut**. Désactiver Analytics : `VELOUR_ANALYTICS=0 ./scripts/build_store_artifacts.sh`.
 
 **Android / identifiant publicitaire** : le manifest principal retire les permissions `AD_ID` fusionnées par les SDK Google (voir `android/app/src/main/AndroidManifest.xml`) pour rester cohérent avec la déclaration Play « non ».
 

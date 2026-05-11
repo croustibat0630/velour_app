@@ -7,7 +7,7 @@ on:
 
 jobs:
   android_aab_release:
-    name: Android appbundle (release + privacy dart-define)
+    name: Android appbundle (release + privacy + Analytics dart-defines)
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:

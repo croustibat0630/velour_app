@@ -124,6 +124,12 @@ flutter:
 # Icônes Android : activer le mode **adaptive** (cercle / squircle / carré arrondi).
 # Sans foreground+background, seuls des PNG mipmaps « plein cadre » masquent mal sur
 # certains launchers — critère fort pour les vitrines type « Choix de l’équipe » Play.
+#
+# iOS / App Store (Apple) : image **carrée** ; le système applique le masque « squircle »
+# (ne pas pré-arrondir les coins). L’icône marketing 1024×1024 ne doit pas comporter de
+# transparence — voir « Configuring your app icon » + HIG App icons sur developer.apple.com.
+# Variantes Dark / Tinted (iOS 18+) : optionnelles ; Apple peut appliquer un traitement auto
+# si on ne fournit pas d’assets dédiés (image_path_ios_dark_transparent / …_tinted_grayscale).
 flutter_launcher_icons:
   android: true
   ios: true
@@ -132,3 +138,6 @@ flutter_launcher_icons:
   # Couleur de fond derrière le foreground (coins visibles sous masque circulaire).
   # Or chaud proche du fond texturé de l’icône Velour pour limiter l’effet de découpe.
   adaptive_icon_background: "#C9A03A"
+  # App Store : pas de canal alpha sur les PNG d’icône — fusion sur fond proche du gold Velour.
+  remove_alpha_ios: true
+  background_color_ios: "#C9A03A"

@@ -754,7 +754,9 @@ class FirestoreService {
       if (e.code == 'unauthenticated') {
         String? appCheckTokenKind;
         try {
-          final String? t = await FirebaseAppCheck.instance.getToken(true);
+          // Ne pas utiliser getToken(true) ici : après un 429 App Check « debug token
+          // exchange », forcer un nouvel échange aggrave le quota et fige le debug.
+          final String? t = await FirebaseAppCheck.instance.getToken(false);
           appCheckTokenKind = (t == null || t.isEmpty) ? 'missing' : 'present';
         } catch (appCheckErr) {
           appCheckTokenKind = 'error:${appCheckErr.runtimeType}';
@@ -905,7 +907,9 @@ class FirestoreService {
 
   Future<void> _refreshAuthAndAppCheckForCallable() async {
     try {
-      await FirebaseAppCheck.instance.getToken(true);
+      // false : réutilise le jeton en cache si valide — limite les appels à
+      // l’API « debug token exchange » (quota minute côté Firebase).
+      await FirebaseAppCheck.instance.getToken(false);
     } catch (_) {}
     try {
       await ensureAnonymousAuthReady();

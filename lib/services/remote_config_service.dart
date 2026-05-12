@@ -190,12 +190,7 @@ class VelourRemoteConfig {
   int get runIdleHardStartSec {
     final int soft = runIdleSoftStartSec;
     final int raw = _int(kRunIdleHardSec, _defaults[kRunIdleHardSec]! as int);
-    final int lo = soft + 1;
-    const int hi = 90;
-    if (lo > hi) {
-      return hi;
-    }
-    return raw.clamp(lo, hi);
+    return raw.clamp(soft + 1, 90);
   }
 
   // --- Board flow (Heat spawn) ---

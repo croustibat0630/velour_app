@@ -85,6 +85,15 @@ jobs:
           restore-keys: |
             ios-pods-
 
+      # Réduit les 429 « Too Many Requests » sur le CDN trunk (raw GitHub) au pod install.
+      - name: Cache CocoaPods trunk (CDN specs)
+        uses: actions/cache@v5
+        with:
+          path: ~/.cocoapods/repos/trunk
+          key: cocoapods-trunk-${{ runner.os }}-${{ hashFiles('ios/Podfile.lock') }}
+          restore-keys: |
+            cocoapods-trunk-${{ runner.os }}-
+
       - name: Flutter SDK
         uses: subosito/flutter-action@v2
         with:
@@ -97,7 +106,19 @@ jobs:
       # Remplit `ios/Pods` pendant que le cache Actions est chaud ; `flutter test` refait
       # un pod léger ensuite au lieu d’un cold start de 15–25 min seul dans la foulée.
       - name: CocoaPods install (iOS)
-        run: cd ios && pod install
+        run: |
+          set -euo pipefail
+          cd ios
+          for attempt in 1 2 3 4 5; do
+            if pod install; then
+              exit 0
+            fi
+            echo "::warning::pod install failed (attempt ${attempt}/5). Retrying after backoff..."
+            if [[ "${attempt}" -eq 5 ]]; then
+              exit 1
+            fi
+            sleep $((attempt * 25))
+          done
 
       - name: Boot Simulator & integration smoke
         run: |

@@ -198,7 +198,10 @@ class _MainMenuViewState extends State<MainMenuView>
     final ({int amount, bool silent}) juice = gs.takePendingLuxJuice();
     final int pending = juice.amount;
     if (pending <= 0) return;
-    _overrideInitialValue = (gs.luxCoins - pending).clamp(0, gs.luxCoins);
+    _overrideInitialValue = (gs.luxCoins - pending).clamp(
+      0,
+      math.max(0, gs.luxCoins),
+    );
     setState(() {});
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;

@@ -101,7 +101,12 @@ class _PreparationViewState extends State<PreparationView> with RouteAware {
     final ({int amount, bool silent}) juice = gs.takePendingLuxJuice();
     final int pending = juice.amount;
     if (pending <= 0) return;
-    _overrideInitialValue = (gs.luxCoins - pending).clamp(0, gs.luxCoins);
+    // `clamp(lower, upper)` exige lower ≤ upper ; si luxCoins < 0 (état corrompu),
+    // `clamp(0, luxCoins)` lève RangeError.
+    _overrideInitialValue = (gs.luxCoins - pending).clamp(
+      0,
+      math.max(0, gs.luxCoins),
+    );
     setState(() {});
     if (!juice.silent) {
       try {

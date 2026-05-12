@@ -277,10 +277,18 @@ class AudioHandler {
 
     Future<bool> runLoadOnce() async {
       try {
-        await loadCore().timeout(_pooledSfxLoadTimeout);
+        // Utiliser onTimeout plutôt que laisser .timeout lever [TimeoutException] :
+        // avec « All Exceptions » dans le débogueur, chaque timeout contrôlé
+        // mettait une pause alors que le flux continue avec `return false`.
+        bool timedOut = false;
+        await loadCore().timeout(
+          _pooledSfxLoadTimeout,
+          onTimeout: () {
+            timedOut = true;
+          },
+        );
+        if (timedOut) return false;
         return true;
-      } on TimeoutException {
-        return false;
       } catch (e, st) {
         velourAudioTrace(
           'AudioHandler._setupPooledSfx loadCore failed file=$fileName err=$e',
@@ -314,12 +322,19 @@ class AudioHandler {
     }
 
     try {
-      await _warmUpSfxDecoder(player).timeout(_pooledSfxWarmTimeout);
-    } on TimeoutException {
-      velourAudioTrace(
-        'AudioHandler._warmUpSfxDecoder timeout file=$fileName '
-        'after ${_pooledSfxWarmTimeout.inSeconds}s',
+      bool warmTimedOut = false;
+      await _warmUpSfxDecoder(player).timeout(
+        _pooledSfxWarmTimeout,
+        onTimeout: () {
+          warmTimedOut = true;
+        },
       );
+      if (warmTimedOut) {
+        velourAudioTrace(
+          'AudioHandler._warmUpSfxDecoder timeout file=$fileName '
+          'after ${_pooledSfxWarmTimeout.inSeconds}s',
+        );
+      }
     } catch (_) {
       // Best-effort warm-up (session / simulateur).
     }

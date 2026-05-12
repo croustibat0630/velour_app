@@ -45,29 +45,36 @@ class _ComboFloaterState extends State<_ComboFloater>
         final double scale = 0.65 + 0.55 * t;
         final double opacity = (1 - t * 0.35).clamp(0.0, 1.0);
         final Offset p = widget.position + Offset(0, -56 * t);
-        return Positioned(
-          left: p.dx,
-          top: p.dy,
-          child: Transform.scale(
-            scale: scale,
-            alignment: Alignment.centerLeft,
-            child: Text(
-              comboText,
-              style: TextStyle(
-                fontFamily: 'monospace',
-                fontSize: 20,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 1.4,
-                color: widget.accent.withValues(alpha: 0.96 * opacity),
-                shadows: [
-                  Shadow(
-                    color: widget.accent.withValues(alpha: 0.5 * opacity),
-                    blurRadius: 16,
+        // [Positioned] must sit under a [Stack]; [AnimatedBuilder] inserts a render
+        // object, so we cannot return [Positioned] directly from this builder.
+        return Stack(
+          clipBehavior: Clip.none,
+          children: <Widget>[
+            Positioned(
+              left: p.dx,
+              top: p.dy,
+              child: Transform.scale(
+                scale: scale,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  comboText,
+                  style: TextStyle(
+                    fontFamily: 'monospace',
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.4,
+                    color: widget.accent.withValues(alpha: 0.96 * opacity),
+                    shadows: [
+                      Shadow(
+                        color: widget.accent.withValues(alpha: 0.5 * opacity),
+                        blurRadius: 16,
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
-          ),
+          ],
         );
       },
     );

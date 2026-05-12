@@ -71,6 +71,12 @@ class EconomyService extends ChangeNotifier {
   int _lastLuxCloudFailLogMicros = 0;
   String? _lastLuxCloudFailPending;
 
+  /// Après [unauthenticated] (App Check / Auth), ne pas re-planifier le drain toutes
+  /// les 650 ms : chaque essai relance `exchangeDebugToken` côté SDK et peut saturer
+  /// le quota Firebase (60 requêtes/min par projet) + noyer la console.
+  DateTime? _luxCloudDrainBackoffUntil;
+  int _luxCloudUnauthFailStreak = 0;
+
   int _luxCoins = 0;
   int get luxCoins => _luxCoins;
 
@@ -390,8 +396,22 @@ class EconomyService extends ChangeNotifier {
     await _local.persistLuxCoins(_luxCoins);
   }
 
+  Duration _luxCloudDebounceDelayBeforeDrain() {
+    const Duration normal = Duration(milliseconds: 650);
+    final DateTime? until = _luxCloudDrainBackoffUntil;
+    if (until == null) return normal;
+    final DateTime now = DateTime.now();
+    if (!now.isBefore(until)) return normal;
+    final Duration wait = until.difference(now);
+    if (wait > const Duration(minutes: 2)) {
+      return const Duration(minutes: 2);
+    }
+    return wait > normal ? wait : normal;
+  }
+
   void _scheduleDebouncedLuxCloudSync() {
-    _luxCloudSyncSlot.runOnce(const Duration(milliseconds: 650), () {
+    final Duration delay = _luxCloudDebounceDelayBeforeDrain();
+    _luxCloudSyncSlot.runOnce(delay, () {
       unawaited(
         _drainPendingLuxCloudSync().then((_) {
           if (_hasPendingLuxCloudDeltas()) {
@@ -487,6 +507,8 @@ class EconomyService extends ChangeNotifier {
             idempotencyKey: idempotencyKey,
           );
       if (r != null && r.ok) {
+        _luxCloudDrainBackoffUntil = null;
+        _luxCloudUnauthFailStreak = 0;
         final int applied = r.appliedDelta ?? step;
         if (applied == 0 && d0 != 0) {
           // Ex. plafond journalier motif (`daily_bonus`) : évite boucle infinie sur la file.
@@ -545,6 +567,8 @@ class EconomyService extends ChangeNotifier {
       } else {
         final String? fe = r?.functionErrorCode;
         if (fe != null && _luxCallableUnrecoverableCodes.contains(fe)) {
+          _luxCloudDrainBackoffUntil = null;
+          _luxCloudUnauthFailStreak = 0;
           // Drop uniquement le delta courant pour ce motif (pas tout le motif).
           if (q.isNotEmpty) {
             q.removeAt(0);
@@ -596,6 +620,29 @@ class EconomyService extends ChangeNotifier {
               if (forceOffline) 'forcedOffline': true,
             },
           );
+        }
+        if (fe == 'unauthenticated') {
+          _luxCloudUnauthFailStreak = (_luxCloudUnauthFailStreak + 1).clamp(
+            0,
+            8,
+          );
+          // 20s → 40s → 80s → 120s entre tentatives tant que ça échoue.
+          final int exp = math.min(_luxCloudUnauthFailStreak - 1, 3);
+          final int sec = math.min(120, 20 << exp);
+          _luxCloudDrainBackoffUntil = DateTime.now().add(
+            Duration(seconds: sec),
+          );
+          _economyLog(
+            'lux_cloud_drain_backoff',
+            data: <String, Object?>{
+              'motif': motif,
+              'seconds': sec,
+              'streak': _luxCloudUnauthFailStreak,
+            },
+          );
+        } else {
+          _luxCloudUnauthFailStreak = 0;
+          _luxCloudDrainBackoffUntil = null;
         }
         VelourObservability.logEconomySecurity(
           'lux_cloud_drain_failed',

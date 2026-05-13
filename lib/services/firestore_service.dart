@@ -290,21 +290,23 @@ class FirestoreService {
         final DocumentReference<Map<String, dynamic>> doc = _db
             .collection('players')
             .doc(u.uid);
-        final DocumentSnapshot<Map<String, dynamic>> snap = await doc.get();
-        if (!snap.exists) {
-          await doc.set(<String, dynamic>{
-            'highScore': 0,
-            'totalLux': 0,
-            'inventory': <String>[SkinCatalog.standard.id],
-            'activeSkinId': SkinCatalog.standard.id,
-            'lastSeen': FieldValue.serverTimestamp(),
-            'updatedAt': FieldValue.serverTimestamp(),
-          });
-        } else {
-          await doc.set(<String, dynamic>{
-            'lastSeen': FieldValue.serverTimestamp(),
-          }, SetOptions(merge: true));
-        }
+        await _firestoreRetry(() async {
+          final DocumentSnapshot<Map<String, dynamic>> snap = await doc.get();
+          if (!snap.exists) {
+            await doc.set(<String, dynamic>{
+              'highScore': 0,
+              'totalLux': 0,
+              'inventory': <String>[SkinCatalog.standard.id],
+              'activeSkinId': SkinCatalog.standard.id,
+              'lastSeen': FieldValue.serverTimestamp(),
+              'updatedAt': FieldValue.serverTimestamp(),
+            });
+          } else {
+            await doc.set(<String, dynamic>{
+              'lastSeen': FieldValue.serverTimestamp(),
+            }, SetOptions(merge: true));
+          }
+        });
       } catch (e, st) {
         VelourObservability.logFirestoreFailure(
           'initializeAuthAndPullSkins.playerDocTouch',

@@ -1,21 +1,20 @@
-# Velour — où coller ces textes (guide FR)
+# Velour — où coller ces textes (guide en français)
 
-Les chemins ci‑dessous sont les mêmes pour toutes les langues : seule la **langue** affichée dans la console change (tu peux t’appuyer sur ce fichier comme modèle pour recopier `en.md`, `de.md`, etc.).
+Les titres **##** reprennent les noms des champs dans la **langue du fichier** ; les lignes en *italique* indiquent **où coller** (toujours en français).
 
-### App Store Connect (navigateur)
+**Locale pour ce fichier :** App Store Connect → **Français (France)** (ou autre variante francophone que tu as ajoutée) · Play Console → **français (France)**.
 
-1. Ouvre [App Store Connect](https://appstoreconnect.apple.com) → **Mes apps** → **Velour**.
-2. Dans la barre latérale gauche, clique sur **App Store** (onglet store, pas *TestFlight* ni *Xcode Cloud*).
-3. Sélectionne la **version iOS** que tu prépares (ex. *1.x Prêt à soumettre* ou *En préparation*).
-4. Descends jusqu’aux **localisations** / métadonnées App Store : choisis **Français (France)** — ou la variante que tu as ajoutée (*Français Canada*, etc.). Si la langue n’existe pas : **Informations sur l’app** → *Langues* / localisations, puis reviens sur la version.
-5. Copie chaque bloc ci‑dessous dans le **champ du même nom** sur cette page (Nom, Sous-titre, Mots-clés, Texte promotionnel, Description). Le **texte promotionnel** peut souvent être mis à jour **sans nouvelle version binaire** (vérifier l’info‑bulle Apple au moment du collage).
+### App Store Connect
 
-### Google Play Console (navigateur)
+1. [App Store Connect](https://appstoreconnect.apple.com) → **Mes apps** → **Velour** → menu **App Store** (pas *TestFlight*) → ta **version iOS** en préparation.
+2. Section **localisation** : choisis **la locale indiquée ci‑dessus**. Si elle n’existe pas : **Informations sur l’app** → ajouter la langue, puis reviens sur la version.
+3. Copie chaque bloc dans le champ du même type. Si l’interface Apple est en anglais : **Nom** = *Name*, **Sous-titre** = *Subtitle*, **Mots-clés** = *Keywords*, **Texte promotionnel** = *Promotional Text*, **Description** = *Description*.
+4. Le **texte promotionnel** peut souvent être mis à jour **sans nouvelle build** (vérifier l’info dans la console au moment du collage).
 
-1. Ouvre [Play Console](https://play.google.com/console) → sélectionne **Velour**.
-2. Menu gauche : **Présence sur le Play Store** → **Fiches principales du store** (libellé parfois en anglais *Main store listing* selon la langue de l’interface).
-3. En haut de la page, choisis la **langue par défaut** ou **Ajouter une langue** → **français (France)**.
-4. Colle les champs **Titre**, **Courte description** et **Description complète** dans les zones correspondantes (même ordre que les sections Play ci‑dessous).
+### Google Play Console
+
+1. [Play Console](https://play.google.com/console) → **Velour** → **Présence sur le Play Store** → **Fiches principales du store** (parfois *Main store listing*).
+2. Sélecteur de langue : **celle indiquée dans *Locale pour ce fichier*** → remplis **Titre**, **Courte description**, **Description complète**.
 
 ---
 
@@ -23,31 +22,31 @@ Les chemins ci‑dessous sont les mêmes pour toutes les langues : seule la **la
 
 ## Nom (30 max)
 
-*Coller dans App Store Connect → **App Store** → ta version → localisation **Français** → champ **Nom** (nom public sur l’App Store).*
+*Champ **Nom** App Store (*Name* si l’interface Apple est en anglais).*
 
 Velour: Luxury Sort & Stack
 
 ## Sous-titre (30 max)
 
-*Même écran de localisation → champ **Sous-titre**.*
+*Champ **Sous-titre** (*Subtitle*).*
 
 Logique néon • Grimpe au top
 
 ## Mots-clés (100 max)
 
-*Même écran → champ **Mots-clés** (une seule ligne, virgules **sans** espace après chaque virgule).*
+*Champ **Mots-clés** (*Keywords*) — une seule ligne, virgules **sans** espace après chaque virgule.*
 
 puzzle,stratégie,neon,arcade,gems,LUX,classement,perfect,skill,défi,triple
 
 ## Texte promotionnel (170 max, optionnel)
 
-*Même écran → champ **Texte promotionnel** (optionnel ; souvent modifiable sans soumettre une nouvelle build — confirmer dans la console).*
+*Champ **Texte promotionnel** (*Promotional Text*).*
 
 Chaque run est un pari : lis le rack, enchaîne les clears, vise le Perfect avant la fin du chrono. Néon sombre, classement live—montre que tu ne plies pas.
 
 ## Description (4000 max)
 
-*Même écran → champ **Description** (grande zone de texte).*
+*Champ **Description** (*Description*).*
 
 **Tu vois le rack. Le chrono, lui, ne négocie pas.** Velour est un **puzzle néon exigeant** pensé en **runs** : chaque pose est un pari de **logique**—clears **forme**, **couleur**, et le **Perfect** (trois gemmes identiques) qui fait exploser le score et alimente la **Heat** pour des bonus LUX et des repêchages de temps au bon moment. Pour ceux qui veulent **réfléchir vite**, pas seulement taper vite.
 
@@ -72,23 +71,23 @@ Analytique / crash reporting possibles sur les builds store—voir la politique 
 
 # Google Play Console (Français)
 
-*Navigation : **Présence sur le Play Store** → **Fiches principales du store** → langue **français** — les trois champs suivants sont sur cette page.*
+*Même navigation Play : **Présence sur le Play Store** → **Fiches principales du store** → langue = **Locale pour ce fichier** (en haut). Les trois champs ci‑dessous sont sur cette page.*
 
 ## Titre (30 max)
 
-*Champ **Titre** (30 caractères max ; souvent identique au nom App Store).*
+*Champ **Titre** (30 caractères max ; souvent aligné sur le nom App Store).*
 
 Velour: Luxury Sort & Stack
 
 ## Courte description (80 max)
 
-*Champ **Courte description** (80 caractères max ; texte court visible sur la fiche).*
+*Champ **Courte description** (80 caractères max).*
 
 Puzzle néon nerveux : Perfects, LUX, classement mondial—pour relancer encore.
 
 ## Description complète (4000 max)
 
-*Champ **Description complète** (grande zone ; jusqu’à 4000 caractères).*
+*Champ **Description complète** (jusqu’à 4000 caractères).*
 
 **Le plateau te juge. Le chrono tranche.** Velour, c’est du **puzzle / stratégie** en **runs** sous tension : triples, **Perfect**, **LUX**, et une **Heat** qui récompense la précision quand le temps file.
 

@@ -1,18 +1,51 @@
+# Velour — où coller ces textes (guide en français)
+
+Les titres **##** sont en **hindi** (ou translittération) ; les lignes *italiques* indiquent **où coller**, en français.
+
+**Locale pour ce fichier :** App Store Connect → **Hindi** · Play Console → **hindi** (ou **hindi (Inde)** selon les options).
+
+### App Store Connect
+
+1. [App Store Connect](https://appstoreconnect.apple.com) → **Mes apps** → **Velour** → **App Store** → version iOS → localisation **Hindi**.
+2. Champs cibles : **Name**, **Subtitle**, **Keywords**, **Promotional Text**, **Description** (libellés anglais courants dans l’interface Apple) — même emplacement que pour les autres langues.
+3. **Promotional Text** : parfois modifiable sans nouvelle build.
+
+### Google Play Console
+
+1. [Play Console](https://play.google.com/console) → **Velour** → **Présence sur le Play Store** → **Fiches principales du store** → langue **hindi** → **Titre**, **Courte description**, **Description complète**.
+
+---
+
 # App Store Connect (हिन्दी — hi)
 
 ## नाम (30 वर्ण तक)
+
+*Champ **Name** — nom public App Store (30 caractères max côté Apple ; compter en **caractères** / *glyphs* pour le devanagari selon la console).*
+
 Velour: Luxury Sort & Stack
 
 ## उपशीर्षक (30 वर्ण तक)
+
+*Champ **Subtitle**.*
+
 नीयॉन लॉजिक • वैश्विक रैंक
 
 ## कीवर्ड (100 वर्ण तक, अंग्रेज़ी में अल्पविराम, अल्पविराम के बाद रिक्त स्थान नहीं)
+
+*Champ **Keywords** — une ligne, mots-clés en anglais comme indiqué, virgules sans espace après.*
+
 puzzle,strategy,neon,arcade,gems,LUX,leaderboard,perfect,skill,brain,logic,triple
 
 ## प्रचार पाठ (170 वर्ण तक, वैकल्पिक)
+
+*Champ **Promotional Text**.*
+
 जो दबाव में चमकते हैं: रैक पढ़ो, क्लियर चेन करो, घड़ी घिसने से पहले परफेक्ट पकड़ो। डार्क नीयॉन + लाइव वर्ल्ड रैंक—दिखाओ कि नर्व टूटते नहीं।
 
 ## विवरण (4000 वर्ण तक)
+
+*Champ **Description**.*
+
 **रैक दिखता है। समय सौदा नहीं करता।** Velour एक **हाई‑स्किल नीयॉन पज़ल** है, जो **रन** पर टिकता है: हर रखना लॉजिक पर दांव है—आकार/रंग क्लियर और **परफेक्ट** (तीन समान रत्न) जो स्कोर उछालता है और **Heat** भरता है ताकि ज़्यादा **LUX** और क्लच टाइम रिकवरी मिले। उन खिलाड़ियों के लिए जो **पलक झपकते पहले सोचना** चाहते हैं।
 
 **फिर से क्यों खेलोगे**
@@ -35,13 +68,24 @@ puzzle,strategy,neon,arcade,gems,LUX,leaderboard,perfect,skill,brain,logic,tripl
 
 # Google Play Console (हिन्दी)
 
+*Play → **Fiches principales du store** → langue **hindi** (voir *Locale pour ce fichier*).*
+
 ## शीर्षक (30 वर्ण तक)
+
+*Champ **Title** / **Titre**.*
+
 Velour: Luxury Sort & Stack
 
 ## संक्षिप्त विवरण (80 वर्ण तक)
+
+*Champ **Short description**.*
+
 हाई‑स्किल नीयॉन पज़ल: परफेक्ट, LUX, वर्ल्ड रैंक—बार‑बार खेलने लायक।
 
 ## पूर्ण विवरण (4000 वर्ण तक)
+
+*Champ **Full description**.*
+
 **बोर्ड परखता है। समय फैसला सुनाता है।** Velour = **नीयॉन पज़ल + स्ट्रैटेजी** वाले **रन**: ट्रिपल, **परफेक्ट**, **LUX**, **Heat**—उन खिलाड़ियों के लिए जो **तनाव में सोचना** पसंद करते हैं।
 
 **गेमप्ले**

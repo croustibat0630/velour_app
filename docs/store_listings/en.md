@@ -1,18 +1,51 @@
+# Velour — où coller ces textes (guide en français)
+
+Les titres **##** sont en **anglais** (comme dans App Store Connect / Play quand l’UI est en anglais) ; les lignes *italiques* disent **où coller**, en français.
+
+**Locale pour ce fichier :** App Store Connect → **English (U.S.)** ou **English (U.K.)** (celle que tu as ajoutée pour cette fiche) · Play Console → **anglais (États-Unis)** ou **anglais (Royaume-Uni)** selon ta langue Play.
+
+### App Store Connect
+
+1. [App Store Connect](https://appstoreconnect.apple.com) → **Mes apps** → **Velour** → **App Store** → ta **version iOS** → localisation = **celle indiquée ci‑dessus**.
+2. Les champs correspondent aux libellés anglais : **Name**, **Subtitle**, **Keywords**, **Promotional Text**, **Description** (c’est le même emplacement que *Nom*, *Sous-titre*, etc. sur une console en français).
+3. **Promotional Text** : peut souvent être mis à jour sans nouvelle build (vérifier dans la console).
+
+### Google Play Console
+
+1. [Play Console](https://play.google.com/console) → **Velour** → **Présence sur le Play Store** → **Fiches principales du store** → langue = **celle indiquée ci‑dessus** → **Title**, **Short description**, **Full description**.
+
+---
+
 # App Store Connect (English — en-US / en-GB)
 
 ## Name (30 max)
+
+*Champ **Name** (nom public App Store, 30 caractères max).*
+
 Velour: Luxury Sort & Stack
 
 ## Subtitle (30 max)
+
+*Champ **Subtitle**.*
+
 Neon runs • Rank worldwide
 
 ## Keywords (100 max, comma-separated, no spaces after commas)
+
+*Champ **Keywords** — une seule ligne, virgules **sans** espace après.*
+
 puzzle,strategy,neon,arcade,gems,LUX,leaderboard,perfect,skill,brain,triple
 
 ## Promotional text (170 max, optional)
+
+*Champ **Promotional Text** (optionnel).*
+
 Every run is a dare: scan the rack, chain clears, spike a Perfect before time runs dry. Dark neon boards, live world ranks—show everyone you don’t choke.
 
 ## Description (4000 max)
+
+*Champ **Description** (grand texte).*
+
 **You see the rack. The clock doesn’t care.** Velour is a **high‑skill neon puzzle** built on **runs**: every placement is a bet on logic—shape clears, color clears, and the devastating **Perfect** (three identical gems) that spikes score and feeds **Heat** for bigger payouts and clutch time refills. If you like **thinking faster than you blink**, this is your lane.
 
 **Why it’s hard to put down**
@@ -36,13 +69,24 @@ Store builds may include analytics/crash reporting as disclosed in the privacy p
 
 # Google Play Console (English)
 
+*Play : **Grow** / **Store presence** → **Main store listing** (ou **Présence sur le Play Store** → **Fiches principales du store** si l’interface est en français) → langue = **Locale pour ce fichier**.*
+
 ## Title (30 max)
+
+*Champ **Title** (30 caractères max).*
+
 Velour: Luxury Sort & Stack
 
 ## Short description (80 max)
+
+*Champ **Short description** (80 caractères max).*
+
 High-skill neon puzzle: Perfects, LUX stakes, world ranks—made to replay.
 
 ## Full description (4000 max)
+
+*Champ **Full description** (jusqu’à 4000 caractères).*
+
 **The board is a test. The clock is the judge.** Velour is a **neon puzzle / strategy** game about **runs**: place gems, build triples, and hunt **Perfect** chains for **LUX** while pressure ramps up.
 
 **Skill you can feel**

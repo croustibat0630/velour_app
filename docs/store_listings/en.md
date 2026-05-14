@@ -11,7 +11,7 @@ Locale pour ce fichier : App Store Connect → English (U.S.) ou English (U.K.) 
 1. [App Store Connect](https://appstoreconnect.apple.com) → Mes apps → Velour → App Store → ta version iOS → localisation = celle indiquée ci‑dessus.
 2. Les champs correspondent aux libellés anglais : Name, Subtitle, Keywords, Promotional Text, Description, What’s New in This Version (Nouveautés de cette version — même page de localisation).
 3. Promotional Text : peut souvent être mis à jour sans nouvelle build (vérifier dans la console).
-4. What’s New in This Version : obligatoire par langue sur la version iOS — texte proposé dans la section dédiée plus bas (à adapter à chaque release ; réf. dépôt : 1.0.0+16).
+4. What’s New in This Version : obligatoire par langue sur la version iOS — texte proposé dans la section dédiée plus bas (à adapter à chaque release ; réf. dépôt : 1.1.0+17).
 
 ### Google Play Console
 
@@ -69,7 +69,7 @@ Download if you want: a logic duel with yourself, a scoreboard the world can see
 
 ## What’s New in This Version — App Store (required per locale)
 
-*Même logique que fr.md : page de localisation de la version iOS, champ What’s New in This Version — obligatoire par langue. Texte ci‑dessous en anglais pour les joueurs ; à adapter à chaque release (réf. dépôt : 1.0.0+16).*
+*Même logique que fr.md : page de localisation de la version iOS, champ What’s New in This Version — obligatoire par langue. Texte ci‑dessous en anglais pour les joueurs ; à adapter à chaque release (réf. dépôt : 1.1.0+17).*
 
 • In-app languages: Chinese (Simplified) and Hindi.
 • Refined app icon and Android / iOS launch screens for clearer home-screen readability.

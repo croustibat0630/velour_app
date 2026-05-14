@@ -11,7 +11,7 @@ Locale pour ce fichier : App Store Connect → Chinois (simplifié) (*Chinese (S
 1. [App Store Connect](https://appstoreconnect.apple.com) → Mes apps → Velour → App Store → version iOS → localisation Chinois (simplifié).
 2. Même emplacement que pour le français : si l’interface Apple est en anglais, repère Name, Subtitle, Keywords, Promotional Text, Description, What’s New in This Version — ce sont les champs où vont les blocs 名称, 副标题, etc. ci‑dessous.
 3. Promotional Text : parfois modifiable sans nouvelle build.
-4. Nouveautés de cette version (*What’s New in This Version*) : obligatoire par langue — voir section dédiée plus bas (adapter à chaque release ; réf. dépôt : 1.0.0+16).
+4. Nouveautés de cette version (*What’s New in This Version*) : obligatoire par langue — voir section dédiée plus bas (adapter à chaque release ; réf. dépôt : 1.1.0+17).
 
 ### Google Play Console
 
@@ -71,7 +71,7 @@ puzzle,strategy,neon,arcade,gems,LUX,leaderboard,perfect,skill,logic,challenge,t
 
 ## 本版本更新 — App Store（各语言必填）
 
-*与「名称」「描述」同一版本本地化页面：此版本的新增内容（界面英文常为 What's New in This Version）。每种语言都要填写。可按每次发版修改（仓库参考：1.0.0+16）。*
+*与「名称」「描述」同一版本本地化页面：此版本的新增内容（界面英文常为 What's New in This Version）。每种语言都要填写。可按每次发版修改（仓库参考：1.1.0+17）。*
 
 • 应用内语言：简体中文、印地语（可在系统或应用语言中选择）。
 • 优化应用图标与 Android / iOS 启动屏，主屏幕更清晰。

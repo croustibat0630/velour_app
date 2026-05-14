@@ -11,7 +11,7 @@ Locale pour ce fichier : App Store Connect → Hindi · Play Console → hindi (
 1. [App Store Connect](https://appstoreconnect.apple.com) → Mes apps → Velour → App Store → version iOS → localisation Hindi.
 2. Champs cibles : Name, Subtitle, Keywords, Promotional Text, Description, What’s New in This Version (libellés anglais courants dans l’interface Apple) — même emplacement que pour les autres langues.
 3. Promotional Text : parfois modifiable sans nouvelle build.
-4. What’s New in This Version : obligatoire par langue — voir section dédiée plus bas (adapter à chaque release ; réf. dépôt : 1.0.0+16).
+4. What’s New in This Version : obligatoire par langue — voir section dédiée plus bas (adapter à chaque release ; réf. dépôt : 1.1.0+17).
 
 ### Google Play Console
 
@@ -70,7 +70,7 @@ puzzle,strategy,neon,arcade,gems,LUX,leaderboard,perfect,skill,brain,logic,tripl
 
 ## इस वर्ज़न में नया — App Store (हर भाषा में ज़रूरी)
 
-*वही iOS वर्ज़न लोकलाइज़ेशन पेज जहाँ Name/Description होते हैं: What’s New in This Version। हर भाषा के लिए भरें। हर रिलीज़ पर अपडेट करें (रिपो संदर्भ: 1.0.0+16).*
+*वही iOS वर्ज़न लोकलाइज़ेशन पेज जहाँ Name/Description होते हैं: What’s New in This Version। हर भाषा के लिए भरें। हर रिलीज़ पर अपडेट करें (रिपो संदर्भ: 1.1.0+17).*
 
 • ऐप में भाषाएँ: सरलीकृत चीनी और हिंदी।
 • ऐप आइकॉन और Android / iOS लॉन्च स्क्रीन — होम स्क्रीन पर साफ़ दिखाव।

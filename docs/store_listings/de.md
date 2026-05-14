@@ -11,7 +11,7 @@ Locale pour ce fichier : App Store Connect → Deutsch (Deutschland) · Play Con
 1. [App Store Connect](https://appstoreconnect.apple.com) → Mes apps → Velour → App Store → version iOS → localisation = celle indiquée ci‑dessus.
 2. Repère les champs Name, Subtitle, Keywords, Promotional Text, Description, What’s New in This Version (interface souvent en anglais même pour une fiche DE).
 3. Promotional Text : mise à jour possible sans nouvelle build selon les règles Apple du moment.
-4. What’s New in This Version : obligatoire par langue — voir section dédiée plus bas (adapter à chaque release ; réf. dépôt : 1.0.0+16).
+4. What’s New in This Version : obligatoire par langue — voir section dédiée plus bas (adapter à chaque release ; réf. dépôt : 1.1.0+17).
 
 ### Google Play Console
 
@@ -71,7 +71,7 @@ Hol dir Velour, wenn du Logik unter Zeitdruck, neon‑klare Optik und eine Weltr
 
 ## Neu in dieser Version — App Store (pro Sprache Pflicht)
 
-*Même principe qu’en français : page de localisation de la version iOS, champ What’s New in This Version — obligatoire pour chaque langue. Texte ci‑dessous en allemand pour les joueurs ; à adapter à chaque release (réf. dépôt : 1.0.0+16).*
+*Même principe qu’en français : page de localisation de la version iOS, champ What’s New in This Version — obligatoire pour chaque langue. Texte ci‑dessous en allemand pour les joueurs ; à adapter à chaque release (réf. dépôt : 1.1.0+17).*
 
 • App-Sprachen: Chinesisch (vereinfacht) und Hindi.
 • App-Icon und Launch-Screens (Android/iOS) überarbeitet für bessere Lesbarkeit.

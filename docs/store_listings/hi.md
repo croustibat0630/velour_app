@@ -9,12 +9,14 @@ Locale pour ce fichier : App Store Connect → Hindi · Play Console → hindi (
 ### App Store Connect
 
 1. [App Store Connect](https://appstoreconnect.apple.com) → Mes apps → Velour → App Store → version iOS → localisation Hindi.
-2. Champs cibles : Name, Subtitle, Keywords, Promotional Text, Description (libellés anglais courants dans l’interface Apple) — même emplacement que pour les autres langues.
+2. Champs cibles : Name, Subtitle, Keywords, Promotional Text, Description, What’s New in This Version (libellés anglais courants dans l’interface Apple) — même emplacement que pour les autres langues.
 3. Promotional Text : parfois modifiable sans nouvelle build.
+4. What’s New in This Version : obligatoire par langue — voir section dédiée plus bas (adapter à chaque release ; réf. dépôt : 1.0.0+16).
 
 ### Google Play Console
 
 1. [Play Console](https://play.google.com/console) → Velour → Présence sur le Play Store → Fiches principales du store → langue hindi → Titre, Courte description, Description complète.
+2. Lors d’un déploiement de version (AAB) : étape Release notes par langue — voir section en fin de fichier.
 
 ---
 
@@ -66,6 +68,14 @@ puzzle,strategy,neon,arcade,gems,LUX,leaderboard,perfect,skill,brain,logic,tripl
 
 डाउनलोड करो अगर तुम्हें लॉजिक दबाव में, नीयॉन साफ़ सौंदर्य, और “एक और रन” चाहिए—फिर लीडरबोर्ड पर नाम दिखाओ।
 
+## इस वर्ज़न में नया — App Store (हर भाषा में ज़रूरी)
+
+*वही iOS वर्ज़न लोकलाइज़ेशन पेज जहाँ Name/Description होते हैं: What’s New in This Version। हर भाषा के लिए भरें। हर रिलीज़ पर अपडेट करें (रिपो संदर्भ: 1.0.0+16).*
+
+• ऐप में भाषाएँ: सरलीकृत चीनी और हिंदी।
+• ऐप आइकॉन और Android / iOS लॉन्च स्क्रीन — होम स्क्रीन पर साफ़ दिखाव।
+• मैच / परफेक्ट ध्वनि कोमल; बगफ़िक्स, स्थिरता और छोटे सुधार।
+
 ---
 
 # Google Play Console (हिन्दी)
@@ -106,3 +116,9 @@ LUX
 लिंक की नीति देखें।
 
 रैंक, साफ़ नीयॉन, कड़ी रन पसंद है? इंस्टॉल करो—और लीडरबोर्ड पर दावा छोड़ो।
+
+## रिलीज़ नोट्स — Google Play (रिलीज़ करते समय)
+
+*मुख्य स्टोर लिस्टिंग पेज पर नहीं: नई रिलीज़ बनाते समय AAB अपलोड के बाद Release notes चरण — इसी फ़ाइल वाली भाषा चुनें। कैरेक्टर लिमिट देखें।*
+
+• ऐप में सरलीकृत चीनी व हिंदी; आइकॉन/स्प्लैश बेहतर; मैच/परफेक्ट ऑडियो कोमल; फिक्स व स्थिरता।

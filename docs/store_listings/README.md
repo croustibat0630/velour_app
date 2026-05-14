@@ -25,18 +25,19 @@ Les blocs **Nom**, **Sous-titre**, **Description**, etc. sont en **texte plat** 
 - **Mots-clés** : 100 caractères max au total, **virgules sans espaces** (ex. `puzzle,neon,gem`).
 - **Texte promotionnel** : 170 caractères max (optionnel).
 - **Description** : 4000 caractères max.
-- **Quoi de neuf** : à remplir par version (non dupliqué ici).
+- **Quoi de neuf** / *What’s New in This Version* : obligatoire **par langue** pour chaque version soumise ; des textes de départ sont dans chaque `*.md` (section « Nouveautés / What’s New »), à **rééditer à chaque release** pour refléter le binaire réel.
 
 ### Google Play Console
 
 - **Titre** : 30 caractères max.
 - **Courte description** : 80 caractères max.
 - **Description complète** : 4000 caractères max.
+- **Notes de version** (*Release notes*) : lors du **déploiement** d’une nouvelle version (AAB), par langue — pas sur la fiche principale seule ; propositions courtes en fin de chaque `*.md`.
 
 ## Procédure
 
 1. Ouvrir la console du store → **App information** / **Présence sur le store** → ajouter la **langue** (ex. *Chinese (Simplified)*, *Hindi*).
-2. Copier-coller les champs depuis le fichier `.md` correspondant (sections **App Store** et **Google Play**).
+2. Copier-coller les champs depuis le fichier `.md` correspondant (sections App Store et Play) ; pour chaque nouvelle version, mettre à jour aussi **Nouveautés** (App Store) et, au moment du rollout Play, les **notes de version** en fin de fichier.
 3. Faire relire par un **natif** pour le ton premium (surtout zh-Hans et hi si générés ou brouillons rapides).
 4. Vérifier que l’**URL de politique de confidentialité** et les **captures** sont cohérentes pour toutes les locales (même URL, visuels adaptés si besoin).
 

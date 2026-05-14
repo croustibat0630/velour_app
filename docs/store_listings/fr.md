@@ -10,13 +10,15 @@ Locale pour ce fichier : App Store Connect → Français (France) (ou autre vari
 
 1. [App Store Connect](https://appstoreconnect.apple.com) → Mes apps → Velour → menu App Store (pas *TestFlight*) → ta version iOS en préparation.
 2. Section localisation : choisis la locale indiquée ci‑dessus. Si elle n’existe pas : Informations sur l’app → ajouter la langue, puis reviens sur la version.
-3. Copie chaque bloc dans le champ du même type. Si l’interface Apple est en anglais : Nom = *Name*, Sous-titre = *Subtitle*, Mots-clés = *Keywords*, Texte promotionnel = *Promotional Text*, Description = *Description*.
+3. Copie chaque bloc dans le champ du même type. Si l’interface Apple est en anglais : Nom = *Name*, Sous-titre = *Subtitle*, Mots-clés = *Keywords*, Texte promotionnel = *Promotional Text*, Description = *Description*, Nouveautés = *What’s New in This Version*.
 4. Le texte promotionnel peut souvent être mis à jour sans nouvelle build (vérifier l’info dans la console au moment du collage).
+5. Nouveautés de cette version : même page de localisation de la version iOS, champ obligatoire par langue — voir la section dédiée plus bas dans ce fichier (à adapter à chaque sortie ; version actuelle du dépôt : 1.0.0+16).
 
 ### Google Play Console
 
 1. [Play Console](https://play.google.com/console) → Velour → Présence sur le Play Store → Fiches principales du store (parfois *Main store listing*).
 2. Sélecteur de langue : celle indiquée dans *Locale pour ce fichier* → remplis Titre, Courte description, Description complète.
+3. Lorsque tu publies une nouvelle version (AAB) : étape des notes de version (*Release notes* / par langue) — voir la section en fin de fichier ; ce n’est pas sur la fiche principale seule.
 
 ---
 
@@ -69,6 +71,14 @@ Analytique / crash reporting possibles sur les builds store—voir la politique 
 
 Télécharge si tu veux un duel de logique avec toi-même, un classement visible, et l’effet « encore une run »—puis assume le score.
 
+## Nouveautés de cette version — App Store (obligatoire par langue)
+
+*Sur la page de la version iOS (même localisation que Nom / Description) : champ « Nouveautés de cette version » ; en interface anglaise : What’s New in This Version. À remplir pour chaque langue de la version. Adapte le texte ci‑dessous à chaque release (réf. dépôt : 1.0.0+16).*
+
+• Langues dans l’app : chinois (simplifié) et hindi.
+• Icône d’app et écrans de lancement Android / iOS retravaillés pour une meilleure lisibilité.
+• Sons « match » / « Perfect » plus doux ; correctifs, stabilité et petites optimisations.
+
 ---
 
 # Google Play Console (Français)
@@ -109,3 +119,9 @@ Confidentialité
 Voir la politique liée (analytique / crash reporting possibles).
 
 Tu aimes réfléchir vite, monter au classement, et assumer une run ? Touche Installer—et montre le jeu.
+
+## Notes de version — Google Play (lors du déploiement d’une release)
+
+*Ce champ n’est pas sur la fiche principale du store : il apparaît quand tu crées une release (Production ou test), après l’upload de l’AAB, à l’étape « Notes de version » / Release notes — choisir la même langue que ta fiche. Limite de longueur affichée dans la console (souvent courte) : raccourcir si besoin.*
+
+• Chinois (simplifié) et hindi dans l’app ; icônes et splash affinés ; audio match/Perfect adouci ; correctifs et stabilité.

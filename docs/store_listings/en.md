@@ -9,14 +9,14 @@ Locale pour ce fichier : App Store Connect → English (U.S.) ou English (U.K.) 
 ### App Store Connect
 
 1. [App Store Connect](https://appstoreconnect.apple.com) → Mes apps → Velour → App Store → ta version iOS → localisation = celle indiquée ci‑dessus.
-2. Les champs correspondent aux libellés anglais : Name, Subtitle, Keywords, Promotional Text, Description (c’est le même emplacement que *Nom*, *Sous-titre*, etc. sur une console en français).
+2. Les champs correspondent aux libellés anglais : Name, Subtitle, Keywords, Promotional Text, Description, What’s New in This Version (Nouveautés de cette version — même page de localisation).
 3. Promotional Text : peut souvent être mis à jour sans nouvelle build (vérifier dans la console).
+4. What’s New in This Version : obligatoire par langue sur la version iOS — texte proposé dans la section dédiée plus bas (à adapter à chaque release ; réf. dépôt : 1.0.0+16).
 
 ### Google Play Console
 
 1. [Play Console](https://play.google.com/console) → Velour → Présence sur le Play Store → Fiches principales du store → langue = celle indiquée ci‑dessus → Title, Short description, Full description.
-
----
+2. Lors d’un déploiement de version (AAB) : étape Release notes / notes de version par langue — voir la section en fin de fichier (pas sur la fiche principale seule).
 
 # App Store Connect (English — en-US / en-GB)
 
@@ -67,6 +67,14 @@ Store builds may include analytics/crash reporting as disclosed in the privacy p
 
 Download if you want: a logic duel with yourself, a scoreboard the world can see, and “one more run” energy—then prove it on the board.
 
+## What’s New in This Version — App Store (required per locale)
+
+*Même logique que fr.md : page de localisation de la version iOS, champ What’s New in This Version — obligatoire par langue. Texte ci‑dessous en anglais pour les joueurs ; à adapter à chaque release (réf. dépôt : 1.0.0+16).*
+
+• In-app languages: Chinese (Simplified) and Hindi.
+• Refined app icon and Android / iOS launch screens for clearer home-screen readability.
+• Softer match / perfect sound effects; fixes, stability, and small polish.
+
 ---
 
 # Google Play Console (English)
@@ -107,3 +115,9 @@ Privacy
 Store builds may include analytics/crash reporting—see the linked privacy policy.
 
 If you love ranked logic, clean neon visuals, and runs that bite back, tap Install—then climb.
+
+## Release notes — Google Play (when rolling out a release)
+
+*Pas seulement sur la fiche principale : lors du déploiement, après l’AAB, étape Release notes — voir guide en tête de fichier. Texte ci‑dessous en anglais ; raccourcir si la console impose une limite courte.*
+
+• Chinese (Simplified) & Hindi in-app; refined icons & splash; softer match/perfect audio; fixes and stability.

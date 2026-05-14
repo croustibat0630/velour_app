@@ -4,6 +4,8 @@ Ce dossier centralise les **textes marketing** à recopier dans **App Store Conn
 
 **Où coller quoi :** chaque fichier `en.md`, `fr.md`, `de.md`, `zh-Hans.md`, `hi.md` commence par un **guide en français** (navigation + *locale* à sélectionner), puis sous chaque titre **##** une ligne *italique* en français indique le **champ console** correspondant, au-dessus du texte dans la langue du store.
 
+Les blocs **Nom**, **Sous-titre**, **Description**, etc. sont en **texte plat** (sans syntaxe Markdown : pas de `**` à coller dans les consoles — App Store et Play n’affichent pas le gras Markdown sur ces champs).
+
 ## Fichiers
 
 | Fichier        | Usage typique                          |

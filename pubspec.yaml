@@ -128,8 +128,8 @@ flutter:
 # iOS / App Store (Apple) : image **carrée** ; le système applique le masque « squircle »
 # (ne pas pré-arrondir les coins). L’icône marketing 1024×1024 ne doit pas comporter de
 # transparence — voir « Configuring your app icon » + HIG App icons sur developer.apple.com.
-# Variantes iOS 18+ (Dark / Tinted) : assets dérivés de `app_icon.png`. Marge « safe zone » :
-# `python3 scripts/pad_velour_app_icons.py` puis `dart run flutter_launcher_icons`.
+# Variantes iOS 18+ (Dark / Tinted) : voir `scripts/pad_velour_app_icons.py` (rogne cuir
+# noir + marge safe) puis `dart run flutter_launcher_icons`.
 flutter_launcher_icons:
   android: true
   ios: true

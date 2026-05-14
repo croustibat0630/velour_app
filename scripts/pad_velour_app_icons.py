@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
 """Inset Velour marketing icons (~14 % smaller) for iOS squircle / Android adaptive safe zone.
 
+Avant le pad : **rogne** une bande sur les bords (couronne cuir noir) pour laisser le
+bloc doré occuper davantage le carré — plus propre sur Springboard (iOS + Android).
+
 Reads the masters used by flutter_launcher_icons (`app_icon`, `app_icon_ios_tinted`),
+then copies `app_icon` → `app_icon_ios_dark` (lisibilité iOS 18).
+
 Run from repo root: python3 scripts/pad_velour_app_icons.py
 Then: dart run flutter_launcher_icons
 
@@ -21,6 +26,9 @@ from pathlib import Path
 
 from PIL import Image
 
+# Part du bord retirée (chaque côté) avant resize → le jaune / motif remplit mieux l’icône.
+TRIM_EDGE_FRAC = 0.10
+
 # ~7 % empty margin on each side of the 1024 master (stronger than a tiny shrink).
 SCALE = 0.86
 CANVAS = 1024
@@ -33,6 +41,22 @@ FILES = [
 ]
 
 
+def trim_leather_margin(path: Path, edge_frac: float) -> None:
+    """Zoom léger : rogne `edge_frac` sur chaque bord puis remet à la taille d’origine."""
+    im = Image.open(path).convert("RGBA")
+    w, h = im.size
+    if w != h:
+        side = max(w, h)
+        sq = Image.new("RGBA", (side, side), (0, 0, 0, 0))
+        sq.paste(im, ((side - w) // 2, (side - h) // 2))
+        im = sq
+        w = h = side
+    dx = max(1, int(round(w * edge_frac)))
+    dy = max(1, int(round(h * edge_frac)))
+    cropped = im.crop((dx, dy, w - dx, h - dy))
+    out = cropped.resize((w, h), Image.Resampling.LANCZOS)
+    out.save(path, format="PNG", optimize=True)
+    print(f"OK {path.relative_to(ROOT)} -> trim {edge_frac:.0%} / side then resize")
 def _corner_average_rgba(im: Image.Image) -> tuple[int, int, int, int]:
     w, h = im.size
     pts = ((0, 0), (w - 1, 0), (0, h - 1), (w - 1, h - 1))
@@ -90,6 +114,8 @@ def main() -> int:
     if not dark_out.is_file():
         print(f"Missing {dark_out}", file=sys.stderr)
         return 1
+    trim_leather_margin(ICONS / "app_icon.png", TRIM_EDGE_FRAC)
+    trim_leather_margin(ICONS / "app_icon_ios_tinted.png", TRIM_EDGE_FRAC)
     pad_one(ICONS / "app_icon.png", transparent_canvas=False)
     shutil.copyfile(ICONS / "app_icon.png", dark_out)
     print(f"OK {dark_out.relative_to(ROOT)} <- app_icon.png (iOS 18 dark readability)")

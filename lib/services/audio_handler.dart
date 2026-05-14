@@ -10,8 +10,8 @@ import 'velour_audio_platform.dart';
 ///
 /// - [playMenuClick] → uniquement `sfx_click.mp3`
 /// - [playGemSelect] → `sfx_tap.mp3` (canal dédié, réactif)
-/// - [playMatchCombo] → `sfx_match.mp3` (pool polyphonique) — **sans** pitch ; queue
-///   longue atténuée en jeu (volume + fondu) pour limiter la fatigue.
+/// - [playMatchCombo] → `sfx_match.mp3` (pool polyphonique) — **sans** pitch ; volume
+///   légèrement modéré (fichiers avec longue queue réverb).
 class AudioHandler {
   AudioHandler._();
 
@@ -29,14 +29,10 @@ class AudioHandler {
   static const int _matchPolyphonyWeb = 1;
   static const int _matchPolyphonyApple = 1;
 
-  /// Les MP3 `sfx_match` / `sfx_perfect` ont une longue queue « réverb » ; on garde
-  /// l’attaque puis on atténue la suite (volume + coupe douce) pour limiter la fatigue.
-  static const double _matchComboPeakVolume = 0.78;
-  static const double _perfectComboPeakVolume = 0.82;
-  static const int _matchTailHoldMs = 290;
-  static const int _matchTailFadeMs = 480;
-  static const int _perfectTailHoldMs = 320;
-  static const int _perfectTailFadeMs = 520;
+  /// MP3 avec longue queue : on baisse un peu le niveau pour limiter la fatigue,
+  /// **sans** tronquer la lecture (évite une coupure audible).
+  static const double _matchComboPeakVolume = 0.88;
+  static const double _perfectComboPeakVolume = 0.90;
 
   /// Plafond pour `setSource` + config player : **doit** rester aligné avec
   /// [AudioPlayer.preparationTimeout] (installé dans [configure]).
@@ -900,32 +896,6 @@ class AudioHandler {
     }
   }
 
-  /// Atténue puis coupe la **queue** d’un SFX (MP3 long type « réverb »), sans toucher
-  /// à l’attaque. Best-effort : un nouvel [_interruptMatchAndPerfect] annule en pratique
-  /// la fin du fondu sur ce lecteur.
-  void _scheduleSfxTailEase(
-    AudioPlayer player, {
-    required double peakVolume,
-    required int holdMs,
-    required int fadeMs,
-  }) {
-    final double peak = peakVolume.clamp(0.001, 1.0);
-    unawaited(() async {
-      try {
-        await Future<void>.delayed(Duration(milliseconds: holdMs));
-        final int steps = (fadeMs / 45).ceil().clamp(5, 14);
-        for (int i = 0; i < steps; i++) {
-          final double t = (i + 1) / steps;
-          final double v = peak * (1.0 - t);
-          await player.setVolume(v.clamp(0.0, 1.0));
-          await Future<void>.delayed(Duration(milliseconds: fadeMs ~/ steps));
-        }
-        await player.stop();
-        await player.setVolume(peak);
-      } catch (_) {}
-    }());
-  }
-
   Future<void> _playMatchExclusive({required double volume}) async {
     try {
       if (_darwinDisposableSfxMode) {
@@ -959,12 +929,6 @@ class AudioHandler {
       await p.seek(Duration.zero);
       await p.setVolume(volume.clamp(0.0, 1.0));
       await p.resume();
-      _scheduleSfxTailEase(
-        p,
-        peakVolume: volume.clamp(0.0, 1.0),
-        holdMs: _matchTailHoldMs,
-        fadeMs: _matchTailFadeMs,
-      );
     } catch (_) {
       // Intentionally silent.
     }
@@ -1001,12 +965,6 @@ class AudioHandler {
       await _sfxPerfect.seek(Duration.zero);
       await _sfxPerfect.setVolume(_perfectComboPeakVolume);
       await _sfxPerfect.resume();
-      _scheduleSfxTailEase(
-        _sfxPerfect,
-        peakVolume: _perfectComboPeakVolume,
-        holdMs: _perfectTailHoldMs,
-        fadeMs: _perfectTailFadeMs,
-      );
     } catch (_) {
       // Intentionally silent.
     }

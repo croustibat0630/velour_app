@@ -649,9 +649,11 @@ class _LanguageTile extends StatelessWidget {
       children: [
         _TileIcon(icon: icon, accent: accent),
         const SizedBox(width: 12),
-        Expanded(
+        Flexible(
           child: Text(
             l10n.settingsLanguageRowTitle,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               fontWeight: FontWeight.w600,
               letterSpacing: 1.2,
@@ -660,33 +662,48 @@ class _LanguageTile extends StatelessWidget {
             ),
           ),
         ),
-        DropdownButtonHideUnderline(
-          child: DropdownButton<AppLocalePreference>(
-            value: value,
-            onChanged: onChanged,
-            dropdownColor: const Color(0xFF0A0C12),
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.white.withValues(alpha: 0.78),
-              letterSpacing: 1.0,
+        const SizedBox(width: 8),
+        Expanded(
+          child: Align(
+            alignment: AlignmentDirectional.centerEnd,
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<AppLocalePreference>(
+                isExpanded: true,
+                value: value,
+                onChanged: onChanged,
+                dropdownColor: const Color(0xFF0A0C12),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Colors.white.withValues(alpha: 0.78),
+                  letterSpacing: 1.0,
+                ),
+                items: [
+                  DropdownMenuItem(
+                    value: AppLocalePreference.system,
+                    child: Text(l10n.settingsLocaleSystem),
+                  ),
+                  DropdownMenuItem(
+                    value: AppLocalePreference.en,
+                    child: Text(l10n.settingsLocaleEnglish),
+                  ),
+                  DropdownMenuItem(
+                    value: AppLocalePreference.fr,
+                    child: Text(l10n.settingsLocaleFrench),
+                  ),
+                  DropdownMenuItem(
+                    value: AppLocalePreference.de,
+                    child: Text(l10n.settingsLocaleGerman),
+                  ),
+                  DropdownMenuItem(
+                    value: AppLocalePreference.zh,
+                    child: Text(l10n.settingsLocaleChinese),
+                  ),
+                  DropdownMenuItem(
+                    value: AppLocalePreference.hi,
+                    child: Text(l10n.settingsLocaleHindi),
+                  ),
+                ],
+              ),
             ),
-            items: [
-              DropdownMenuItem(
-                value: AppLocalePreference.system,
-                child: Text(l10n.settingsLocaleSystem),
-              ),
-              DropdownMenuItem(
-                value: AppLocalePreference.en,
-                child: Text(l10n.settingsLocaleEnglish),
-              ),
-              DropdownMenuItem(
-                value: AppLocalePreference.fr,
-                child: Text(l10n.settingsLocaleFrench),
-              ),
-              DropdownMenuItem(
-                value: AppLocalePreference.de,
-                child: Text(l10n.settingsLocaleGerman),
-              ),
-            ],
           ),
         ),
       ],

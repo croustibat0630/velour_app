@@ -163,6 +163,18 @@ void main() {
         AppSettings.materialLocaleFor(AppLocalePreference.de)?.languageCode,
         'de',
       );
+      expect(
+        AppSettings.materialLocaleFor(AppLocalePreference.zh)?.languageCode,
+        'zh',
+      );
+      expect(
+        AppSettings.materialLocaleFor(AppLocalePreference.zh)?.scriptCode,
+        'Hans',
+      );
+      expect(
+        AppSettings.materialLocaleFor(AppLocalePreference.hi)?.languageCode,
+        'hi',
+      );
     });
   });
 

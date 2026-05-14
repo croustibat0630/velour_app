@@ -48,17 +48,24 @@ class LuxScoreDisplayer extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text(
-                    prefix,
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.montserrat(
-                      fontSize: labelSize,
-                      fontWeight: FontWeight.w500,
-                      letterSpacing: letterTight,
-                      height: 1.22,
-                      color: Colors.white.withValues(alpha: 0.54),
+                  SizedBox(
+                    width: maxW,
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.center,
+                      child: Text(
+                        prefix,
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.montserrat(
+                          fontSize: labelSize,
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: letterTight,
+                          height: 1.22,
+                          color: Colors.white.withValues(alpha: 0.54),
+                        ),
+                      ),
                     ),
                   ),
                   SizedBox(height: (5 * sH).clamp(4.0, 8.0)),

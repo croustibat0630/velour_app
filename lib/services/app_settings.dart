@@ -7,8 +7,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'audio_handler.dart';
 import 'haptics_handler.dart';
 
-/// In-app locale: follow OS, or pin English / French / German.
-enum AppLocalePreference { system, en, fr, de }
+/// In-app locale: follow OS, or pin a supported language.
+enum AppLocalePreference { system, en, fr, de, zh, hi }
 
 class AppSettings {
   AppSettings._();
@@ -47,8 +47,12 @@ class AppSettings {
         localePreference.value = AppLocalePreference.fr;
       } else if (langRaw == 'de') {
         localePreference.value = AppLocalePreference.de;
+      } else if (langRaw == 'zh') {
+        localePreference.value = AppLocalePreference.zh;
+      } else if (langRaw == 'hi') {
+        localePreference.value = AppLocalePreference.hi;
       } else {
-        localePreference.value = AppLocalePreference.fr;
+        localePreference.value = AppLocalePreference.system;
       }
     } catch (_) {}
   }
@@ -86,6 +90,8 @@ class AppSettings {
         AppLocalePreference.en => 'en',
         AppLocalePreference.fr => 'fr',
         AppLocalePreference.de => 'de',
+        AppLocalePreference.zh => 'zh',
+        AppLocalePreference.hi => 'hi',
       };
       await prefs.setString(_keyLanguage, code);
     } catch (_) {}
@@ -98,6 +104,11 @@ class AppSettings {
       AppLocalePreference.en => const Locale('en'),
       AppLocalePreference.fr => const Locale('fr'),
       AppLocalePreference.de => const Locale('de'),
+      AppLocalePreference.zh => const Locale.fromSubtags(
+        languageCode: 'zh',
+        scriptCode: 'Hans',
+      ),
+      AppLocalePreference.hi => const Locale('hi'),
     };
   }
 }

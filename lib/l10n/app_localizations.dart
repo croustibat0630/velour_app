@@ -8,6 +8,8 @@ import 'package:intl/intl.dart' as intl;
 import 'app_localizations_de.dart';
 import 'app_localizations_en.dart';
 import 'app_localizations_fr.dart';
+import 'app_localizations_hi.dart';
+import 'app_localizations_zh.dart';
 
 // ignore_for_file: type=lint
 
@@ -98,6 +100,8 @@ abstract class AppLocalizations {
     Locale('de'),
     Locale('en'),
     Locale('fr'),
+    Locale('hi'),
+    Locale('zh'),
   ];
 
   /// Application name shown in the window / task switcher.
@@ -249,6 +253,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'German'**
   String get settingsLocaleGerman;
+
+  /// No description provided for @settingsLocaleChinese.
+  ///
+  /// In en, this message translates to:
+  /// **'Chinese (Simplified)'**
+  String get settingsLocaleChinese;
+
+  /// No description provided for @settingsLocaleHindi.
+  ///
+  /// In en, this message translates to:
+  /// **'Hindi'**
+  String get settingsLocaleHindi;
 
   /// Settings screen main heading.
   ///
@@ -1737,7 +1753,7 @@ class _AppLocalizationsDelegate
 
   @override
   bool isSupported(Locale locale) =>
-      <String>['de', 'en', 'fr'].contains(locale.languageCode);
+      <String>['de', 'en', 'fr', 'hi', 'zh'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
@@ -1752,6 +1768,10 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
       return AppLocalizationsEn();
     case 'fr':
       return AppLocalizationsFr();
+    case 'hi':
+      return AppLocalizationsHi();
+    case 'zh':
+      return AppLocalizationsZh();
   }
 
   throw FlutterError(

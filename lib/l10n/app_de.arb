@@ -111,6 +111,8 @@
   "settingsLocaleEnglish": "Englisch",
   "settingsLocaleFrench": "Französisch",
   "settingsLocaleGerman": "Deutsch",
+  "settingsLocaleChinese": "Chinesisch (Kurzzeichen)",
+  "settingsLocaleHindi": "Hindi",
   "settingsTitle": "EINSTELLUNGEN",
   "@settingsTitle": {
     "description": "Settings screen main heading."

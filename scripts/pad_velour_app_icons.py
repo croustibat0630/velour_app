@@ -1,16 +1,21 @@
 #!/usr/bin/env python3
 """Inset Velour marketing icons (~14 % smaller) for iOS squircle / Android adaptive safe zone.
 
-Reads the three sources used by flutter_launcher_icons, writes back in place.
+Reads the masters used by flutter_launcher_icons (`app_icon`, `app_icon_ios_tinted`),
 Run from repo root: python3 scripts/pad_velour_app_icons.py
 Then: dart run flutter_launcher_icons
 
 Do not run twice in a row without restoring assets/icons/*.png from git, or the
 motif will shrink again.
+
+iOS 18 « icônes sombres » : le slot *Dark* doit reprendre le même visuel lisible que
+`app_icon.png` (or + V). Ne pas regénérer depuis l’ancien master noir ; on copie
+le résultat du pad vers `app_icon_ios_dark.png` après coup.
 """
 
 from __future__ import annotations
 
+import shutil
 import sys
 from pathlib import Path
 
@@ -24,7 +29,6 @@ ROOT = Path(__file__).resolve().parent.parent
 ICONS = ROOT / "assets" / "icons"
 FILES = [
     ICONS / "app_icon.png",
-    ICONS / "app_icon_ios_dark.png",
     ICONS / "app_icon_ios_tinted.png",
 ]
 
@@ -82,8 +86,13 @@ def main() -> int:
         if not p.is_file():
             print(f"Missing {p}", file=sys.stderr)
             return 1
+    dark_out = ICONS / "app_icon_ios_dark.png"
+    if not dark_out.is_file():
+        print(f"Missing {dark_out}", file=sys.stderr)
+        return 1
     pad_one(ICONS / "app_icon.png", transparent_canvas=False)
-    pad_one(ICONS / "app_icon_ios_dark.png", transparent_canvas=True)
+    shutil.copyfile(ICONS / "app_icon.png", dark_out)
+    print(f"OK {dark_out.relative_to(ROOT)} <- app_icon.png (iOS 18 dark readability)")
     pad_one(ICONS / "app_icon_ios_tinted.png", transparent_canvas=False)
     return 0
 

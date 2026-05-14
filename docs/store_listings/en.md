@@ -1,56 +1,63 @@
 # App Store Connect (English — en-US / en-GB)
 
 ## Name (30 max)
-Velour
+Velour: Luxury Sort & Stack
 
 ## Subtitle (30 max)
-Neon puzzle • LUX & ranks
+Neon logic • Climb the ranks
 
 ## Keywords (100 max, comma-separated, no spaces after commas)
-puzzle,gems,neon,LUX,casual,match,arcade,leaderboard,stakes,strategy,perfect,run
+puzzle,strategy,neon,arcade,gems,LUX,leaderboard,rank,perfect,skill,brain,timer
 
 ## Promotional text (170 max, optional)
-Chain shape, color & perfect matches under pressure. Earn LUX, unlock skins, climb the world leaderboard — casual runs or high-stakes modes.
+One run, one verdict: read the rack, chain clears, hunt Perfects as the clock tightens. Dark neon boards + live world rank—prove your reads under pressure.
 
 ## Description (4000 max)
-Velour is a fast neon puzzle built around runs: place gems, build triples, and chase **Perfect** chains for big **LUX** payouts while the clock ticks.
+**You see the rack. The clock doesn’t care.** Velour is a neon puzzle built on **runs**: every placement is a bet on logic—shape clears, color clears, and the devastating **Perfect** (three identical gems) that spikes score and feeds **Heat** for bigger payouts and clutch time refills.
 
-**How it plays**
-• **Shape** and **Color** clears keep the rack moving; **Perfect** matches (three identical gems) spike your score and fuel **Heat** for bonus LUX and clutch time refills.
-• **Classic** runs are free practice with a light stake.
-• **High Stakes** and **Royal** raise the pressure with bigger antes, clear goals, and premium rewards — play sharp or walk away.
+**Why it’s hard to put down**
+• **Challenge first**: the pressure is honest—read patterns fast, don’t grab the “easy” triple if a Perfect is one gem away.  
+• **Beauty that serves gameplay**: dark‑matte chrome, sharp neon gems, readable motion (and respect for **Reduce Motion** on-device).  
+• **Prove it on the ladder**: chase your best run on the **world leaderboard** and seal your **Oracle** name when the game invites you.
 
-**Progression & meta**
-• Spend **LUX** in the **Shop** for neon skins and session boosts (insurance, chrono saves, mercy reshapes — rules shown in-app).
-• **World leaderboard** for your best run: seal your Oracle name when prompted.
-• Daily **LUX** bonus on the home screen when eligible (server rules apply).
+**Modes for how brave you feel**
+• **Classic** for clean practice with a light stake.  
+• **High Stakes** / **Royal** when you want the stakes, goals, and rewards turned up—play sharp or walk.
 
-**Premium polish**
-Dark matte UI, tactile feedback on supported devices, accessibility options aligned with system **Reduce Motion**, and audio you can tune in Settings.
+**Meta that matters**
+Spend **LUX** in the **Shop** on skins and session boosts (insurance, chrono saves, mercy reshapes—rules in‑app). Grab the **daily LUX** bonus on the home screen when eligible (server rules apply).
 
-**Privacy**
-Analytics and crash reporting may be enabled on store builds as described in the app privacy policy linked on the store page. You can review data practices there before playing.
+**Trust**
+Store builds may include analytics/crash reporting as disclosed in the privacy policy linked on this page—review it before you play.
+
+**Download if you want:** a logic duel with yourself, a scoreboard the world can see, and “one more run” energy.
 
 ---
 
 # Google Play Console (English)
 
 ## Title (30 max)
-Velour: Neon Puzzle Run
+Velour: Luxury Sort & Stack
 
 ## Short description (80 max)
-Match gems, chain perfects, earn LUX. Casual or high-stakes runs & leaderboard.
+Neon logic puzzle: Perfect chains, LUX stakes, global ranks—beautiful & brutal.
 
 ## Full description (4000 max)
-Velour is a neon puzzle game about **runs**: place gems, create triples, and hunt **Perfect** chains for **LUX** while time pressure ramps up.
+**The board is a test. The clock is the judge.** Velour is a neon puzzle about **runs**: place gems, build triples, and hunt **Perfect** chains for **LUX** while pressure ramps up.
 
-**Gameplay**
-Shape and color clears keep your rack healthy; three identical gems score a **Perfect** and build **Heat** for bigger payouts and clutch refills. Choose **Classic** for practice, or step into **High Stakes** / **Royal** for higher risk and reward.
+**Skill you can feel**
+Shape and color clears keep your rack alive; three identical gems score a **Perfect** and build **Heat** for bigger rewards and clutch refills. It’s readable, tactile, and built for players who like **logic under stress**.
 
-**Meta**
-Spend **LUX** in the **Shop** on skins and session boosts. Compete on the **world leaderboard** and set your **Oracle** name when offered.
+**Compete for real**
+Climb the **world leaderboard** on your best run and set your **Oracle** name when prompted. Dark‑neon presentation keeps the focus on decisions—not clutter.
 
-**Comfort & privacy**
-Dark UI, optional haptics, and respect for system motion settings. Store builds may include analytics/crash reporting as disclosed in the linked privacy policy.
+**Play your way**
+Train in **Classic**, then step into **High Stakes** / **Royal** when you want higher risk and bigger payouts.
 
-Enjoy the run — and mind the clock.
+**Progression**
+Spend **LUX** in the **Shop** on skins and boosts. Daily **LUX** bonus on the home screen when eligible.
+
+**Privacy**
+Store builds may include analytics/crash reporting—see the linked privacy policy.
+
+If you love **ranked logic**, **clean neon visuals**, and **runs that bite back**, tap install.

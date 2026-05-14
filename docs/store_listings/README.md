@@ -1,6 +1,6 @@
 # Fiches stores — textes localisés (Velour)
 
-Ce dossier centralise les **textes marketing** à recopier dans **App Store Connect** et la **Google Play Console** pour chaque langue d’affichage du store (pas le texte in‑app : celui‑ci vient des fichiers `lib/l10n/*.arb`).
+Ce dossier centralise les **textes marketing** à recopier dans **App Store Connect** et la **Google Play Console** pour chaque langue d’affichage du store (pas le texte in‑app : celui‑ci vient des fichiers `lib/l10n/*.arb`). Les accroches mettent en avant **défi / logique**, **classement**, **qualité visuelle (néon lisible)** et l’envie de relancer une run — le positionnement « luxe » reste dans le nom, pas comme seul argument.
 
 ## Fichiers
 
@@ -16,7 +16,7 @@ Ce dossier centralise les **textes marketing** à recopier dans **App Store Conn
 
 ### App Store Connect
 
-- **Nom** : 30 caractères max (souvent « Velour » seul).
+- **Nom** : 30 caractères max (souvent un titre court type **Velour: Luxury Sort & Stack** pour l’ASO, ou **Velour** seul si la locale impose moins de place).
 - **Sous-titre** : 30 caractères max.
 - **Mots-clés** : 100 caractères max au total, **virgules sans espaces** (ex. `puzzle,neon,gem`).
 - **Texte promotionnel** : 170 caractères max (optionnel).

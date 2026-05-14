@@ -1,56 +1,63 @@
 # App Store Connect (Français — fr-FR)
 
 ## Nom (30 max)
-Velour
+Velour: Luxury Sort & Stack
 
 ## Sous-titre (30 max)
-Puzzle néon, LUX & classement
+Logique néon • Grimpe au top
 
 ## Mots-clés (100 max)
-puzzle,gems,neon,LUX,casual,match,arcade,classement,mises,perfect,chrono
+puzzle,stratégie,neon,arcade,gems,LUX,classement,rang,perfect,skill,chrono,défi
 
 ## Texte promotionnel (170 max, optionnel)
-Enchaîne formes, couleurs et perfects sous pression. Gagne des LUX, débloque des skins néon et grimpe au classement mondial — mode classique ou mises premium.
+Une run, un verdict : lis le rack, enchaîne forme & couleur, vise le Perfect quand le chrono fond. Néon sombre + ladder mondial : prouve tes choix.
 
 ## Description (4000 max)
-Velour est un puzzle néon pensé par **runs** : pose des gemmes, enchaîne des triples et vise les **Perfect** pour des pics de **LUX**, pendant que le chrono file.
+**Tu vois le rack. Le chrono, lui, ne négocie pas.** Velour est un puzzle néon pensé en **runs** : chaque pose est un pari de **logique**—clears **forme**, **couleur**, et le **Perfect** (trois gemmes identiques) qui fait exploser le score et alimente la **Heat** pour des bonus LUX et des repêchages de temps au bon moment.
 
-**Sensation de jeu**
-• Les clears **forme** et **couleur** gardent le rack fluides ; un **Perfect** (trois gemmes identiques) fait exploser le score et alimente la **Heat** pour bonus LUX et repêchages de temps.
-• Le mode **Classique** reste une pratique accessible avec une mise légère.
-• Les modes **High Stakes** et **Royal** montent la pression : antes plus élevées, objectifs nets, récompenses premium — il faut jouer net.
+**Pourquoi tu relances**
+• **Le défi d’abord** : pression lisible—ne prends pas le triple « facile » si un Perfect est à une gemme.  
+• **Une beauté utile** : plateau *dark matte*, gemmes néon nettes, motion lisible (respect du **Réduire les mouvements**).  
+• **Prouve-le au monde** : ta meilleure run sur le **classement mondial** + nom **Oracle** quand l’invite arrive.
 
-**Progression**
-• Dépense tes **LUX** dans la **Boutique** : skins néon et boosts de session (assurance, chrono, secours Oracle — détail in-app).
-• **Classement mondial** sur ta meilleure run : scelle ton nom Oracle quand l’invite apparaît.
-• **Bonus LUX quotidien** sur le menu d’accueil si éligible (règles serveur).
+**Les modes selon ton courage**
+• **Classique** pour affûter sans te ruiner.  
+• **High Stakes** / **Royal** quand tu veux mises, objectifs et gains qui montent—nettement, ou pas du tout.
 
-**Confort & accessibilité**
-Interface *dark matte*, retours haptiques sur appareils compatibles, et respect du réglage système **Réduire les mouvements**. Audio réglable dans les Paramètres.
+**Meta**
+Dépense des **LUX** à la **Boutique** (skins, boosts de session—détail in-app). **Bonus LUX** quotidien sur le menu si éligible (règles serveur).
 
-**Confidentialité**
-Les builds store peuvent activer analytique / crash reporting comme décrit dans la politique de confidentialité liée sur la fiche store.
+**Confiance**
+Analytique / crash reporting possibles sur les builds store—voir la politique de confidentialité liée.
+
+**Télécharge si tu veux** : un duel de logique avec toi-même, un classement visible, et l’effet « encore une run ».
 
 ---
 
 # Google Play Console (Français)
 
 ## Titre (30 max)
-Velour : puzzle néon & LUX
+Velour: Luxury Sort & Stack
 
 ## Courte description (80 max)
-Gemmes, perfects et LUX. Runs casual ou à enjeux + classement en ligne.
+Puzzle néon exigeant : Perfects, LUX, ladder mondial—beau, nerveux, classe.
 
 ## Description complète (4000 max)
-Velour est un jeu de puzzle néon centré sur les **runs** : place des gemmes, crée des triples et enchaîne les **Perfect** pour du **LUX** sous pression du temps.
+**Le plateau te juge. Le chrono tranche.** Velour, c’est des **runs** sous tension : triples, **Perfect**, **LUX**, et une **Heat** qui récompense la précision quand le temps file.
 
-**Jouer**
-Les clears forme et couleur sécurisent le rack ; trois gemmes identiques déclenchent un **Perfect** et nourrissent la **Heat** pour des bonus et des repêchages utiles. Passe en **Classique** pour t’entraîner, ou tente les modes **High Stakes** / **Royal** pour monter la mise.
+**Logique & sensation**
+Clears forme/couleur pour garder le contrôle ; trois gemmes identiques = **Perfect** + **Heat** pour monter en puissance. Interface néon sombre, lisible, pensée pour le stress « sain ».
 
-**Méta**
-Dépense des **LUX** à la **Boutique** (skins, boosts). Affronte le **classement mondial** et choisis ton nom **Oracle** quand le jeu te le propose.
+**Compétition**
+**Classement mondial** sur ta meilleure run, nom **Oracle** quand le jeu le propose.
 
-**Confidentialité & confort**
-UI sombre, haptique optionnelle, animations compatibles « réduire les mouvements ». Les builds store peuvent inclure analytique / crash reporting, décrits dans la politique de confidentialité liée.
+**Modes**
+**Classique** pour t’installer, **High Stakes** / **Royal** pour monter la mise.
 
-Bonne run — et surveille le chrono.
+**LUX & shop**
+Skins, boosts, bonus quotidien (si éligible).
+
+**Confidentialité**
+Voir la politique liée (analytique / crash reporting possibles).
+
+Tu aimes **réfléchir vite**, **monter**, et **assumer une run** ? Lance l’install.

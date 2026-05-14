@@ -2,6 +2,8 @@
 
 Ce dossier centralise les **textes marketing** à recopier dans **App Store Connect** et la **Google Play Console** pour chaque langue d’affichage du store (pas le texte in‑app : celui‑ci vient des fichiers `lib/l10n/*.arb`). Les accroches mettent en avant **défi / logique**, **classement**, **qualité visuelle (néon lisible)** et l’envie de relancer une run — le positionnement « luxe » reste dans le nom, pas comme seul argument.
 
+**Où coller quoi dans les consoles (en français, champ par champ)** : voir le guide en tête de [`fr.md`](fr.md) — les mêmes emplacements s’appliquent aux autres locales en changeant seulement la langue sélectionnée.
+
 ## Fichiers
 
 | Fichier        | Usage typique                          |

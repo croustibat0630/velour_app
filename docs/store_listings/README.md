@@ -4,6 +4,8 @@ Ce dossier centralise les **textes marketing** à recopier dans **App Store Conn
 
 **Où coller quoi :** chaque fichier `en.md`, `fr.md`, `de.md`, `zh-Hans.md`, `hi.md` commence par un **guide en français** (navigation + *locale* à sélectionner), puis sous chaque titre **##** une ligne *italique* en français indique le **champ console** correspondant, au-dessus du texte dans la langue du store.
 
+À **chaque** préparation de build **store-ready** : **remplacer** dans ces fichiers les sections *Nouveautés* (App Store) et *Notes de version* (Play) par le contenu **réel** de la release et la version lue dans `pubspec.yaml` — obligation agent décrite dans `.cursor/rules/git-workflow.mdc` (§ Builds store) et cochée dans `docs/STORE_RELEASE_CHECKLIST.md` §2.
+
 Les blocs **Nom**, **Sous-titre**, **Description**, etc. sont en **texte plat** (sans syntaxe Markdown : pas de `**` à coller dans les consoles — App Store et Play n’affichent pas le gras Markdown sur ces champs).
 
 ## Fichiers

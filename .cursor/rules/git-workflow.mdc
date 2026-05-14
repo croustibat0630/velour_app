@@ -21,6 +21,8 @@ Ne pas demander à l’utilisateur de « faire le git » à la place de l’agen
 
 Avant **chaque** nouvelle livraison Play ou App Store / TestFlight : **incrémenter** dans `pubspec.yaml` le numéro après `+` (ex. `1.0.0+7` → `+8`). Ce chiffre est à la fois le **versionCode** Android et le **CFBundleVersion** iOS — il doit **toujours monter** ; sinon Play refuse l’upload. Après changement : `flutter pub get`, puis builds ; **commit** le bump de version avec le lot ou juste avant le push des artefacts.
 
+**Notes « Nouveautés » / Release notes (fiches dans le dépôt)** : à chaque lot **store-ready** qui prépare une livraison (bump `pubspec`, builds AAB/IPA, ou validation explicite « prêt store »), **remplacer** dans `docs/store_listings/` (`en.md`, `fr.md`, `de.md`, `zh-Hans.md`, `hi.md`) le texte des sections **Nouveautés de cette version** (App Store) et **Notes de version** (Play) par les puces **réelles** du binaire ; aligner la **référence de version** citée dans ces blocs sur `pubspec.yaml` (`version:` / `+N`). Ne pas conserver d’anciennes notes comme si elles décrivaient la nouvelle release.
+
 **Convention Velour (version marketing + build)** : à chaque build store, monter **à la fois** la partie avant `+` et le `+N` — enchaîner les sorties mineures **1.0.0 → 1.1.0 → 1.2.0** (trois segments) **et** `+16 → +17 → +18` (ex. `1.1.0+17`, puis `1.2.0+18`). Ne jamais réutiliser un `+N` déjà uploadé sur un store.
 
 **Dart-defines obligatoires** pour un binaire **store** aligné prod Velour (ne pas oublier quand l’utilisateur demande les builds) :

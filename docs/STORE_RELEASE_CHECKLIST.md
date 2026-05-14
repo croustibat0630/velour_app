@@ -71,6 +71,7 @@ Référence code : `lib/utils/velour_release_links.dart` — en **release**, une
 ## 2. Légal & métadonnées (gates)
 
 - [ ] **Fiches store multi-langue** : textes prêts à copier-coller dans **App Store Connect** et la **Google Play Console** pour **en, fr, de, zh-Hans (chinois simplifié), hi** — voir `docs/store_listings/README.md` et les fichiers `en.md`, `fr.md`, `de.md`, `zh-Hans.md`, `hi.md`. *(Relecture native recommandée pour zh/hi avant publication.)*
+- [ ] **Nouveautés / notes de version** : pour **chaque** build livré (ou candidat store-ready), **mettre à jour** dans ces mêmes fichiers `.md` les sections *Nouveautés de cette version* (App Store) et *Notes de version* (Play) — **remplacer** l’ancien texte par ce qui est vraiment dans le binaire, et la référence `version`/`+N` sur celle du `pubspec.yaml` (règle agent : `.cursor/rules/git-workflow.mdc` § Builds store).
 - [x] **Politique de confidentialité** : URL réelle alignée App Store Connect + builds (`VelourReleaseLinks.appStoreListingPrivacyPolicyUrl` / `--dart-define`). *(Contenu Notion à jour, accessible sans compte, cohérent avec la déclaration « données collectées » — revue humaine.)*
 - [ ] **CGU** (si séparées) : lien présent dans la fiche store / l’app si requis par la juridiction.
 - [ ] **Âge / contenu** : cohérents avec le questionnaire store (PEGI / etc.).

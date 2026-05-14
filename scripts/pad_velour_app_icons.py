@@ -4,6 +4,9 @@
 Avant le pad : **rogne** une bande sur les bords (couronne cuir noir) pour laisser le
 bloc doré occuper davantage le carré — plus propre sur Springboard (iOS + Android).
 
+La marge « safe zone » du pad n’utilise **pas** la moyenne des coins (noir) : fond
+**#C9A03A** pour `app_icon` / dark, gris chaud pour la variante teintée.
+
 Reads the masters used by flutter_launcher_icons (`app_icon`, `app_icon_ios_tinted`),
 then copies `app_icon` → `app_icon_ios_dark` (lisibilité iOS 18).
 
@@ -26,8 +29,14 @@ from pathlib import Path
 
 from PIL import Image
 
-# Part du bord retirée (chaque côté) avant resize → le jaune / motif remplit mieux l’icône.
-TRIM_EDGE_FRAC = 0.10
+# Part du bord retirée (chaque côté) avant resize → enlève le cuir noir extérieur.
+TRIM_EDGE_FRAC = 0.13
+
+# Marge « safe zone » autour du motif réduit : **pas** la moyenne des coins (souvent noir),
+# mais l’or Velour aligné sur `adaptive_icon_background` / `background_color_ios` du pubspec.
+_VELOUR_GOLD_MARGIN_RGBA = (0xC9, 0xA0, 0x3A, 255)
+# Variante teintée : marge neutre claire (évite un cadre noir après rognage).
+_TINTED_PAD_MARGIN_RGBA = (0xD8, 0xD4, 0xCC, 255)
 
 # ~7 % empty margin on each side of the 1024 master (stronger than a tiny shrink).
 SCALE = 0.86
@@ -57,6 +66,8 @@ def trim_leather_margin(path: Path, edge_frac: float) -> None:
     out = cropped.resize((w, h), Image.Resampling.LANCZOS)
     out.save(path, format="PNG", optimize=True)
     print(f"OK {path.relative_to(ROOT)} -> trim {edge_frac:.0%} / side then resize")
+
+
 def _corner_average_rgba(im: Image.Image) -> tuple[int, int, int, int]:
     w, h = im.size
     pts = ((0, 0), (w - 1, 0), (0, h - 1), (w - 1, h - 1))
@@ -78,7 +89,12 @@ def _corner_average_rgba(im: Image.Image) -> tuple[int, int, int, int]:
     return (rs // n, gs // n, bs // n, als // n)
 
 
-def pad_one(path: Path, *, transparent_canvas: bool) -> None:
+def pad_one(
+    path: Path,
+    *,
+    transparent_canvas: bool,
+    solid_margin_rgba: tuple[int, int, int, int] | None = None,
+) -> None:
     im = Image.open(path).convert("RGBA")
     w, h = im.size
     if w != h:
@@ -95,7 +111,7 @@ def pad_one(path: Path, *, transparent_canvas: bool) -> None:
     if transparent_canvas:
         canvas = Image.new("RGBA", (CANVAS, CANVAS), (0, 0, 0, 0))
     else:
-        bg = _corner_average_rgba(im)
+        bg = solid_margin_rgba if solid_margin_rgba is not None else _corner_average_rgba(im)
         canvas = Image.new("RGBA", (CANVAS, CANVAS), bg)
 
     ox = (CANVAS - new_side) // 2
@@ -116,10 +132,18 @@ def main() -> int:
         return 1
     trim_leather_margin(ICONS / "app_icon.png", TRIM_EDGE_FRAC)
     trim_leather_margin(ICONS / "app_icon_ios_tinted.png", TRIM_EDGE_FRAC)
-    pad_one(ICONS / "app_icon.png", transparent_canvas=False)
+    pad_one(
+        ICONS / "app_icon.png",
+        transparent_canvas=False,
+        solid_margin_rgba=_VELOUR_GOLD_MARGIN_RGBA,
+    )
     shutil.copyfile(ICONS / "app_icon.png", dark_out)
     print(f"OK {dark_out.relative_to(ROOT)} <- app_icon.png (iOS 18 dark readability)")
-    pad_one(ICONS / "app_icon_ios_tinted.png", transparent_canvas=False)
+    pad_one(
+        ICONS / "app_icon_ios_tinted.png",
+        transparent_canvas=False,
+        solid_margin_rgba=_TINTED_PAD_MARGIN_RGBA,
+    )
     return 0
 
 

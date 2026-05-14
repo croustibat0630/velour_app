@@ -6,6 +6,7 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 
 import '../models/skin_config.dart';
 import '../utils/velour_audit_log.dart';
@@ -223,34 +224,38 @@ class FirestoreService {
       'internal',
       'aborted',
       'cancelled',
+      'resource-exhausted',
     };
     return codes.contains(e.code);
   }
 
-  Future<T> _firestoreRetry<T>(Future<T> Function() op) async {
+  Future<T> _firestoreRetry<T>(
+    Future<T> Function() op, {
+    int maxAttempts = 6,
+    int initialBackoffMs = 300,
+    int maxBackoffMs = 5000,
+  }) async {
     int attempt = 0;
-    int backoffMs = 180;
+    int backoffMs = initialBackoffMs;
     while (true) {
       try {
         return await op();
-      } catch (e, st) {
+      } catch (e, _) {
         attempt++;
-        if (attempt >= 3 || !_isNetworkFirebaseException(e)) {
-          if (attempt >= 3) {
-            VelourObservability.logFirestoreFailure(
-              'firestore_retry_exhausted',
-              error: e,
-              stackTrace: st,
-              context: <String, Object?>{
-                'attempts': attempt,
-                'transientNetwork': _isNetworkFirebaseException(e),
-              },
+        if (!_isNetworkFirebaseException(e)) {
+          rethrow;
+        }
+        if (attempt >= maxAttempts) {
+          try {
+            FirebaseCrashlytics.instance.log(
+              '[VEL_OBS] firestore_retry_exhausted attempts=$attempt/$maxAttempts '
+              'backoffMaxMs=$maxBackoffMs err=$e',
             );
-          }
+          } catch (_) {}
           rethrow;
         }
         await Future<void>.delayed(Duration(milliseconds: backoffMs));
-        backoffMs = (backoffMs * 2).clamp(180, 1200);
+        backoffMs = (backoffMs * 2).clamp(initialBackoffMs, maxBackoffMs);
       }
     }
   }
@@ -290,23 +295,28 @@ class FirestoreService {
         final DocumentReference<Map<String, dynamic>> doc = _db
             .collection('players')
             .doc(u.uid);
-        await _firestoreRetry(() async {
-          final DocumentSnapshot<Map<String, dynamic>> snap = await doc.get();
-          if (!snap.exists) {
-            await doc.set(<String, dynamic>{
-              'highScore': 0,
-              'totalLux': 0,
-              'inventory': <String>[SkinCatalog.standard.id],
-              'activeSkinId': SkinCatalog.standard.id,
-              'lastSeen': FieldValue.serverTimestamp(),
-              'updatedAt': FieldValue.serverTimestamp(),
-            });
-          } else {
-            await doc.set(<String, dynamic>{
-              'lastSeen': FieldValue.serverTimestamp(),
-            }, SetOptions(merge: true));
-          }
-        });
+        await _firestoreRetry(
+          () async {
+            final DocumentSnapshot<Map<String, dynamic>> snap = await doc.get();
+            if (!snap.exists) {
+              await doc.set(<String, dynamic>{
+                'highScore': 0,
+                'totalLux': 0,
+                'inventory': <String>[SkinCatalog.standard.id],
+                'activeSkinId': SkinCatalog.standard.id,
+                'lastSeen': FieldValue.serverTimestamp(),
+                'updatedAt': FieldValue.serverTimestamp(),
+              });
+            } else {
+              await doc.set(<String, dynamic>{
+                'lastSeen': FieldValue.serverTimestamp(),
+              }, SetOptions(merge: true));
+            }
+          },
+          maxAttempts: 10,
+          initialBackoffMs: 400,
+          maxBackoffMs: 8000,
+        );
       } catch (e, st) {
         VelourObservability.logFirestoreFailure(
           'initializeAuthAndPullSkins.playerDocTouch',
@@ -364,7 +374,9 @@ class FirestoreService {
     final DocumentReference<Map<String, dynamic>>? ref = _playerRef;
     if (!_authReady || ref == null) return null;
     try {
-      final DocumentSnapshot<Map<String, dynamic>> me = await ref.get();
+      final DocumentSnapshot<Map<String, dynamic>> me = await _firestoreRetry(
+        () => ref.get(),
+      );
       final Map<String, dynamic>? d = me.data();
       final List<dynamic>? inv = d?['inventory'] as List<dynamic>?;
       final String? active = d?['activeSkinId'] as String?;

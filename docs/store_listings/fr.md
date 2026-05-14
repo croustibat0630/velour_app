@@ -7,13 +7,13 @@ Velour: Luxury Sort & Stack
 Logique néon • Grimpe au top
 
 ## Mots-clés (100 max)
-puzzle,stratégie,neon,arcade,gems,LUX,classement,rang,perfect,skill,chrono,défi
+puzzle,stratégie,neon,arcade,gems,LUX,classement,perfect,skill,défi,triple
 
 ## Texte promotionnel (170 max, optionnel)
-Une run, un verdict : lis le rack, enchaîne forme & couleur, vise le Perfect quand le chrono fond. Néon sombre + ladder mondial : prouve tes choix.
+Chaque run est un pari : lis le rack, enchaîne les clears, vise le Perfect avant la fin du chrono. Néon sombre, classement live—montre que tu ne plies pas.
 
 ## Description (4000 max)
-**Tu vois le rack. Le chrono, lui, ne négocie pas.** Velour est un puzzle néon pensé en **runs** : chaque pose est un pari de **logique**—clears **forme**, **couleur**, et le **Perfect** (trois gemmes identiques) qui fait exploser le score et alimente la **Heat** pour des bonus LUX et des repêchages de temps au bon moment.
+**Tu vois le rack. Le chrono, lui, ne négocie pas.** Velour est un **puzzle néon exigeant** pensé en **runs** : chaque pose est un pari de **logique**—clears **forme**, **couleur**, et le **Perfect** (trois gemmes identiques) qui fait exploser le score et alimente la **Heat** pour des bonus LUX et des repêchages de temps au bon moment. Pour ceux qui veulent **réfléchir vite**, pas seulement taper vite.
 
 **Pourquoi tu relances**
 • **Le défi d’abord** : pression lisible—ne prends pas le triple « facile » si un Perfect est à une gemme.  
@@ -30,7 +30,7 @@ Dépense des **LUX** à la **Boutique** (skins, boosts de session—détail in-a
 **Confiance**
 Analytique / crash reporting possibles sur les builds store—voir la politique de confidentialité liée.
 
-**Télécharge si tu veux** : un duel de logique avec toi-même, un classement visible, et l’effet « encore une run ».
+**Télécharge** si tu veux un duel de logique avec toi-même, un classement visible, et l’effet « encore une run »—puis assume le score.
 
 ---
 
@@ -40,10 +40,10 @@ Analytique / crash reporting possibles sur les builds store—voir la politique 
 Velour: Luxury Sort & Stack
 
 ## Courte description (80 max)
-Puzzle néon exigeant : Perfects, LUX, ladder mondial—beau, nerveux, classe.
+Puzzle néon nerveux : Perfects, LUX, classement mondial—pour relancer encore.
 
 ## Description complète (4000 max)
-**Le plateau te juge. Le chrono tranche.** Velour, c’est des **runs** sous tension : triples, **Perfect**, **LUX**, et une **Heat** qui récompense la précision quand le temps file.
+**Le plateau te juge. Le chrono tranche.** Velour, c’est du **puzzle / stratégie** en **runs** sous tension : triples, **Perfect**, **LUX**, et une **Heat** qui récompense la précision quand le temps file.
 
 **Logique & sensation**
 Clears forme/couleur pour garder le contrôle ; trois gemmes identiques = **Perfect** + **Heat** pour monter en puissance. Interface néon sombre, lisible, pensée pour le stress « sain ».
@@ -60,4 +60,4 @@ Skins, boosts, bonus quotidien (si éligible).
 **Confidentialité**
 Voir la politique liée (analytique / crash reporting possibles).
 
-Tu aimes **réfléchir vite**, **monter**, et **assumer une run** ? Lance l’install.
+Tu aimes **réfléchir vite**, **monter au classement**, et **assumer une run** ? Touche **Installer**—et montre le jeu.

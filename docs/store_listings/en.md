@@ -4,16 +4,16 @@
 Velour: Luxury Sort & Stack
 
 ## Subtitle (30 max)
-Neon logic • Climb the ranks
+Neon runs • Rank worldwide
 
 ## Keywords (100 max, comma-separated, no spaces after commas)
-puzzle,strategy,neon,arcade,gems,LUX,leaderboard,rank,perfect,skill,brain,timer
+puzzle,strategy,neon,arcade,gems,LUX,leaderboard,perfect,skill,brain,triple
 
 ## Promotional text (170 max, optional)
-One run, one verdict: read the rack, chain clears, hunt Perfects as the clock tightens. Dark neon boards + live world rank—prove your reads under pressure.
+Every run is a dare: scan the rack, chain clears, spike a Perfect before time runs dry. Dark neon boards, live world ranks—show everyone you don’t choke.
 
 ## Description (4000 max)
-**You see the rack. The clock doesn’t care.** Velour is a neon puzzle built on **runs**: every placement is a bet on logic—shape clears, color clears, and the devastating **Perfect** (three identical gems) that spikes score and feeds **Heat** for bigger payouts and clutch time refills.
+**You see the rack. The clock doesn’t care.** Velour is a **high‑skill neon puzzle** built on **runs**: every placement is a bet on logic—shape clears, color clears, and the devastating **Perfect** (three identical gems) that spikes score and feeds **Heat** for bigger payouts and clutch time refills. If you like **thinking faster than you blink**, this is your lane.
 
 **Why it’s hard to put down**
 • **Challenge first**: the pressure is honest—read patterns fast, don’t grab the “easy” triple if a Perfect is one gem away.  
@@ -30,7 +30,7 @@ Spend **LUX** in the **Shop** on skins and session boosts (insurance, chrono sav
 **Trust**
 Store builds may include analytics/crash reporting as disclosed in the privacy policy linked on this page—review it before you play.
 
-**Download if you want:** a logic duel with yourself, a scoreboard the world can see, and “one more run” energy.
+**Download if you want:** a logic duel with yourself, a scoreboard the world can see, and “one more run” energy—then prove it on the board.
 
 ---
 
@@ -40,13 +40,13 @@ Store builds may include analytics/crash reporting as disclosed in the privacy p
 Velour: Luxury Sort & Stack
 
 ## Short description (80 max)
-Neon logic puzzle: Perfect chains, LUX stakes, global ranks—beautiful & brutal.
+High-skill neon puzzle: Perfects, LUX stakes, world ranks—made to replay.
 
 ## Full description (4000 max)
-**The board is a test. The clock is the judge.** Velour is a neon puzzle about **runs**: place gems, build triples, and hunt **Perfect** chains for **LUX** while pressure ramps up.
+**The board is a test. The clock is the judge.** Velour is a **neon puzzle / strategy** game about **runs**: place gems, build triples, and hunt **Perfect** chains for **LUX** while pressure ramps up.
 
 **Skill you can feel**
-Shape and color clears keep your rack alive; three identical gems score a **Perfect** and build **Heat** for bigger rewards and clutch refills. It’s readable, tactile, and built for players who like **logic under stress**.
+Shape and color clears keep your rack alive; three identical gems score a **Perfect** and build **Heat** for bigger rewards and clutch refills. It’s readable, tactile, and built for players who like **logic under stress** and **puzzle depth** without clutter.
 
 **Compete for real**
 Climb the **world leaderboard** on your best run and set your **Oracle** name when prompted. Dark‑neon presentation keeps the focus on decisions—not clutter.
@@ -60,4 +60,4 @@ Spend **LUX** in the **Shop** on skins and boosts. Daily **LUX** bonus on the ho
 **Privacy**
 Store builds may include analytics/crash reporting—see the linked privacy policy.
 
-If you love **ranked logic**, **clean neon visuals**, and **runs that bite back**, tap install.
+If you love **ranked logic**, **clean neon visuals**, and **runs that bite back**, tap **Install**—then climb.

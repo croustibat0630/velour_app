@@ -7,13 +7,13 @@ Velour: Luxury Sort & Stack
 Neon-Logik • Welt-Rangliste
 
 ## Keywords (100 max)
-puzzle,strategy,neon,arcade,gems,LUX,leaderboard,rank,perfect,skill,brain,zeit
+puzzle,strategy,neon,arcade,gems,LUX,leaderboard,perfect,skill,brain,triple
 
 ## Werbetext (170 max, optional)
-Eine Run, ein Urteil: Rack lesen, Form- & Farb-Clears ketten, Perfekte jagen, während die Zeit schrumpft. Dunkles Neon + Live-Weltrangliste—zeig Linie unter Druck.
+Für Spieler, die Druck lieben: Rack lesen, Clears ketten, Perfekt jagen, wenn die Zeit knapp wird. Dunkles Neon, Weltrang live—beweise Ruhe, wenn es brennt.
 
 ## Beschreibung (4000 max)
-**Du siehst das Rack. Die Uhr verhandelt nicht.** Velour ist ein Neon-Puzzle aus **Runs**: jede Platzierung ist Logik unter Druck—**Form**- und **Farb**-Clears plus das **Perfekt** (drei identische Gems), das den Score sprengt und **Heat** speist für Bonus‑LUX und clutch Zeitretter.
+**Du siehst das Rack. Die Uhr verhandelt nicht.** Velour ist ein **anspruchsvolles Neon-Puzzle** aus **Runs**: jede Platzierung ist Logik unter Druck—**Form**- und **Farb**-Clears plus das **Perfekt** (drei identische Gems), das den Score sprengt und **Heat** speist für Bonus‑LUX und clutch Zeitretter. Für alle, die **schneller denken** wollen als die Zeit nachgibt.
 
 **Warum „noch eine Runde“**
 • **Challenge zuerst**: schnell Muster lesen—nicht den „billigen“ Drilling nehmen, wenn Perfekt eine Gem entfernt ist.  
@@ -30,7 +30,7 @@ Eine Run, ein Urteil: Rack lesen, Form- & Farb-Clears ketten, Perfekte jagen, w�
 **Vertrauen**
 Store-Builds können Analytics/Crash Reporting nutzen—siehe verlinkte Datenschutzerklärung.
 
-**Installieren**, wenn du **Logik unter Zeitdruck**, **neon‑klare Optik** und **Rangliste** willst.
+**Hol dir Velour**, wenn du **Logik unter Zeitdruck**, **neon‑klare Optik** und eine **Weltrangliste** willst—und dann liefere eine Run, die zählt.
 
 ---
 
@@ -40,10 +40,10 @@ Store-Builds können Analytics/Crash Reporting nutzen—siehe verlinkte Datensch
 Velour: Luxury Sort & Stack
 
 ## Kurzbeschreibung (80 max)
-Neon-Logikpuzzle: Perfekt-Ketten, LUX, Weltrangliste—scharf & wunderschön.
+Neon-Logikpuzzle: Perfekt-Ketten, LUX, Weltrang—anspruchsvoll & wiederspielbar.
 
 ## Vollständige Beschreibung (4000 max)
-**Das Board prüft dich. Die Zeit urteilt.** Velour = **Runs** mit ehrlichem Druck: Drillinge, **Perfekt**, **LUX**, **Heat**—alles für Spieler, die **Köpfchen unter Stress** mögen.
+**Das Board prüft dich. Die Zeit urteilt.** Velour = **Neon-Puzzle mit Strategie** und **Runs** mit ehrlichem Druck: Drillinge, **Perfekt**, **LUX**, **Heat**—für Spieler, die **Köpfchen unter Stress** mögen.
 
 **Gameplay**
 Form/Farbe halten das Rack stabil; drei identische Gems = **Perfekt** + **Heat**. Dunkles Neon, fokussiert, nicht kitschig.
@@ -60,4 +60,4 @@ Form/Farbe halten das Rack stabil; drei identische Gems = **Perfekt** + **Heat**
 **Datenschutz**
 Siehe verlinkte Erklärung (Analytics/Crash möglich).
 
-Wenn du **Ränge**, **saubere Optik** und **knifflige Runs** liebst: installieren.
+Wenn du **Ränge**, **saubere Optik** und **knifflige Runs** liebst: **installieren**—und dann zeig’s uns auf der Weltrangliste.

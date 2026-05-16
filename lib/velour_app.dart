@@ -19,6 +19,7 @@ import 'utils/route_transition_observer.dart';
 import 'utils/session_trace_navigator_observer.dart';
 import 'utils/velour_route_observer.dart';
 import 'services/app_settings.dart';
+import 'services/velour_app_engagement_tracker.dart';
 
 /// Racine Material + providers (hors bootstrap Firebase / polices).
 class VelourApp extends StatelessWidget {
@@ -64,13 +65,15 @@ class VelourApp extends StatelessWidget {
                       supportedLocales: AppLocalizations.supportedLocales,
                       debugShowCheckedModeBanner: false,
                       builder: (context, child) {
-                        return Stack(
-                          fit: StackFit.expand,
-                          children: [
-                            child ?? const SizedBox.shrink(),
-                            const WelcomeGiftGlobalLayer(),
-                            const LuxCloudNoticeGlobalLayer(),
-                          ],
+                        return VelourAppEngagementBinder(
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              child ?? const SizedBox.shrink(),
+                              const WelcomeGiftGlobalLayer(),
+                              const LuxCloudNoticeGlobalLayer(),
+                            ],
+                          ),
                         );
                       },
                       theme: ThemeData.dark().copyWith(
@@ -80,7 +83,8 @@ class VelourApp extends StatelessWidget {
                         ),
                       ),
                       home: const SplashScreen(),
-                      navigatorObservers: [
+                      navigatorObservers: <NavigatorObserver>[
+                        VelourAnalyticsNavigatorObserver(),
                         RouteTransitionObserver(),
                         SessionTraceNavigatorObserver(),
                         velourRouteObserver,

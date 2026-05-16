@@ -1487,7 +1487,16 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     };
   }
 
-  void _logRunEndAnalytics({required String endReason}) {
+  int _runDurationSecForAnalytics() {
+    final DateTime? started = _runStartedAt;
+    if (started == null) return 0;
+    return DateTime.now().difference(started).inSeconds.clamp(0, 86400);
+  }
+
+  void _logRunEndAnalytics({
+    required String endReason,
+    required int runDurationSec,
+  }) {
     VelourAnalytics.logRunEnd(
       stakeKind: _lastEndedRunStakeKind.name,
       level: _gameLevel,
@@ -1495,6 +1504,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
       stakeFooter: _stakeFooterAnalytics(_sessionStakeFooterLine),
       personalBest: _lastGameWasPersonalBest ? 1 : 0,
       runLux: _lux.clamp(0, 10000000),
+      runDurationSec: runDurationSec,
       runInstanceId: analyticsRunInstanceId,
     );
   }
@@ -2035,11 +2045,12 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
       },
     );
     try {
+      final int runDurationSec = _runDurationSecForAnalytics();
       unawaited(_recordRunStatsIfNeeded());
       final bool stakeResolved = _resolveSessionStakeOnGameOver();
       _lastGameWasPersonalBest = _lux > _economy.highScore;
       if (stakeResolved) {
-        _logRunEndAnalytics(endReason: 'timer');
+        _logRunEndAnalytics(endReason: 'timer', runDurationSec: runDurationSec);
       }
       unawaited(
         _persistHighScoreIfNeeded().catchError((Object e, StackTrace st) {
@@ -2787,11 +2798,15 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     _cancelMatchScheduling();
     if (!wasCritical) {
       _breakPerfectHeatDeadlockInternal();
+      final int runDurationSec = _runDurationSecForAnalytics();
       unawaited(_recordRunStatsIfNeeded());
       final bool stakeResolved = _resolveSessionStakeOnGameOver();
       _lastGameWasPersonalBest = _lux > _economy.highScore;
       if (stakeResolved) {
-        _logRunEndAnalytics(endReason: 'deadlock');
+        _logRunEndAnalytics(
+          endReason: 'deadlock',
+          runDurationSec: runDurationSec,
+        );
       }
       _playGameOverSound();
       AudioHandler.instance.cutAllAudio();

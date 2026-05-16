@@ -77,8 +77,12 @@ Avec `--dart-define=VELOUR_ANALYTICS=true`, le client envoie à Firebase Analyti
 - `velour_shop_view` — ouverture [ShopView](lib/screens/shop_view.dart) ; param optionnel `run_instance_id` si le joueur n’a pas encore relancé une run (ex. menu après game over → boutique).
 - `velour_shop_vault_buy_start` — params `product_id` (SKU), `lux_amount`, optionnel `run_instance_id`.
 - `velour_shop_vault_buy_outcome` — params `product_id`, `outcome` (`success` / `cancelled` / `unavailable` / `products_unavailable` / `busy` / `error`), optionnel `error_code` si `outcome == error`, optionnel `run_instance_id`.
-- `velour_run_end` — fin de run après résolution de la mise : `stake_kind`, `level`, `end_reason` (`timer` / `deadlock`), `stake_footer` (`none` / `high_stakes_fail` / `high_stakes_win` / `royal_fail` / `royal_win`), `personal_best` (0/1), `run_lux` (score session, plafonné côté client), optionnel `run_instance_id`. Voir [GameState](lib/providers/game_state.dart) (`_resolveSessionStakeOnGameOver` puis `_logRunEndAnalytics`).
+- `velour_run_end` — fin de run après résolution de la mise : `stake_kind`, `level`, `end_reason` (`timer` / `deadlock`), `stake_footer` (`none` / `high_stakes_fail` / `high_stakes_win` / `royal_fail` / `royal_win`), `personal_best` (0/1), `run_lux` (score session, plafonné côté client), **`run_duration_sec`** (durée de la run depuis `startGame`), optionnel `run_instance_id`. Voir [GameState](lib/providers/game_state.dart) (`_resolveSessionStakeOnGameOver` puis `_logRunEndAnalytics`).
+- `velour_app_foreground_start` — retour au premier plan : `route` (dernier écran nommé).
+- `velour_app_foreground_end` — pause / arrière-plan / fermeture : **`duration_sec`** (temps au premier plan), `lifecycle` (`paused` / `hidden` / `detached`), `route`. Voir [VelourAppEngagementTracker](lib/services/velour_app_engagement_tracker.dart).
 - `app_open` (API standard) — au bootstrap si Analytics est activé.
+
+**Temps dans l’app (GA4)** : pour la durée **globale** par session, utiliser les rapports Engagement (`user_engagement`) ; pour une mesure **explicite Velour** dans DebugView / BigQuery, agréger `velour_app_foreground_end.duration_sec` (somme ou médiane par utilisateur / jour). Pour le **temps de jeu**, filtrer `velour_run_end` et lire `run_duration_sec`.
 
 **Console** : Analytics → *DebugView* (appareil debug / build avec debug) ou rapports *Realtime* / *Events* après propagation.
 

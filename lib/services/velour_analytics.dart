@@ -232,6 +232,7 @@ abstract final class VelourAnalytics {
   /// [end_reason] : `timer` | `deadlock`.
   /// [stake_footer] : résultat mise premium (`none`, `high_stakes_fail`, …).
   /// [runInstanceId] : corrélation boutique / funnels (voir [GameState.analyticsRunInstanceId]).
+  /// Fin de run — inclut [runDurationSec] (temps depuis [GameState.startGame]).
   static void logRunEnd({
     required String stakeKind,
     required int level,
@@ -239,6 +240,7 @@ abstract final class VelourAnalytics {
     required String stakeFooter,
     required int personalBest,
     required int runLux,
+    required int runDurationSec,
     String? runInstanceId,
   }) {
     if (!enabled) return;
@@ -253,10 +255,50 @@ abstract final class VelourAnalytics {
             'stake_footer': stakeFooter,
             'personal_best': personalBest,
             'run_lux': runLux,
+            'run_duration_sec': runDurationSec.clamp(0, 86400),
           }, runInstanceId),
         );
       }),
     );
+  }
+
+  /// Début d’un segment **premier plan** (complète `session_start` / `user_engagement`).
+  static void logAppForegroundStart({required String routeName}) {
+    if (!enabled) return;
+    unawaited(
+      _safeLog(() async {
+        await FirebaseAnalytics.instance.logEvent(
+          name: 'velour_app_foreground_start',
+          parameters: <String, Object>{'route': _truncateParam(routeName)},
+        );
+      }),
+    );
+  }
+
+  /// Temps passé au premier plan avant pause / arrière-plan / fermeture.
+  static void logAppForegroundEnd({
+    required int durationSec,
+    required String lifecycle,
+    required String routeName,
+  }) {
+    if (!enabled) return;
+    unawaited(
+      _safeLog(() async {
+        await FirebaseAnalytics.instance.logEvent(
+          name: 'velour_app_foreground_end',
+          parameters: <String, Object>{
+            'duration_sec': durationSec.clamp(1, 86400),
+            'lifecycle': lifecycle,
+            'route': _truncateParam(routeName),
+          },
+        );
+      }),
+    );
+  }
+
+  static String _truncateParam(String value) {
+    if (value.length <= 100) return value;
+    return value.substring(0, 100);
   }
 
   /// Fin du flux d’achat côté client (`LuxIapService.buyVaultConsumable`).

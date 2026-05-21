@@ -26,8 +26,14 @@ class AudioHandler {
 
   /// Pool polyphonique pour les combos (overlap sans attendre la fin du son).
   static const int _matchPolyphony = 10;
+
+  /// Android : 10× `setSource` sérialisés bloquaient les one-shots derrière le verrou.
+  static const int _matchPolyphonyAndroid = 4;
   static const int _matchPolyphonyWeb = 1;
   static const int _matchPolyphonyApple = 1;
+
+  /// Préload minimal avant `startGame` : tap + perfect + 2 lecteurs match.
+  static const int _matchCriticalReadyCount = 2;
 
   /// MP3 avec longue queue : on baisse un peu le niveau pour limiter la fatigue,
   /// **sans** tronquer la lecture (évite une coupure audible).
@@ -43,6 +49,8 @@ class AudioHandler {
   static const Duration _pooledSfxWarmTimeout = Duration(seconds: 4);
 
   Future<void>? _preloadGameSfxFuture;
+  Future<void>? _preloadGameSfxCriticalFuture;
+  bool _gameSfxCriticalReady = false;
   static bool _installedAudioplayersTimeouts = false;
 
   /// Sur iOS (surtout simulateur) + hot restart, plusieurs `setSource` / `play`
@@ -360,6 +368,76 @@ class AudioHandler {
     );
   }
 
+  /// Sons indispensables au premier tap / premier combo (tap, perfect, 2× match).
+  /// À [await] avant [GameState.startGame] ; le reste continue en [preloadGameSfx].
+  Future<void> preloadGameSfxCritical() {
+    return _preloadGameSfxCriticalFuture ??= _preloadGameSfxCriticalOnce()
+        .whenComplete(() => _preloadGameSfxCriticalFuture = null);
+  }
+
+  Future<void> _preloadGameSfxCriticalOnce() async {
+    if (_disabled) return;
+    if (_gameSfxCriticalReady) return;
+    try {
+      if (!kIsWeb) {
+        await configureVelourAudioPipeline(activateSession: true, force: true);
+        if (_darwinPooledSfx) {
+          _darwinDisposableSfxMode = false;
+        }
+        await _withNativeSourceLoadLock(
+          () => _unlockAudioCore(preloadPooledTapChannel: false),
+        );
+        if (_darwinPooledSfx) {
+          await Future<void>.delayed(const Duration(milliseconds: 420));
+        }
+      } else {
+        await _withNativeSourceLoadLock(() => configure());
+      }
+
+      if (_disabled) return;
+
+      await _withNativeSourceLoadLock(() async {
+        _tapReady = await _loadTapPooledWithDarwinRebuildIfNeeded();
+      });
+      await _withNativeSourceLoadLock(() async {
+        _perfectPoolReady = await _setupPooledSfxCore(
+          player: _sfxPerfect,
+          fileName: _perfectFile,
+        );
+      });
+      await _withNativeSourceLoadLock(() async {
+        try {
+          await _populateMatchPoolIfNeeded(
+            stopAfterReadyCount: _matchCriticalReadyCount,
+          );
+        } catch (_) {
+          _matchPoolReady = false;
+        }
+      });
+
+      _applyFallbackDisposableSfxModeIfNeeded();
+    } catch (e, st) {
+      velourAudioTrace('preloadGameSfxCritical failed: $e');
+      velourAudioTrace('$st');
+      _applyFallbackDisposableSfxModeIfNeeded();
+    } finally {
+      _gameSfxCriticalReady = true;
+    }
+  }
+
+  void _applyFallbackDisposableSfxModeIfNeeded() {
+    if (kIsWeb) return;
+    final bool pooledIncomplete =
+        !_tapReady || !_matchPoolReady || !_perfectPoolReady;
+    if (pooledIncomplete) {
+      _darwinDisposableSfxMode = true;
+      velourAudioTrace(
+        'AudioHandler: fallback disposable SFX (critical incomplete: '
+        'tap=$_tapReady match=$_matchPoolReady perfect=$_perfectPoolReady)',
+      );
+    }
+  }
+
   /// Précharge match (pool) + perfect (mono pool).
   ///
   /// Une seule exécution à la fois : plusieurs appels concurrents (ex. double
@@ -374,30 +452,17 @@ class AudioHandler {
   Future<void> _preloadGameSfxOnce() async {
     try {
       if (_disabled) return;
-      if (!kIsWeb &&
-          (defaultTargetPlatform == TargetPlatform.iOS ||
-              defaultTargetPlatform == TargetPlatform.macOS)) {
+      await preloadGameSfxCritical();
+      if (_disabled) return;
+      if (!kIsWeb && _darwinPooledSfx) {
         _darwinDisposableSfxMode = false;
       }
 
-      // Ne **pas** tenir un seul verrou sur tout le préchargement : les
-      // `_playDisposableOneShot` (menu, premier tap) s’y retrouvaient en file
-      // derrière unlock + délai + N×`setSource` → latence audible vs l’action.
-      // On enchaîne des sections courtes ; le délai iOS reste **hors** verrou.
       if (!kIsWeb) {
         await _withNativeSourceLoadLock(() async {
-          await _unlockAudioCore(preloadPooledTapChannel: false);
-        });
-        await Future<void>.delayed(const Duration(milliseconds: 420));
-      } else {
-        await _withNativeSourceLoadLock(() => configure());
-      }
-
-      if (_disabled) return;
-
-      if (!kIsWeb) {
-        await _withNativeSourceLoadLock(() async {
-          _tapReady = await _loadTapPooledWithDarwinRebuildIfNeeded();
+          if (!_tapReady) {
+            _tapReady = await _loadTapPooledWithDarwinRebuildIfNeeded();
+          }
         });
         await _withNativeSourceLoadLock(() async {
           try {
@@ -415,16 +480,20 @@ class AudioHandler {
           }
         });
         await _withNativeSourceLoadLock(() async {
-          _tapReady = await _loadTapPooledWithDarwinRebuildIfNeeded();
+          if (!_tapReady) {
+            _tapReady = await _loadTapPooledWithDarwinRebuildIfNeeded();
+          }
         });
       }
 
-      await _withNativeSourceLoadLock(() async {
-        _perfectPoolReady = await _setupPooledSfxCore(
-          player: _sfxPerfect,
-          fileName: _perfectFile,
-        );
-      });
+      if (!_perfectPoolReady) {
+        await _withNativeSourceLoadLock(() async {
+          _perfectPoolReady = await _setupPooledSfxCore(
+            player: _sfxPerfect,
+            fileName: _perfectFile,
+          );
+        });
+      }
 
       await _withNativeSourceLoadLock(() async {
         _levelUpReady = await _setupPooledSfxCore(
@@ -440,7 +509,7 @@ class AudioHandler {
         );
       });
 
-      if (!kIsWeb && _darwinPooledSfx) {
+      if (!kIsWeb) {
         final bool pooledIncomplete =
             !_tapReady ||
             !_matchPoolReady ||
@@ -450,19 +519,19 @@ class AudioHandler {
         if (pooledIncomplete) {
           _darwinDisposableSfxMode = true;
           velourAudioTrace(
-            'AudioHandler: Darwin disposable SFX mode (pooled load incomplete: '
+            'AudioHandler: fallback disposable SFX (full preload incomplete: '
             'tap=$_tapReady match=$_matchPoolReady perfect=$_perfectPoolReady '
             'levelUp=$_levelUpReady credit=$_creditReady)',
           );
+        } else {
+          _darwinDisposableSfxMode = false;
         }
       }
     } catch (_) {
-      if (!kIsWeb &&
-          (defaultTargetPlatform == TargetPlatform.iOS ||
-              defaultTargetPlatform == TargetPlatform.macOS)) {
+      if (!kIsWeb) {
         _darwinDisposableSfxMode = true;
         velourAudioTrace(
-          'AudioHandler: Darwin disposable SFX mode (preload exception)',
+          'AudioHandler: fallback disposable SFX (preload exception)',
         );
       }
       // Best-effort preload; ignore in production.
@@ -567,17 +636,23 @@ class AudioHandler {
 
   /// Remplit le pool match si vide / pas prêt — **sans** verrou (appel depuis
   /// [_preloadGameSfxOnce] déjà verrouillé ou via [_ensureMatchPool]).
-  Future<void> _populateMatchPoolIfNeeded() async {
-    if (_matchPoolReady) return;
+  ///
+  /// [stopAfterReadyCount] : préload critique — charge au moins N lecteurs puis
+  /// s’arrête (le préload complet reprendra les autres).
+  Future<void> _populateMatchPoolIfNeeded({int? stopAfterReadyCount}) async {
     if (_disabled) return;
 
     if (_sfxMatchPool.isEmpty) {
       final bool apple =
           defaultTargetPlatform == TargetPlatform.iOS ||
           defaultTargetPlatform == TargetPlatform.macOS;
+      final bool android =
+          !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
       final int n = kIsWeb
           ? _matchPolyphonyWeb
-          : (apple ? _matchPolyphonyApple : _matchPolyphony);
+          : (apple
+                ? _matchPolyphonyApple
+                : (android ? _matchPolyphonyAndroid : _matchPolyphony));
       for (int i = 0; i < n; i++) {
         _sfxMatchPool.add(
           AudioPlayer(playerId: 'velour_sfx_match_${_darwinMatchPoolGen}_$i'),
@@ -588,6 +663,9 @@ class AudioHandler {
     for (final AudioPlayer p in _sfxMatchPool) {
       if (await _setupPooledSfxCore(player: p, fileName: _matchFile)) {
         readyCount++;
+      }
+      if (stopAfterReadyCount != null && readyCount >= stopAfterReadyCount) {
+        break;
       }
     }
     if (readyCount == 0 && _darwinPooledSfx && _sfxMatchPool.isNotEmpty) {
@@ -1128,6 +1206,10 @@ class AudioHandler {
     }
   }
 
+  /// Mobile natif : one-shots hors verrou pour ne pas bloquer derrière le préload
+  /// pool (`setSource` séquentiels). Web : sérialisation conservée.
+  bool get _disposableOutsideNativeLoadLock => !kIsWeb;
+
   Future<void> _playDisposableOneShot(
     String fileName, {
     required double volume,
@@ -1135,15 +1217,7 @@ class AudioHandler {
     double? playbackRate,
   }) async {
     try {
-      // Apple : chaque one-shot crée un [AudioPlayer] dédié — ne pas le mettre
-      // derrière [_withNativeSourceLoadLock] : le préload pool enchaîne des
-      // `setSource` longs et retardait menu / premier tap sans partager le même
-      // lecteur. Web / Android : garder la sérialisation (timeouts / hot restart).
-      final bool appleDisposableOutsideLock =
-          !kIsWeb &&
-          (defaultTargetPlatform == TargetPlatform.iOS ||
-              defaultTargetPlatform == TargetPlatform.macOS);
-      if (appleDisposableOutsideLock) {
+      if (_disposableOutsideNativeLoadLock) {
         await _playDisposableOneShotCore(
           fileName,
           volume: volume,

@@ -232,6 +232,8 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await AudioHandler.instance.stopMusic();
       if (!mounted) return;
+      await AudioHandler.instance.preloadGameSfxCritical();
+      if (!mounted) return;
       unawaited(AudioHandler.instance.preloadGameSfx());
       if (!mounted) return;
       final GameState gs = context.read<GameState>();

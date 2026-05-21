@@ -145,6 +145,7 @@ class _PreparationViewState extends State<PreparationView> with RouteAware {
     }
     await HapticFeedback.mediumImpact();
     await AudioHandler.instance.stopMusic();
+    await AudioHandler.instance.preloadGameSfxCritical();
     if (!mounted) return;
     gs.startNewRun();
     VelourAnalytics.logPrepLaunchConfirmed(

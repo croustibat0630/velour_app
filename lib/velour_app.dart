@@ -18,6 +18,7 @@ import 'widgets/ui/lux_cloud_notice_global_layer.dart';
 import 'utils/route_transition_observer.dart';
 import 'utils/session_trace_navigator_observer.dart';
 import 'utils/velour_route_observer.dart';
+import 'utils/velour_system_ui.dart';
 import 'services/app_settings.dart';
 import 'services/velour_app_engagement_tracker.dart';
 
@@ -78,6 +79,9 @@ class VelourApp extends StatelessWidget {
                       },
                       theme: ThemeData.dark().copyWith(
                         scaffoldBackgroundColor: const Color(0xFF0A0A0F),
+                        appBarTheme: const AppBarTheme(
+                          systemOverlayStyle: velourSystemUiOverlayStyle,
+                        ),
                         textTheme: GoogleFonts.montserratTextTheme(
                           ThemeData.dark().textTheme,
                         ),

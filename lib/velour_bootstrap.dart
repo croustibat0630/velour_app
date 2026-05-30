@@ -17,6 +17,7 @@ import 'services/velour_audio_platform.dart';
 import 'services/velour_observability.dart';
 import 'utils/velour_release_links.dart';
 import 'utils/velour_session_trace.dart';
+import 'utils/velour_system_ui.dart';
 
 /// Active App Check après [Firebase.initializeApp].
 ///
@@ -166,6 +167,7 @@ Future<void> velourRunAppStartup() async {
   // Réduit le timeout interne « preparation » d’audioplayers (30s par défaut) pour
   // éviter des TimeoutException fantômes remontées à Crashlytics après nos awaits.
   AudioHandler.installAudioplayersTimeoutGuardsEarly();
+  await velourConfigureSystemUi();
   // iOS / Android : AVAudioSession + contexte audioplayers (respectSilence: false).
   await configureVelourAudioPipeline(activateSession: true);
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);

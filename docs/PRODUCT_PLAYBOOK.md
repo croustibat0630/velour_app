@@ -1,9 +1,15 @@
 # Velour Product Playbook
 
-La manière **officielle** de développer Velour : vision, gouvernance, KPI, hypothèses, critères de kill, dette produit, journal.
+**Constitution produit** de Velour — cadre de décision stable.
 
-Les seuils (Rouge / Orange / Vert) se recalibrent avec le volume de données.  
-La **vision** et les **règles** changent rarement.
+| Évolue souvent | Évolue rarement (ce document) |
+|----------------|-------------------------------|
+| Sprints, hypothèses, backlog, roadmaps détaillées | Vision, invariants, cycle, phases, règles d’or |
+
+Les **seuils** Rouge/Orange/Vert se recalibrent avec le volume de données.  
+Le Playbook n’évolue que lorsqu’on découvre quelque chose qui change **fondamentalement** la manière de développer Velour — pas à chaque idée.
+
+Idées / files d’attente : [`docs/PRODUCT_BACKLOG.md`](PRODUCT_BACKLOG.md) (ne pas polluer ce playbook).
 
 Tags Git : `activation-p0-ftue` → `activation-s2-funnel`  
 Funnel : `lib/services/velour_activation_funnel.dart`  
@@ -20,8 +26,79 @@ Toutes les décisions doivent **renforcer cette promesse**.
 Si une évolution ne la renforce pas → **elle est reportée**.
 
 **Phase A — Validation du Product-Market Fit initial**  
-Question : *quand quelqu’un découvre Velour, vit-il assez vite le moment qui donne envie de continuer ?*  
-Le **PBR** (*Perfect Before Quit Rate*) mesure cette hypothèse.
+Question : *quand quelqu’un découvre Velour, vit-il assez vite le moment qui donne envie de continuer ?*
+
+Le **PBR** (*Perfect Before Quit Rate*) est l’**indicateur principal** de cette hypothèse, **mais il ne la résume pas à lui seul**. Il doit être interprété avec **FTUE Completed**, **Second Run Rate**, et les **données qualitatives** (tests utilisateurs / Programme 100 joueurs).  
+
+Exemple de piège : PBR 90 % + Second Run 12 % ≠ validation. Le Perfect a peut‑être été vu, pas *désiré*.
+
+---
+
+## Ce qui ne changera jamais — Invariants
+
+Quasi **constitutionnels**. Changent très rarement. Toute évolution qui les viole est suspecte.
+
+### Invariant 1 — Jouer avant de lire
+
+Le joueur joue avant de lire.
+
+### Invariant 2 — Vers le Perfect
+
+Chaque session doit conduire vers un Perfect (ou en faire sentir la possibilité).
+
+### Invariant 3 — Récompense lisible
+
+Une récompense doit être immédiatement compréhensible (chiffre, label, sensation).
+
+### Invariant 4 — Profondeur sans friction J0
+
+La profondeur ne doit jamais augmenter la friction des **60 premières secondes**.
+
+### Invariant 5 — Nouveaux joueurs d’abord
+
+Les nouveaux joueurs ont toujours priorité sur les vétérans lorsqu’un arbitrage est nécessaire.
+
+---
+
+## Le Cycle Produit
+
+Comment on travaille — pas seulement comment on mesure.
+
+```text
+Idée
+  ↓
+Hypothèse (écrite, mesurable, kill criteria)
+  ↓
+Sprint (une seule hypothèse)
+  ↓
+Instrumentation (si manquante)
+  ↓
+Observation (N ≥ 30 ; anti-panic)
+  ↓
+Validation
+  ├─ VALIDÉ → Industrialisation / garder / journal
+  └─ PAS VALIDÉ → Kill → journal → prochaine hypothèse
+```
+
+**Jamais** : sauver pendant des mois une hypothèse tuée par les données.
+
+---
+
+## Roadmap par phases
+
+Ordre **strict**. On n’ouvre pas la phase suivante tant que l’objectif de la phase courante n’est pas crédible.
+
+| Phase | Nom | Objectif |
+|-------|-----|----------|
+| **A** | Activation | Le joueur **découvre** Velour (Perfect + envie de continuer) |
+| **B** | Packaging | Le joueur **télécharge** Velour (promesse store = expérience réelle) |
+| **C** | Rétention | Le joueur **revient** |
+| **D** | Monétisation | Le joueur **accepte de payer** |
+| **E** | Croissance | Le joueur **invite** d’autres joueurs |
+
+Empêche de monétiser ou d’acheter du trafic alors que l’activation n’est pas validée.
+
+État actuel : **Phase A** (post P0 + funnel ; observation / preuves).
 
 ---
 
@@ -39,7 +116,8 @@ Si **un seul** de ces KPI baisse nettement (N ≥ 30) → **on arrête** les aut
 | **FTUE Completed** | A-t-il vraiment « vécu Velour » (Perfect + suite) ? |
 | **Second Run Rate** | A-t-il immédiatement envie de relancer ? |
 
-**Activation Score** (synthèse Niveau 1) — voir lecture matin.
+**Activation Score** (synthèse Niveau 1) — voir lecture matin.  
+Les trois KPI Niveau 1 se lisent **ensemble** (voir nuance PBR ci-dessus).
 
 ### Niveau 2 — Produit
 
@@ -57,7 +135,7 @@ Si **un seul** de ces KPI baisse nettement (N ≥ 30) → **on arrête** les aut
 - IAP / ARPDAU / revenus  
 - Volume de téléchargements (bruit sans campagne)  
 
-Le Packaging v1 utilisera le Niveau 3 **une fois** le feu vert activation obtenu.
+Le Packaging v1 (Phase B) utilisera le Niveau 3 **une fois** le feu vert activation obtenu.
 
 ---
 
@@ -264,7 +342,7 @@ Sur **N ≥ 30** (idéalement plus) :
 |------|----------|----------------------|-----------------|--------------|
 | 2026-08-05 | Activation P0 FTUE | Perfect hors chemin COMMENCER | *en validation* | `activation-p0-ftue` / `0d48545` |
 | 2026-08-05 | Sprint 2 funnel | Mesurer où on perd le joueur | Livré | `activation-s2-funnel` / `6980a69` |
-| 2026-08-05 | Gouvernance PBR → Playbook | Discipline preuves | Livré | `366817d` → *ce playbook* |
+| 2026-08-05 | Playbook constitutionnel | Invariants, cycle, phases A–E, backlog séparé | Livré | *ce commit* |
 | | Packaging v1 | *(quand Niveau 1 validé)* | | |
 | | Icône V2 | *(si CTR faible)* | | |
 
@@ -301,5 +379,6 @@ Chapitre culturel (à rédiger plus tard). Esquisse :
 ## Références
 
 - Funnel : `lib/services/velour_activation_funnel.dart`  
+- Backlog (évolutif) : `docs/PRODUCT_BACKLOG.md`  
 - Observabilité technique : `docs/OBSERVABILITY_J1.md`  
-- Ancien titre « Dashboard PBR » : redirigé ici (`docs/ACTIVATION_PBR_DASHBOARD.md`)
+- Ancien titre « Dashboard PBR » : `docs/ACTIVATION_PBR_DASHBOARD.md` → redirige ici

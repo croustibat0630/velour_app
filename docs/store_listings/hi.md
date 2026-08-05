@@ -11,7 +11,7 @@ Locale pour ce fichier : App Store Connect → Hindi · Play Console → hindi (
 1. [App Store Connect](https://appstoreconnect.apple.com) → Mes apps → Velour → App Store → version iOS → localisation Hindi.
 2. Champs cibles : Name, Subtitle, Keywords, Promotional Text, Description, What’s New in This Version (libellés anglais courants dans l’interface Apple) — même emplacement que pour les autres langues.
 3. Promotional Text : parfois modifiable sans nouvelle build.
-4. What’s New in This Version : obligatoire par langue — voir section dédiée plus bas (adapter à chaque release ; réf. dépôt : 1.2.2+20).
+4. What’s New in This Version : obligatoire par langue — voir section dédiée plus bas (adapter à chaque release ; réf. dépôt : 1.2.3+21).
 
 ### Google Play Console
 
@@ -70,10 +70,10 @@ puzzle,strategy,neon,arcade,gems,LUX,leaderboard,perfect,skill,brain,logic,tripl
 
 ## इस वर्ज़न में नया — App Store (हर भाषा में ज़रूरी)
 
-*वही iOS वर्ज़न लोकलाइज़ेशन पेज जहाँ Name/Description होते हैं: What’s New in This Version। हर भाषा के लिए भरें। हर रिलीज़ पर अपडेट करें (रिपो संदर्भ: 1.2.2+20).*
+*वही iOS वर्ज़न लोकलाइज़ेशन पेज जहाँ Name/Description होते हैं: What’s New in This Version। हर भाषा के लिए भरें। हर रिलीज़ पर अपडेट करें (रिपो संदर्भ: 1.2.3+21).*
 
-• Android 15+ पर बेहतर edge-to-edge डिस्प्ले (सिस्टम बार व इनसेट)।
-• Android पर अधिक भरोसेमंद गेम SFX; बगफ़िक्स व स्थिरता।
+• पहली रन: गाइडेड पाथ से Perfect, फिर रन जारी।
+• एक्टिवेशन सुधार; बगफ़िक्स व स्थिरता।
 
 ---
 
@@ -120,4 +120,4 @@ LUX
 
 *मुख्य स्टोर लिस्टिंग पेज पर नहीं: नई रिलीज़ बनाते समय AAB अपलोड के बाद Release notes चरण — इसी फ़ाइल वाली भाषा चुनें। कैरेक्टर लिमिट देखें।*
 
-• Android 15 edge-to-edge; विश्वसनीय SFX; फिक्स (v. 1.2.2)।
+• गाइडेड पहला Perfect, फिर रन जारी; फिक्स (v. 1.2.3)।

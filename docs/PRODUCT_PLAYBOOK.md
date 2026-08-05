@@ -393,7 +393,8 @@ Sur **N ≥ 30** (idéalement plus) :
 |------|----------|----------------------|-----------------|--------------|
 | 2026-08-05 | Activation P0 FTUE | Perfect hors chemin COMMENCER | *en validation* | `activation-p0-ftue` / `0d48545` |
 | 2026-08-05 | Sprint 2 funnel | Mesurer où on perd le joueur | Livré | `activation-s2-funnel` / `6980a69` |
-| 2026-08-05 | Playbook **GELÉ** | North Star PBR, Assumptions, Risks, garde-fou anti-gaming | Constitution figée | `c3b78e7` → *freeze* |
+| 2026-08-05 | Playbook **GELÉ** | North Star PBR, Assumptions, Risks, garde-fou anti-gaming | Constitution figée | `playbook-v1-frozen` |
+| 2026-08-05 | **Release 1.2.3+21** | FTUE P0 + funnel entre les mains des joueurs | *en rollout* | `release-1.2.3+21` / `docs/RELEASE.md` |
 | | Packaging v1 | *(quand Niveau 1 validé)* | | |
 | | Icône V2 | *(si CTR faible)* | | |
 

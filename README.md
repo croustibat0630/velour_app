@@ -7,6 +7,7 @@ Puzzle néon Flutter (Firebase : auth, Firestore, Remote Config, App Check, Cras
 - **Soumission stores** : [`docs/STORE_RELEASE_CHECKLIST.md`](docs/STORE_RELEASE_CHECKLIST.md) (parcours iOS/Android, VoiceOver/TalkBack, Réduire les mouvements, RC, App Check, `VELOUR_PRIVACY_POLICY_URL` + `VELOUR_ANALYTICS=true` par défaut).
 - **Durcissement prod** : [`docs/PRODUCTION_HARDENING.md`](docs/PRODUCTION_HARDENING.md).
 - **Observabilité J1–J7** : [`docs/OBSERVABILITY_J1.md`](docs/OBSERVABILITY_J1.md) (filtres Crashlytics `[VEL_OBS]`, clés custom, boucle RC).
+- **Release courante** : [`docs/RELEASE.md`](docs/RELEASE.md) — hypothèse / KPI / checklist upload store.
 - **Product Playbook** (constitution) : [`docs/PRODUCT_PLAYBOOK.md`](docs/PRODUCT_PLAYBOOK.md) — vision, invariants, cycle, phases, PBR / Activation Score.
 - **Product Backlog** (évolutif) : [`docs/PRODUCT_BACKLOG.md`](docs/PRODUCT_BACKLOG.md) — idées en attente d’hypothèse / sprint.
 - **CI compile store (manuel)** : workflow GitHub *Store release compile check* (AAB release + privacy + Analytics, voir `.github/workflows/store_release_compile.yml`).

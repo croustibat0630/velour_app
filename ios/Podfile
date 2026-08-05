@@ -39,6 +39,10 @@ end
 post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
+    # Xcode récent : refuse les Pods avec IPHONEOS_DEPLOYMENT_TARGET < 15.0.
+    target.build_configurations.each do |config|
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
+    end
     # Xcode 16+ / iOS 18 SDK : headers StoreKit dépréciés dans in_app_purchase_storekit (objc) ;
     # sans cela le module peut échouer au build simulateur/release.
     if target.name == 'in_app_purchase_storekit'

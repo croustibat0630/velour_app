@@ -12,7 +12,7 @@ Locale pour ce fichier : App Store Connect → Français (France) (ou autre vari
 2. Section localisation : choisis la locale indiquée ci‑dessus. Si elle n’existe pas : Informations sur l’app → ajouter la langue, puis reviens sur la version.
 3. Copie chaque bloc dans le champ du même type. Si l’interface Apple est en anglais : Nom = *Name*, Sous-titre = *Subtitle*, Mots-clés = *Keywords*, Texte promotionnel = *Promotional Text*, Description = *Description*, Nouveautés = *What’s New in This Version*.
 4. Le texte promotionnel peut souvent être mis à jour sans nouvelle build (vérifier l’info dans la console au moment du collage).
-5. Nouveautés de cette version : même page de localisation de la version iOS, champ obligatoire par langue — voir la section dédiée plus bas dans ce fichier (à adapter à chaque sortie ; version actuelle du dépôt : 1.2.2+20).
+5. Nouveautés de cette version : même page de localisation de la version iOS, champ obligatoire par langue — voir la section dédiée plus bas dans ce fichier (à adapter à chaque sortie ; version actuelle du dépôt : 1.2.3+21).
 
 ### Google Play Console
 
@@ -73,10 +73,10 @@ Télécharge si tu veux un duel de logique avec toi-même, un classement visible
 
 ## Nouveautés de cette version — App Store (obligatoire par langue)
 
-*Sur la page de la version iOS (même localisation que Nom / Description) : champ « Nouveautés de cette version » ; en interface anglaise : What’s New in This Version. À remplir pour chaque langue de la version. Adapte le texte ci‑dessous à chaque release (réf. dépôt : 1.2.2+20).*
+*Sur la page de la version iOS (même localisation que Nom / Description) : champ « Nouveautés de cette version » ; en interface anglaise : What’s New in This Version. À remplir pour chaque langue de la version. Adapte le texte ci‑dessous à chaque release (réf. dépôt : 1.2.3+21).*
 
-• Affichage bord à bord optimisé sur Android 15+ (barres système et encarts).
-• Effets sonores en partie plus fiables sur Android ; correctifs et stabilité.
+• Première partie : le parcours guidé mène jusqu’au Perfect, puis la run continue.
+• Mesure d’activation améliorée ; correctifs et stabilité.
 
 ---
 
@@ -123,4 +123,4 @@ Tu aimes réfléchir vite, monter au classement, et assumer une run ? Touche Ins
 
 *Ce champ n’est pas sur la fiche principale du store : il apparaît quand tu crées une release (Production ou test), après l’upload de l’AAB, à l’étape « Notes de version » / Release notes — choisir la même langue que ta fiche. Limite de longueur affichée dans la console (souvent courte) : raccourcir si besoin.*
 
-• Android 15 bord à bord ; SFX fiables ; correctifs (v. 1.2.2).
+• Première partie guidée jusqu’au Perfect, puis la run continue ; correctifs (v. 1.2.3).

@@ -11,7 +11,7 @@ Locale pour ce fichier : App Store Connect → Chinois (simplifié) (*Chinese (S
 1. [App Store Connect](https://appstoreconnect.apple.com) → Mes apps → Velour → App Store → version iOS → localisation Chinois (simplifié).
 2. Même emplacement que pour le français : si l’interface Apple est en anglais, repère Name, Subtitle, Keywords, Promotional Text, Description, What’s New in This Version — ce sont les champs où vont les blocs 名称, 副标题, etc. ci‑dessous.
 3. Promotional Text : parfois modifiable sans nouvelle build.
-4. Nouveautés de cette version (*What’s New in This Version*) : obligatoire par langue — voir section dédiée plus bas (adapter à chaque release ; réf. dépôt : 1.2.2+20).
+4. Nouveautés de cette version (*What’s New in This Version*) : obligatoire par langue — voir section dédiée plus bas (adapter à chaque release ; réf. dépôt : 1.2.3+21).
 
 ### Google Play Console
 
@@ -71,10 +71,10 @@ puzzle,strategy,neon,arcade,gems,LUX,leaderboard,perfect,skill,logic,challenge,t
 
 ## 本版本更新 — App Store（各语言必填）
 
-*与「名称」「描述」同一版本本地化页面：此版本的新增内容（界面英文常为 What's New in This Version）。每种语言都要填写。可按每次发版修改（仓库参考：1.2.2+20）。*
+*与「名称」「描述」同一版本本地化页面：此版本的新增内容（界面英文常为 What's New in This Version）。每种语言都要填写。可按每次发版修改（仓库参考：1.2.3+21）。*
 
-• Android 15+ 优化全面屏显示（系统栏与安全区域）。
-• Android 对局音效更可靠；修复与稳定性改进。
+• 首次游玩：引导至 Perfect，随后对局继续。
+• 激活体验优化；修复与稳定性改进。
 
 ---
 
@@ -121,4 +121,4 @@ LUX
 
 *不在主商店详情页单独长期展示：创建版本、上传 AAB 后的「版本说明 / Release notes」步骤，选择与本文档相同语言。注意控制台字数限制。*
 
-• Android 15 全面屏优化；可靠音效；修复（v. 1.2.2）。
+• 引导首个 Perfect，对局继续；修复（v. 1.2.3）。

@@ -63,7 +63,7 @@ Les défauts embarqués (`meta_dda_permille`, `meta_ema_alpha_permille`, etc.) s
 
 ### 3.1 Funnel embarqué (opt-in build)
 
-**Activation / PBR (lecture produit matin)** : voir [`docs/ACTIVATION_PBR_DASHBOARD.md`](ACTIVATION_PBR_DASHBOARD.md) — events `velour_ftue_*`, KPI **PBR** / FTUE Completed / Second Run Rate. Ne pas confondre avec le funnel boutique ci-dessous.
+**Activation / Product Playbook** : voir [`docs/PRODUCT_PLAYBOOK.md`](PRODUCT_PLAYBOOK.md) — Vision, KPI Niveau 1 (PBR / FTUE / Second Run), events `velour_ftue_*`. Ne pas confondre avec le funnel boutique ci-dessous.
 
 Avec `--dart-define=VELOUR_ANALYTICS=true`, le client envoie à Firebase Analytics :
 

@@ -337,4 +337,18 @@ abstract final class VelourAnalytics {
       await body();
     } catch (_) {}
   }
+
+  /// Point d’entrée partagé (Activation Funnel + events ad hoc).
+  static Future<void> safeLogEvent({
+    required String name,
+    Map<String, Object>? parameters,
+  }) async {
+    if (!enabled) return;
+    await _safeLog(() async {
+      await FirebaseAnalytics.instance.logEvent(
+        name: name,
+        parameters: parameters,
+      );
+    });
+  }
 }

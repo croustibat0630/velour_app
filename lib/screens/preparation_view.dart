@@ -8,6 +8,7 @@ import 'package:velour_app/l10n/app_localizations.dart';
 
 import '../providers/game_state.dart';
 import '../services/audio_handler.dart';
+import '../services/velour_activation_funnel.dart';
 import '../services/velour_analytics.dart';
 import '../theme/theme_engine.dart';
 import '../utils/responsive.dart';
@@ -80,6 +81,9 @@ class _PreparationViewState extends State<PreparationView> with RouteAware {
       _syncPendingLuxJuiceIfAny();
     });
     VelourAnalytics.logPrepOpen(stakeKind: _selectedStake?.name ?? 'unset');
+    VelourActivationFunnel.instance.notePrepOpened(
+      stakeKind: _selectedStake?.name ?? 'unset',
+    );
   }
 
   @override
@@ -157,6 +161,10 @@ class _PreparationViewState extends State<PreparationView> with RouteAware {
     if (!mounted) return;
     gs.startNewRun();
     VelourAnalytics.logPrepLaunchConfirmed(
+      stakeKind: stake.name,
+      runInstanceId: gs.analyticsRunInstanceId,
+    );
+    VelourActivationFunnel.instance.notePrepConfirmed(
       stakeKind: stake.name,
       runInstanceId: gs.analyticsRunInstanceId,
     );

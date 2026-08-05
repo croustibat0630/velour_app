@@ -36,6 +36,7 @@ import '../services/narrative_tutorial_service.dart';
 import '../services/oracle_naming_service.dart';
 import '../services/trinity_tutorial_service.dart';
 import '../services/stats_service.dart';
+import '../services/velour_activation_funnel.dart';
 import '../services/velour_analytics.dart';
 import '../services/velour_observability.dart';
 import '../utils/velour_audit_log.dart';
@@ -1508,6 +1509,11 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
       runDurationSec: runDurationSec,
       runInstanceId: analyticsRunInstanceId,
     );
+    VelourActivationFunnel.instance.noteRunFinished(
+      endReason: endReason,
+      runDurationSec: runDurationSec,
+      runInstanceId: analyticsRunInstanceId,
+    );
   }
 
   /// Retour menu / abandon : réinitialise l’état de session **sans rembourser** l’ante
@@ -2288,6 +2294,9 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     }
     _boardItems.removeAt(idx);
     _shapesPlacedThisRun++;
+    if (_shapesPlacedThisRun == 1) {
+      VelourActivationFunnel.instance.noteFirstGemCollected();
+    }
     final Offset from = item.position;
     _slotSeqById[item.id] ??= _slotInsertSeq++;
     velourDebug(
@@ -2486,6 +2495,12 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     };
     await Future<void>.delayed(anim);
     _matchesResolvedThisRun++;
+    if (_matchesResolvedThisRun == 1) {
+      VelourActivationFunnel.instance.noteFirstMatch(basis: basis.name);
+    }
+    if (basis == RunBasis.perfect) {
+      VelourActivationFunnel.instance.noteFirstPerfect(basis: basis.name);
+    }
     final bool narrativePerfectForBanner =
         _narrativeRunEngaged &&
         _narrativeTutorial.isStep3Perfect &&

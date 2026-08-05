@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 
+import 'velour_activation_funnel.dart';
 import 'velour_analytics.dart';
 
 /// Mesure le temps passé avec l’app **au premier plan** (Analytics opt-in).
 ///
 /// Émet `velour_app_foreground_end` à la mise en arrière-plan avec `duration_sec`
 /// (visible dans DebugView / GA4, contrairement aux seuls events Google automatiques).
+/// Sprint 2 : déclenche aussi [VelourActivationFunnel.noteSessionClosed].
 final class VelourAppEngagementTracker {
   VelourAppEngagementTracker._();
 
@@ -29,12 +31,17 @@ final class VelourAppEngagementTracker {
         break;
       case AppLifecycleState.paused:
         _flushForegroundEnd('paused');
+        VelourActivationFunnel.instance.noteSessionClosed(lifecycle: 'paused');
         break;
       case AppLifecycleState.hidden:
         _flushForegroundEnd('hidden');
+        VelourActivationFunnel.instance.noteSessionClosed(lifecycle: 'hidden');
         break;
       case AppLifecycleState.detached:
         _flushForegroundEnd('detached');
+        VelourActivationFunnel.instance.noteSessionClosed(
+          lifecycle: 'detached',
+        );
         break;
       case AppLifecycleState.inactive:
         break;

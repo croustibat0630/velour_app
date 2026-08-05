@@ -25,6 +25,7 @@ import 'package:velour_app/models/game_item.dart';
 import 'package:velour_app/widgets/ui/pause_overlay.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:velour_app/services/audio_handler.dart';
+import 'package:velour_app/services/velour_activation_funnel.dart';
 import 'package:velour_app/services/velour_analytics.dart';
 import 'package:velour_app/services/haptics_handler.dart';
 import 'package:velour_app/widgets/items/gem_shape_paths.dart';
@@ -239,6 +240,10 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
       final GameState gs = context.read<GameState>();
       gs.startGame();
       VelourAnalytics.logRunStart(
+        stakeKind: gs.sessionStake.name,
+        runInstanceId: gs.analyticsRunInstanceId,
+      );
+      VelourActivationFunnel.instance.noteRunStarted(
         stakeKind: gs.sessionStake.name,
         runInstanceId: gs.analyticsRunInstanceId,
       );

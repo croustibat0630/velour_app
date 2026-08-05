@@ -9,6 +9,7 @@ import 'package:velour_app/l10n/app_localizations.dart';
 
 import '../providers/game_state.dart';
 import '../services/audio_handler.dart';
+import '../services/velour_activation_funnel.dart';
 import '../services/velour_analytics.dart';
 import '../services/stats_service.dart';
 import '../theme/theme_engine.dart';
@@ -145,11 +146,16 @@ class _MainMenuViewState extends State<MainMenuView>
       duration: const Duration(milliseconds: 3600),
     )..repeat();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       final GameState gs = context.read<GameState>();
-      gs.loadHighScore();
-      gs.loadEconomyWelcome();
+      await gs.loadHighScore();
+      await gs.loadEconomyWelcome();
+      if (!mounted) return;
       unawaited(_refreshStreak());
+      await VelourActivationFunnel.instance.warmUp(
+        isFirstLaunch: gs.isFirstTimeGame,
+      );
+      VelourActivationFunnel.instance.noteFtueStart();
     });
     VelourAnalytics.logMenuView();
   }
@@ -422,6 +428,8 @@ class _MainMenuViewState extends State<MainMenuView>
                                 fontSize: 17,
                                 letterSpacing: 5.2,
                                 onPressed: () => _primeMenuInteraction(() {
+                                  VelourActivationFunnel.instance
+                                      .noteMenuPlayPressed();
                                   // Activation P0 : 1ʳᵉ fois → même narratif que Tutoriel
                                   // (Perfect garanti) ; sinon prep avec Classique présélectionné.
                                   if (gs.isFirstTimeGame) {

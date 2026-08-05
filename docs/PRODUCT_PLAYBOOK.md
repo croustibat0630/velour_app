@@ -9,7 +9,7 @@
 Les **seuils** Rouge/Orange/Vert se recalibrent avec le volume de données.  
 Le Playbook n’évolue que lorsqu’on découvre quelque chose qui change **fondamentalement** la manière de développer Velour — pas à chaque idée.
 
-Idées / files d’attente : [`docs/PRODUCT_BACKLOG.md`](PRODUCT_BACKLOG.md) (ne pas polluer ce playbook).
+**Statut : GELÉ** (2026-08-05). Les nouvelles idées → [`PRODUCT_BACKLOG.md`](PRODUCT_BACKLOG.md). Les expériences → Cycle Hypothèse → Sprint → Mesure → Validation/Kill. Ce fichier ne change que si la *méthode* de développement est remise en cause.
 
 Tags Git : `activation-p0-ftue` → `activation-s2-funnel`  
 Funnel : `lib/services/velour_activation_funnel.dart`  
@@ -28,9 +28,45 @@ Si une évolution ne la renforce pas → **elle est reportée**.
 **Phase A — Validation du Product-Market Fit initial**  
 Question : *quand quelqu’un découvre Velour, vit-il assez vite le moment qui donne envie de continuer ?*
 
-Le **PBR** (*Perfect Before Quit Rate*) est l’**indicateur principal** de cette hypothèse, **mais il ne la résume pas à lui seul**. Il doit être interprété avec **FTUE Completed**, **Second Run Rate**, et les **données qualitatives** (tests utilisateurs / Programme 100 joueurs).  
+---
 
-Exemple de piège : PBR 90 % + Second Run 12 % ≠ validation. Le Perfect a peut‑être été vu, pas *désiré*.
+## North Star Metric
+
+| | Rôle |
+|--|------|
+| **North Star : PBR** (*Perfect Before Quit Rate*) | Métrique produit fondamentale — exprime la **valeur créée pour le joueur** (a-t-il vécu le moment-clé ?) |
+| **Activation Score** | Indice de **pilotage** (PBR + FTUE Completed + Second Run) — tableau de bord, pas la North Star |
+
+Le PBR est l’**indicateur principal** de l’hypothèse d’activation, **mais il ne la résume pas à lui seul**. Toujours le lire avec **FTUE Completed**, **Second Run Rate**, et le **qualitatif** (tests / Programme 100 joueurs).
+
+### Garde-fou — ne pas « gamer » le PBR
+
+Optimiser le PBR **sans** le plaisir = échec produit.
+
+Exemple de piège : Perfect tellement forcé / facile que PBR = 99 %, mais Second Run s’effondre et le jeu devient inintéressant.  
+On a optimisé la **métrique**, pas l’**expérience**.
+
+Règle : toute hausse de PBR **au détriment** de Second Run, du qualitatif (« ennuyeux », « trop guidé »), ou de la Vision (tension → Perfect **spectaculaire**) est **suspecte** et peut être **killed**.
+
+---
+
+## Assumptions (croyances fondatrices)
+
+Pas des hypothèses de sprint — des **croyances produit** à confirmer ou détruire dans le temps.
+
+```text
+Nous pensons que :
+
+1. Le Perfect est le moment émotionnel principal de Velour.
+2. Si davantage de joueurs vivent ce moment (de façon mémorable),
+   la rétention et le Second Run augmenteront.
+3. Si le Packaging montre ce moment (pas seulement le décor),
+   la conversion store (visite → install) augmentera.
+4. La profondeur (Heat, Stakes, Forge) a de la valeur,
+   mais seulement après que le joueur a compris pourquoi rejouer.
+```
+
+Quand une assumption est invalidée par les données → journal + éventuelle révision constitutionnelle (rare).
 
 ---
 
@@ -102,6 +138,21 @@ Empêche de monétiser ou d’acheter du trafic alors que l’activation n’est
 
 ---
 
+## Risks Register
+
+Risques visibles — à mettre à jour quand un signal apparaît (pas à chaque idée).
+
+| Risque | Gravité | Plan |
+|--------|---------|------|
+| PBR monte mais Second Run stagne / baisse | Élevée | Revoir **valeur** du Perfect (trop forcé ? pas assez désirable ?) — garde-fou North Star |
+| CTR / visites montent mais installs stagnent | Moyenne | Revoir fiche (captures, sous-titre, preview) — Phase B |
+| Beaucoup d’installs mais J1 / Second Run faibles | Élevée | Revenir Phase A — Packaging a amplifié un funnel cassé |
+| N &lt; 30 et décisions prises quand même | Élevée | Anti-panic — observation seule |
+| Optimisation PBR qui viole les Invariants (friction / lecture avant jeu) | Élevée | Kill immédiat de l’hypothèse |
+| Pilotage par revenus avant Niveau 1 stable | Élevée | Refus Phase D anticipée |
+
+---
+
 ## Hiérarchie des KPI
 
 On ne regarde **pas** les revenus avant que le jeu fonctionne.
@@ -112,12 +163,12 @@ Si **un seul** de ces KPI baisse nettement (N ≥ 30) → **on arrête** les aut
 
 | KPI | Rôle |
 |-----|------|
-| **PBR** | Le joueur a-t-il vécu le Perfect avant de quitter ? |
+| **PBR** (North Star) | Le joueur a-t-il vécu le Perfect avant de quitter ? |
 | **FTUE Completed** | A-t-il vraiment « vécu Velour » (Perfect + suite) ? |
 | **Second Run Rate** | A-t-il immédiatement envie de relancer ? |
 
-**Activation Score** (synthèse Niveau 1) — voir lecture matin.  
-Les trois KPI Niveau 1 se lisent **ensemble** (voir nuance PBR ci-dessus).
+**Activation Score** = indice de pilotage (synthèse Niveau 1) — voir lecture matin.  
+Les trois KPI Niveau 1 se lisent **ensemble**.
 
 ### Niveau 2 — Produit
 
@@ -342,7 +393,7 @@ Sur **N ≥ 30** (idéalement plus) :
 |------|----------|----------------------|-----------------|--------------|
 | 2026-08-05 | Activation P0 FTUE | Perfect hors chemin COMMENCER | *en validation* | `activation-p0-ftue` / `0d48545` |
 | 2026-08-05 | Sprint 2 funnel | Mesurer où on perd le joueur | Livré | `activation-s2-funnel` / `6980a69` |
-| 2026-08-05 | Playbook constitutionnel | Invariants, cycle, phases A–E, backlog séparé | Livré | *ce commit* |
+| 2026-08-05 | Playbook **GELÉ** | North Star PBR, Assumptions, Risks, garde-fou anti-gaming | Constitution figée | `c3b78e7` → *freeze* |
 | | Packaging v1 | *(quand Niveau 1 validé)* | | |
 | | Icône V2 | *(si CTR faible)* | | |
 

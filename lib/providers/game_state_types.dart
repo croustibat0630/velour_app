@@ -113,7 +113,7 @@ class FloatingTextFx {
   final int typeId;
   final int colorId;
 
-  /// Style « burst » sur le floater ; le parfait narratif n’affiche plus le floater.
+  /// Style « burst » sur le floater (parfait narratif : +500 / ÉCLAT).
   final bool isNarrativePerfectBurst;
 
   /// Si non null, l’UI affiche la chaîne ARB correspondante au lieu de [text].

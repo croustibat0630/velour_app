@@ -1234,7 +1234,7 @@ abstract class AppLocalizations {
   /// No description provided for @oracleDockCelebration.
   ///
   /// In en, this message translates to:
-  /// **'100 < 150 < 500 LUX\nPerfect streaks power Heat in real games.'**
+  /// **'100 < 150 < 500 LUX\nThe run continues — keep going.'**
   String get oracleDockCelebration;
 
   /// No description provided for @oracleDockStep1StrategyLine.
@@ -1330,19 +1330,19 @@ abstract class AppLocalizations {
   /// No description provided for @prepGuidedTutorialGoalBody.
   ///
   /// In en, this message translates to:
-  /// **'Each match adds in-run LUX and pushes your level. Richer match types—especially a perfect—pay far more than weaker triples. The real skill is choosing which clear you take and when.\n\nChaining perfect matches raises Heat (the meter in real runs): higher tiers add LUX on each perfect and can refill time; weak triples cool it down.'**
+  /// **'Three guided clears: shape → color → perfect. The timer stays frozen so you can learn calmly.'**
   String get prepGuidedTutorialGoalBody;
 
   /// No description provided for @prepGuidedTutorialStrategyTitle.
   ///
   /// In en, this message translates to:
-  /// **'Think before the third gem'**
+  /// **'How to play'**
   String get prepGuidedTutorialStrategyTitle;
 
   /// No description provided for @prepGuidedTutorialStrategyBody.
   ///
   /// In en, this message translates to:
-  /// **'Before you commit a third gem, read your rack: if you are one gem away from three identical gems (same shape and same color), grabbing an easier color-only triple can break the setup and leave a lot of LUX on the table.\n\nIn this walkthrough the timer stays paused so you can practice calmly. In a real run, waiting has a cost—pressure and reward trade off.'**
+  /// **'Tap the pulsing gems. Perfect (same shape and color) is the key moment — watch for +500.'**
   String get prepGuidedTutorialStrategyBody;
 
   /// No description provided for @prepModeCasualTitle.

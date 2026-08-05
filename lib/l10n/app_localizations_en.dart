@@ -668,7 +668,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get oracleDockCelebration =>
-      '100 < 150 < 500 LUX\nPerfect streaks power Heat in real games.';
+      '100 < 150 < 500 LUX\nThe run continues — keep going.';
 
   @override
   String get oracleDockStep1StrategyLine =>
@@ -724,14 +724,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get prepGuidedTutorialGoalBody =>
-      'Each match adds in-run LUX and pushes your level. Richer match types—especially a perfect—pay far more than weaker triples. The real skill is choosing which clear you take and when.\n\nChaining perfect matches raises Heat (the meter in real runs): higher tiers add LUX on each perfect and can refill time; weak triples cool it down.';
+      'Three guided clears: shape → color → perfect. The timer stays frozen so you can learn calmly.';
 
   @override
-  String get prepGuidedTutorialStrategyTitle => 'Think before the third gem';
+  String get prepGuidedTutorialStrategyTitle => 'How to play';
 
   @override
   String get prepGuidedTutorialStrategyBody =>
-      'Before you commit a third gem, read your rack: if you are one gem away from three identical gems (same shape and same color), grabbing an easier color-only triple can break the setup and leave a lot of LUX on the table.\n\nIn this walkthrough the timer stays paused so you can practice calmly. In a real run, waiting has a cost—pressure and reward trade off.';
+      'Tap the pulsing gems. Perfect (same shape and color) is the key moment — watch for +500.';
 
   @override
   String get prepModeCasualTitle => 'CLASSIC MODE';

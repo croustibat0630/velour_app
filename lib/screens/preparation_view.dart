@@ -32,13 +32,18 @@ class PreparationView extends StatefulWidget {
     super.key,
     this.initialStake,
     this.casualStakeOnly = false,
+    this.showGuidedTutorialBriefing = true,
   });
 
   /// Pré-sélectionne une mise (ex. « Rejouer » depuis l’écran de fin).
   final SessionStakeKind? initialStake;
 
-  /// Tutoriel (menu) : uniquement le mode casual — pas d’autres mises sur cet écran.
+  /// Tutoriel / 1ʳᵉ session : uniquement le mode casual — pas d’autres mises sur cet écran.
   final bool casualStakeOnly;
+
+  /// Si [casualStakeOnly] : affiche le briefing tutoriel (menu Tutoriel).
+  /// `false` pour Commencer 1ʳᵉ fois (moins de lecture avant le plateau).
+  final bool showGuidedTutorialBriefing;
 
   @override
   State<PreparationView> createState() => _PreparationViewState();
@@ -64,6 +69,9 @@ class _PreparationViewState extends State<PreparationView> with RouteAware {
       _selectedStake = SessionStakeKind.casual;
     } else if (widget.initialStake != null) {
       _selectedStake = widget.initialStake;
+    } else {
+      // Activation : Classique présélectionné — un choix de moins avant la 1ʳᵉ gemme.
+      _selectedStake = SessionStakeKind.casual;
     }
     // RouteAware callbacks can be missed if subscription happens after the push;
     // this guarantees the first frame consumes any pending LUX juice.
@@ -209,7 +217,8 @@ class _PreparationViewState extends State<PreparationView> with RouteAware {
                       fit: BoxFit.scaleDown,
                       alignment: Alignment.center,
                       child: Text(
-                        widget.casualStakeOnly
+                        widget.casualStakeOnly &&
+                                widget.showGuidedTutorialBriefing
                             ? l10n.menuGuidedTutorial
                             : l10n.prepTitle,
                         textAlign: TextAlign.center,
@@ -301,11 +310,13 @@ class _PreparationViewState extends State<PreparationView> with RouteAware {
                               physics: const BouncingScrollPhysics(),
                               padding: const EdgeInsets.only(bottom: 12),
                               children: <Widget>[
-                                _GuidedTutorialStrategySection(
-                                  scaleH: scaleH,
-                                  maxWidth: cons.maxWidth,
-                                ),
-                                SizedBox(height: gap * 0.75),
+                                if (widget.showGuidedTutorialBriefing) ...[
+                                  _GuidedTutorialStrategySection(
+                                    scaleH: scaleH,
+                                    maxWidth: cons.maxWidth,
+                                  ),
+                                  SizedBox(height: gap * 0.75),
+                                ],
                                 casualModeCard,
                               ],
                             );

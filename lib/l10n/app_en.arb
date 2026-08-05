@@ -368,7 +368,7 @@
   "oracleDockStep1Shape": "Shape = +100 LUX (min.)\nSame silhouette • 3 colors → rack",
   "oracleDockStep2Color": "Color = +150 LUX\nSame hue • 3 shapes → rack",
   "oracleDockStep3Perfect": "Perfect = +500 LUX\n3 identical gems → rack\nBack-to-back perfects build Heat: bonus LUX & time.\nIn real runs, the Heat bar under the score tracks your streak.",
-  "oracleDockCelebration": "100 < 150 < 500 LUX\nPerfect streaks power Heat in real games.",
+  "oracleDockCelebration": "100 < 150 < 500 LUX\nThe run continues — keep going.",
   "oracleDockStep1StrategyLine": "First: one silhouette, three different colors.",
   "oracleDockStep2StrategyLine": "Don't take a weak triple if a perfect is one gem away.",
   "oracleDockStep3StrategyLine": "Weak shape/color clears drop Heat — plan your perfect chain.",
@@ -390,9 +390,9 @@
     "description": "Preparation screen subtitle when opened from menu tutorial (casual only)."
   },
   "prepGuidedTutorialGoalTitle": "What you're building toward",
-  "prepGuidedTutorialGoalBody": "Each match adds in-run LUX and pushes your level. Richer match types—especially a perfect—pay far more than weaker triples. The real skill is choosing which clear you take and when.\n\nChaining perfect matches raises Heat (the meter in real runs): higher tiers add LUX on each perfect and can refill time; weak triples cool it down.",
-  "prepGuidedTutorialStrategyTitle": "Think before the third gem",
-  "prepGuidedTutorialStrategyBody": "Before you commit a third gem, read your rack: if you are one gem away from three identical gems (same shape and same color), grabbing an easier color-only triple can break the setup and leave a lot of LUX on the table.\n\nIn this walkthrough the timer stays paused so you can practice calmly. In a real run, waiting has a cost—pressure and reward trade off.",
+  "prepGuidedTutorialGoalBody": "Three guided clears: shape → color → perfect. The timer stays frozen so you can learn calmly.",
+  "prepGuidedTutorialStrategyTitle": "How to play",
+  "prepGuidedTutorialStrategyBody": "Tap the pulsing gems. Perfect (same shape and color) is the key moment — watch for +500.",
   "prepModeCasualTitle": "CLASSIC MODE",
   "prepModeCasualBody": "Stake: {ante} LUX. Free practice.",
   "@prepModeCasualBody": {

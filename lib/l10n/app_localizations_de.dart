@@ -676,7 +676,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get oracleDockCelebration =>
-      '100 < 150 < 500 LUX\nPerfect-Strecken laden HITZE in echten Partien.';
+      '100 < 150 < 500 LUX\nDie Runde geht weiter — spiel weiter.';
 
   @override
   String get oracleDockStep1StrategyLine =>
@@ -732,15 +732,14 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get prepGuidedTutorialGoalBody =>
-      'Jeder Match bringt LUX in der Runde und treibt dein Level. Reichere Match-Typen — vor allem ein Perfect — zahlen viel mehr als schwächere Drillinge. Die Kunst ist, welchen Clear du nimmst und wann.\n\nMehrere Perfects in Folge erhöhen die HITZE (Leiste in echten Runden): höhere Stufen boosten Perfect-LUX und können Zeit zurückgeben; schwache Drillinge kühlen sie ab.';
+      'Drei geführte Clears: Form → Farbe → Perfect. Der Timer bleibt stehen, damit du ruhig lernst.';
 
   @override
-  String get prepGuidedTutorialStrategyTitle =>
-      'Erst lesen, dann die 3. ziehen';
+  String get prepGuidedTutorialStrategyTitle => 'So spielst du';
 
   @override
   String get prepGuidedTutorialStrategyBody =>
-      'Bevor du die dritte Edelsteinwahl finalisierst, sieh aufs Rack: fehlt dir nur noch **ein** Stein zu drei **identischen** (gleiche Form und gleiche Farbe), kann ein leichter Nur-Farben-Drilling dein Setup zerstören und viel LUX kosten.\n\nHier bleibt der Timer angehalten, damit du ruhig üben kannst. In einer echten Runde kostet Warten ebenfalls Zeit — Druck und Belohnung stehen im Wechselspiel.';
+      'Tippe die pulsierenden Steine. Perfect (gleiche Form und Farbe) ist der Schlüsselmoment — achte auf +500.';
 
   @override
   String get prepModeCasualTitle => 'KLASSISCHER MODUS';

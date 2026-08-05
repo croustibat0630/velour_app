@@ -666,7 +666,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get oracleDockCelebration =>
-      '100 < 150 < 500 LUX\nLes parfaits d’affilée boostent le FEU en partie.';
+      '100 < 150 < 500 LUX\nLa partie continue — enchaîne maintenant.';
 
   @override
   String get oracleDockStep1StrategyLine =>
@@ -723,14 +723,14 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get prepGuidedTutorialGoalBody =>
-      'Chaque match ajoute des LUX en partie et fait monter le niveau. Les matchs « plus riches » — surtout le parfait — valent beaucoup plus qu’une petite combinaison : le jeu, c’est surtout le timing et le bon choix de match.\n\nEnchaîner les parfaits fait monter le FEU (la jauge en partie réelle) : plus de LUX sur chaque parfait et du temps récupérable ; un triple faible le fait redescendre.';
+      'Trois matchs guidés : forme → couleur → parfait. Le chrono est figé pour apprendre au calme.';
 
   @override
-  String get prepGuidedTutorialStrategyTitle => 'Lire le rack avant d’agir';
+  String get prepGuidedTutorialStrategyTitle => 'Comment jouer';
 
   @override
   String get prepGuidedTutorialStrategyBody =>
-      'Avant de valider une 3ᵉ gemme, regarde la suite : si tu es à une gemme d’un triplet identique (même forme et même couleur), un match « couleur seule » peut casser ta mise en place et te faire perdre énormément de potentiel.\n\nIci le chrono est figé pour t’entraîner au calme ; en partie réelle, trop hésiter coûte aussi du temps.';
+      'Tape les gemmes qui pulsent. Le Perfect (même forme et même couleur) est le moment-clé — regarde le +500.';
 
   @override
   String get prepModeCasualTitle => 'MODE CLASSIQUE';

@@ -413,24 +413,6 @@ class _MainMenuViewState extends State<MainMenuView>
                                 ),
                                 SizedBox(height: 16 * scaleH),
                               ],
-                              if (gs.canClaimDailyLuxBonus ||
-                                  _dailyLuxClaimBusy) ...[
-                                MenuTextButton(
-                                  label: l10n.menuDailyLuxBonus(
-                                    GameState.dailyLuxBonusAmount,
-                                  ),
-                                  neon: gold.withValues(alpha: 0.94),
-                                  scale: scaleH * 0.92,
-                                  baseAlpha: 0.9,
-                                  neonShadowBlur: 16,
-                                  fontSize: 13.5,
-                                  letterSpacing: 3.8,
-                                  onPressed: () => _primeMenuInteraction(() {
-                                    unawaited(_claimDailyLuxBonus(gs, l10n));
-                                  }),
-                                ),
-                                SizedBox(height: 14 * scaleH),
-                              ],
                               MenuTextButton(
                                 label: l10n.menuPlay,
                                 neon: te.colorForId(1),
@@ -440,9 +422,28 @@ class _MainMenuViewState extends State<MainMenuView>
                                 fontSize: 17,
                                 letterSpacing: 5.2,
                                 onPressed: () => _primeMenuInteraction(() {
-                                  Navigator.of(
-                                    context,
-                                  ).push(fadeRoute(const PreparationView()));
+                                  // Activation P0 : 1ʳᵉ fois → même narratif que Tutoriel
+                                  // (Perfect garanti) ; sinon prep avec Classique présélectionné.
+                                  if (gs.isFirstTimeGame) {
+                                    gs.requestGuidedTutorialReplay();
+                                    Navigator.of(context).push(
+                                      fadeRoute(
+                                        const PreparationView(
+                                          initialStake: SessionStakeKind.casual,
+                                          casualStakeOnly: true,
+                                          showGuidedTutorialBriefing: false,
+                                        ),
+                                      ),
+                                    );
+                                  } else {
+                                    Navigator.of(context).push(
+                                      fadeRoute(
+                                        const PreparationView(
+                                          initialStake: SessionStakeKind.casual,
+                                        ),
+                                      ),
+                                    );
+                                  }
                                 }),
                               ),
                               SizedBox(height: 12 * scaleH),
@@ -463,6 +464,24 @@ class _MainMenuViewState extends State<MainMenuView>
                                   );
                                 }),
                               ),
+                              if (gs.canClaimDailyLuxBonus ||
+                                  _dailyLuxClaimBusy) ...[
+                                SizedBox(height: 14 * scaleH),
+                                MenuTextButton(
+                                  label: l10n.menuDailyLuxBonus(
+                                    GameState.dailyLuxBonusAmount,
+                                  ),
+                                  neon: gold.withValues(alpha: 0.94),
+                                  scale: scaleH * 0.92,
+                                  baseAlpha: 0.9,
+                                  neonShadowBlur: 16,
+                                  fontSize: 13.5,
+                                  letterSpacing: 3.8,
+                                  onPressed: () => _primeMenuInteraction(() {
+                                    unawaited(_claimDailyLuxBonus(gs, l10n));
+                                  }),
+                                ),
+                              ],
                               SizedBox(height: 14 * scaleH),
                               MenuTextButton(
                                 label: l10n.menuLeaderboard,

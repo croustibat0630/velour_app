@@ -305,25 +305,26 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
   bool get isTrinityTutorialComplete => _trinityTutorial.isComplete;
 
   /// Prefs « première partie » : reste `true` tant que le tutoriel narratif
-  /// n’a pas été terminé depuis le menu [requestGuidedTutorialReplay] (persisté).
-  /// Ne déclenche plus automatiquement le narratif sur « Commencer ».
+  /// n’a pas été terminé (persisté). Le menu « Commencer » arme alors le narratif
+  /// via [requestGuidedTutorialReplay] (même branche que « Tutoriel »).
   /// Défaut `false` jusqu’à [loadEconomyWelcome] (évite les tests sans prefs).
   bool _isFirstTimeGame = false;
   bool get isFirstTimeGame => _isFirstTimeGame;
 
-  /// Relance volontaire du tutoriel narratif (menu) — consommé au lancement d’une partie casual.
+  /// Prochaine run casual : brancher le tutoriel narratif (1ʳᵉ fois via Commencer, ou menu Tutoriel).
   bool _guidedTutorialReplayPending = false;
 
-  /// `true` le temps d’une run casual lancée depuis le menu « Tutoriel ».
+  /// `true` le temps d’une run casual avec plateau narratif scripté.
   bool _narrativeReplayThisRun = false;
 
-  /// Incrémenté à la fin du tutoriel narratif : [GameScreen] renvoie au menu principal.
+  /// Legacy : anciennement renvoyait au menu après le narratif.
+  /// Conservé pour l’écoute [GameScreen] ; plus incrémenté (handoff free play).
   int _narrativeTutorialReturnToMainMenuTick = 0;
 
   int get narrativeTutorialReturnToMainMenuTick =>
       _narrativeTutorialReturnToMainMenuTick;
 
-  /// Narrative active : uniquement une run casual lancée depuis le menu Tutoriel.
+  /// Narrative active : run casual armée pour le tutoriel guidé.
   bool get _narrativeRunEngaged =>
       _narrativeReplayThisRun && _sessionStake == SessionStakeKind.casual;
 
@@ -376,7 +377,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
 
   bool get isTrinityTutorialActive => isTrinityTutorialChronoFrozen;
 
-  /// Chrono figé pendant la séquence narrative (lancement depuis le menu Tutoriel).
+  /// Chrono figé pendant la séquence narrative (Commencer 1ʳᵉ fois / menu Tutoriel).
   bool get isNarrativeTutorialChronoFrozen =>
       _narrativeTutorial.isChronoFrozen(_narrativeRunEngaged);
 
@@ -1349,7 +1350,7 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     return false;
   }
 
-  /// Prochaine partie **casual** : rejouer le tutoriel narratif (depuis le menu).
+  /// Prochaine partie **casual** : tutoriel narratif (menu Tutoriel, ou Commencer si [isFirstTimeGame]).
   void requestGuidedTutorialReplay() {
     _guidedTutorialReplayPending = true;
     notifyListeners();
@@ -1836,10 +1837,17 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     _guidedTutorialReplayPending = false;
     _trinityTutorial.markCompleteFromNarrative();
     await _localDisk.persistNarrativeTutorialComplete();
-    // Respiration après la bannière, puis retour menu (le tutoriel n’est pas une run « à poursuivre »).
+    // Respiration après le Perfect, puis free casual sur le même écran (capitalise la dopamine).
     await Future<void>.delayed(const Duration(milliseconds: 700));
     _narrativeTutorial.bumpPostSpawnFade();
-    _narrativeTutorialReturnToMainMenuTick++;
+    _initPerfectHeatForFreshReset();
+    timeBar.value = 1.0;
+    _fillBoardToCap();
+    if (!_timeLoopSlot.isActive) {
+      _startTimeLoop();
+    }
+    _runStartedAt ??= DateTime.now();
+    _lastPlayerActionAt = DateTime.now();
     notifyListeners();
   }
 
@@ -2618,10 +2626,17 @@ class GameState extends ChangeNotifier with WidgetsBindingObserver {
     final bool perfectHeatNear =
         perfectHeatMechanicsActive &&
         PerfectHeatLogic.isNearMiss(kind, basis, runCount);
-    // Parfait narratif : la bannière centrale porte le message — pas de floater
-    // (évite triple +500 et laisse disparaître l’ancien +150 au même tick).
+    // Parfait narratif : bannière + floater burst (+500 / ÉCLAT) — dopamine chiffrée.
     if (narrativePerfectFloat) {
-      _floatingTextFx = null;
+      _floatingTextFx = FloatingTextFx(
+        id: _nextId(),
+        text: luxLabel,
+        position: center,
+        typeId: typeId,
+        colorId: 0,
+        isNarrativePerfectBurst: true,
+        narrativeFloatKey: NarrativeFloatingKey.perfectBonus,
+      );
       _floatingTick++;
     } else {
       final FloatingTextFx nextLuxFloater = FloatingTextFx(
